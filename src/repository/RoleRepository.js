@@ -1,5 +1,5 @@
 
-import roles from '../data/roles.yml.dist';
+import roles from '../data/roles.yml';
 import Role from '../domain/Role';
 
 export class RoleRepository{

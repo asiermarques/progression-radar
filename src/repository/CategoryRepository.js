@@ -1,5 +1,5 @@
 
-import categories from '../data/categories.yml.dist';
+import categories from '../data/categories.yml';
 import Category from '../domain/Category';
 
 export class CategoryRepository {
