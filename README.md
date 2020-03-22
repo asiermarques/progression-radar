@@ -1,4 +1,5 @@
 # Progression radar
+[![Progression radar](https://circleci.com/gh/asiermarques/progression-radar.svg?style=svg)](https://app.circleci.com/pipelines/github/asiermarques/progression-radar)
 
 Progression Radar is a simple visualization tool for career and learning paths. 
 
