@@ -2,7 +2,7 @@
 [![CircleCI](https://circleci.com/gh/asiermarques/progression-radar.svg?style=svg)](https://circleci.com/gh/asiermarques/progression-radar) 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/940ce5bc-5c80-41e0-8756-96b9e9dfc3e7/deploy-status)](https://app.netlify.com/sites/progression-radar/deploys)
 
-Progression Radar is a simple visualization tool for career and learning paths. 
+Progression Radar is a simple visualisation tool for career and learning paths. 
 
 Live demo: [https://progression-radar.netlify.com](https://progression-radar.netlify.com/)
 
