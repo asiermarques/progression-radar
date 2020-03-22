@@ -1,0 +1,88 @@
+$enable-rounded:false;
+
+$blue:    #007bff;
+$indigo:  #6610f2;
+$purple:  #6f42c1;
+$pink:    #e83e8c;
+$red:     #dc3545;
+$orange:  #fd7e14;
+$yellow:  #ffc107;
+$green:   #28a745;
+$teal:    #20c997;
+$cyan:    #17a2b8;
+
+$white:    #fff;
+$gray-100: #f8f9fa;
+$gray-200: #e9ecef;
+$gray-300: #dee2e6;
+$gray-400: #ced4da;
+$gray-500: #adb5bd;
+$gray-600: #6c757d;
+$gray-700: #495057;
+$gray-800: #343a40;
+$gray-900: #212529;
+$black:    #000;
+
+$primary:       $pink;
+$secondary:     $gray-700;
+$success:       $green;
+$info:          $cyan;
+$warning:       $yellow;
+$danger:        $red;
+$light:         $gray-100;
+$dark:          $gray-800;
+
+
+$font-size-base:              .8rem;
+
+@import "~bootstrap/scss/bootstrap";
+
+h1.title {
+    margin-top: 40px;
+    font-weight: 200;
+    color: $primary;
+}
+.badge{
+    font-weight: 400;
+    text-transform: uppercase;
+    font-size: .6em;
+    padding: .4em .6em;
+}
+
+#person-panel{
+    margin-top: 6em;
+    h3.name, p.role{
+        margin-bottom: 0px;
+    }
+    .badge{
+        margin-right: 4px;
+    }
+    label{
+        margin-top: 20px;
+    }
+}
+
+#category-panel{
+    .kpi{
+        padding: 2em;
+        margin: 2em 0;
+        border: 1px solid $gray-500;
+    }
+    .category-nav, .levels-nav{
+        a{
+            font-size: 12px
+        }
+        a.active{
+            background-color: $primary;
+        }
+    }
+    .levels-nav{
+        margin-bottom: 6px;
+    }
+    .category-nav{
+        margin-bottom: 30px;
+        .active{
+            background-color: $gray-500;
+        }
+    }
+}

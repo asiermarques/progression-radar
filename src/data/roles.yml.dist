@@ -1,0 +1,8 @@
+-
+  key:  aswe
+  name: Associate Software Engineer
+  levels: { comm: 1, pm: 1, des: 1, ops: 1, front: 1, back: 1}
+-
+  key:  front
+  name: Frontend Software Engineer
+  levels: { comm: 3, pm: 3, des: 3, ops: 1, front: 3, back: 1 }

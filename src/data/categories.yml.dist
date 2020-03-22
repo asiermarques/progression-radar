@@ -1,0 +1,457 @@
+- 
+  key: comm
+  name: Communication
+  description: Shares the right amount of information with the right people, at the right time, and listens effectively
+  kpis: 
+    - 
+      summary: Provides regular status updates to their team
+      description:  >
+        **Example behaviors:**
+
+        * Communicates project status clearly and effectively
+
+        * Expose the blockers in the stand up meetings
+
+        * Update the Jira status for her assigned issues
+
+      tags: ["tech"]
+      level: 1
+
+    - 
+      summary: Details the context in all the collaborative tools and channels
+      description:  >
+        **Example behaviors:**
+
+        * Write detailed descriptions in her Pull Request issues
+
+        * Write detailed comments and descriptions in the Jira issues
+
+        * Give context when someone ask about something in Slack, Email and other communication tools
+      tags: ["tech"]
+      level: 1
+
+    -
+      summary: Contribute to all the engineering meetings
+      description:  >
+        **Example behaviors:**
+
+        * Expose her concerns in the meetings
+
+        * Propose new ideas and challenges the exposed ones
+
+        * Research about the topics before the meeting
+      tags: ["tech"]
+      level: 2
+
+    - summary: Active listening
+      description:  >
+        **Example behaviors:**
+
+        * Listen before to talk
+
+        * Focuses in understand the speaker message
+      tags: ["tech"]
+      level: 3
+
+    - summary: Ask for feedback
+      description:  >
+        **Example behaviors:**
+
+        * Ask for feedback and objectives in the periodic one-on-ones with her manager
+
+        * Ask for feedback to their workmates
+
+        * Propose new mechanism to give or receive feedback in her team
+      tags: ["tech"]
+      level: 3
+
+    - summary: Provides feedback
+      description:  >
+        **Example behaviors:**
+
+        * Provides positive feedback with clear context
+
+        * Design tools to give and receive feedback company wide
+
+      tags: ["tech", "management"]
+      level: 4
+
+    - summary: Drives meetings
+      description:  >
+        **Example behaviors:**
+
+        * Help others to find solutions
+
+        * Make all the people maintain the focus in the meeting scope
+
+        * Help to get clear action points
+
+        * Ensure that the meeting have a clear agenda in advance
+      tags: ["tech"]
+      level: 4
+
+    - summary: Communicate cleary company wide
+      description:  >
+        **Example behaviors:**
+
+        * Uses storytelling practices
+
+        * Uses a technical and non-technical language depending of the audience
+
+        * Care about tone, rhythmic and narrative style
+
+      tags: ["tech", "management"]
+      level: 5
+- 
+  key: pm
+  name: Project Management
+  description: Coordinate and delegate work; manage dependencies between projects
+  kpis: 
+    - 
+      summary: Effectively delivers individual tasks
+      description:  >
+        **Example behaviors:**
+
+          * Estimates small tasks accurately
+
+          * Delivers tightly-scoped projects efficiently
+
+          * Writes effective technical specs outlining approach
+      tags: ["tech", "management"]
+      level: 1
+    -
+      summary: Effectively delivers small personal projects
+      description:  >
+        **Example behaviors:**
+
+          * Performs research and considers alternative approaches
+
+          * Balances pragmatism and polish appropriately
+
+          * Defines and hits interim milestones
+      tags: ["tech", "management"]
+      level: 2
+    -
+      summary: Effectively delivers projects through a small team
+      description:  >
+        **Example behaviors:**
+
+          * Delegates tasks to others appropriately
+
+          * Integrates business needs into project planning
+
+          * Chooses appropriate project management strategy based on context
+      tags: ["tech", "management"]
+      level: 3
+    -
+      summary: Effectively delivers projects through a large team, or with a significant amount of stakeholders or complexity
+      description:  >
+        **Example behaviors:**
+
+          * Finds ways to deliver requested scope faster, and prioritizes backlog
+
+          * Manages dependencies on other projects and teams
+
+          * Leverages recognition of repeated project patterns
+      tags: ["tech", "management"]
+      level: 4
+    -
+      summary: Manages major company pushes delivered by multiple teams
+      description:  >
+        **Example behaviors:**
+
+          * Considers external constraints and business objectives when planning
+
+          * Leads teams of teams, and coordinates effective cross-functional collaboration
+
+          * Owns a key company metric
+      tags: ["tech", "management"]
+      level: 5
+- 
+  key: des
+  name: Design
+  description: Visual and Interaction design
+  kpis: 
+    - 
+      summary: Understanding of the basics of visual and interaction design
+      description:  >
+        **Example behaviors:**
+
+        * Understanding of the basics of visual (layout, type, colour, iconography) and interaction design (gestalt, Fitt's law, Hick's law, etc.)
+
+        * Experience using Sketch or the tool of your choice to turn your knowledge into real design work.
+
+      tags: ["tech"]
+      level: 1
+
+    -
+      summary: Basic collaboration
+      description:  >
+        **Example behaviors:**
+
+        * You work with other designers to aid your understanding of how and why to make decisions, and the trade-offs that come with them.
+
+        * You learn from your mistakes and take feedback graciously making the most of our design critique mechanisms.
+
+      tags: ["tech"]
+      level: 1
+    - 
+      summary: Proficient in multiple aspects of digital product design and user research
+      description:  >
+        **Example behaviors:**
+
+        * You always know how to use time, haptics, sound and motion to create the condition for a great product experience while carrying with you all the insights learnt during the discovery cycles.
+
+        * You don't always think about design principles because they come to you naturally without even thinking about it anymore.
+
+        * You've also mastered your toolkit to work as fast as the tools allow, you know all the shortcuts, you install plugins to work more efficiently and you know what's new on every single release of the tools you use.
+      tags: ["tech"]
+      level: 2
+
+    -
+      summary: Master interaction design and know enough about research to bridge the gaps
+      description:  >
+        **Example behaviors:**
+
+        * You want to stay as an individual contributor, close to the pixels and their users.
+
+        * Your experience allows you to understand the business as a whole and to proactively identify where your impact can be bigger.
+
+        * Product vision, direction and execution don't represent a challenge to you anymore, and people just come to you knowing you'll have thought already of solutions.
+      tags: ["tech"]
+      level: 3
+
+    -
+      summary: You've mastered multiple design disciplines but you also know who the experts are and are able to delegate accordingly.
+      description:  >
+        **Example behaviors:**
+
+        * Drive design systems conception that solves problems in all the required areas.
+
+        * Mentor other area members to gain knowledge about basic design principles.
+      tags: ["tech"]
+      level: 4
+
+    -
+      summary: You have a very wide breadth of knowledge and you can easily switch context and pick up on new concepts.
+      description:  >
+        **Example behaviors:**
+
+        * You understand the big picture and integrate the company goals into Design.
+
+        * You're also great at communicating the long-term vision & mission for the company.
+
+        * You unblock people outside of Design because of all the context and willingness you carry with you.
+      tags: ["tech"]
+      level: 5
+- 
+  key: ops
+  name: Cloud and Operations
+  description: Infrastructure and cloud related skills
+  kpis: 
+    - 
+      summary: Core cloud infrastructure and platform services
+      description:  >
+        **Example behaviors:**
+
+        * Knows what are the core cloud products using in the engineering area
+
+        * Knows how to create and mantain compute instances
+
+        * Knows core protocol and networking concepts
+
+      tags: ["tech", "management"]
+      level: 1
+    -
+      summary: Containers and orchestation
+      description:  >
+        **Example behaviors:**
+
+        * Know how to use kubernetes in your local machine and in the cloud
+
+        * Knows how to manage and scale the configuration taking in account the security matters
+
+        * Knows how to manage the different services and patterns related with the storage
+
+      tags: ["tech", "management"]
+      level: 2
+    -
+      summary: Networking
+      description:  >
+        **Example behaviors:**
+
+        * Know how to connect resources in different regions and zones
+
+        * Knows how to design vlans
+
+        * Knows how to connect private and public clouds
+
+      tags: ["tech", "management"]
+      level: 3
+    -
+      summary: Monitoring management
+      description:  >
+        **Example behaviors:**
+
+        * Know how to customize the monitorization dashboards to gain useful visualization and alerting
+
+        * Knows how implement logs, tracing and monitorization
+
+        * Manage the storage policies of the monitoring information
+
+      tags: ["tech", "management"]
+      level: 4
+
+    -
+      summary: Architecting resilience systems
+      description:  >
+        **Example behaviors:**
+
+        * Make periodic diagnosis about the system behaviour
+
+        * Design mechanism to adapt the systems to workloads or failure
+
+      tags: ["tech", "management"]
+      level: 5
+- 
+  key: front
+  name: Frontend
+  description: Software engineering specialized in frontend technologies
+  kpis: 
+    - 
+      summary: Works effectively within established web client architectures, following current best practices
+      description:  >
+        **Example behaviors:**
+
+        * Makes minor modifications to existing screens
+
+        * Fixes simple design quality issues
+
+        * Uses CSS appropriately, following style guide
+
+      tags: ["tech"]
+      level: 1
+    -
+      summary: Develops new instances of existing architecture, or minor improvements to existing architecture
+      description:  >
+        **Example behaviors:**
+
+        * Makes sensible abstractions based on template and code patterns
+
+        * Specs and builds interactive components independently
+
+        * Prototypes simple new features quickly
+
+      tags: ["tech"]
+      level: 2
+    -
+      summary: Designs major new features and demonstrates a nuanced understanding of browser constraints
+      description:  >
+        **Example behaviors:**
+
+        * Provides useful design feedback and suggests feasible alternatives
+
+        * Performs systemic tasks to significantly minimise bundle size
+
+        * Acts a caretaker for all of web client code
+
+      tags: ["tech"]
+      level: 3
+    -
+      summary: Builds complex, reusable architectures that pioneer best practices and enable engineers to work more effectively
+      description:  >
+        **Example behaviors:**
+
+        * Pioneers architecture migrations that reduce programmer burden
+
+        * Implements complex UI transitions that bring delight
+
+        * Implements complex UI transitions that bring delight
+
+      tags: ["tech"]
+      level: 4
+
+    -
+      summary: Is an industry-leading expert in web client or sets strategic web client direction for an eng team
+      description:  >
+        **Example behaviors:**
+
+        * Invents new techniques to innovate and overcome browser constraints
+
+        * Identifies and solved systemic problems with current architecture
+
+        * Defines a long-term vision for web client and ensures projects are in service of it
+
+      tags: ["tech"]
+      level: 5
+- 
+  key: back
+  name: Backend
+  description: Software engineering specialized in backend technologies
+  kpis:
+    -
+      summary: Works effectively within established backend architectures, following current best practices
+      description:  >
+        **Example behaviors:**
+
+        * Makes minor modifications to existing microservices
+
+        * Fixes simple bugs and tech debt related issues
+
+        * Uses TDD, unit and functional testing to ensure the quality
+
+      tags: ["tech"]
+      level: 1
+    -
+      summary: Develops new instances of existing architecture, or minor improvements to existing architecture
+      description:  >
+        **Example behaviors:**
+
+        * Makes sensible abstractions based on SOLID principles and code patterns
+
+        * Specs and builds libs and components independently
+
+        * Deliver simple new features quickly
+
+      tags: ["tech"]
+      level: 2
+    -
+      summary: Designs major new features and demonstrates a nuanced understanding of distributed systems constraints
+      description:  >
+        **Example behaviors:**
+
+        * Provides useful feedback about architecture decisions and suggests feasible alternatives
+
+        * Performs systemic tasks to significantly minimise complexity
+
+        * Acts a caretaker for all of the backend code
+
+      tags: ["tech"]
+      level: 3
+    -
+      summary: Builds complex, reusable architectures that pioneer best practices and enable engineers to work more effectively
+      description:  >
+        **Example behaviors:**
+
+        * Pioneers architecture migrations that reduce programmer burden
+
+        * Implements new tools for make the microservices observable
+
+        * Implements and coach about DDD and Hexagonal architecture best practices
+
+      tags: ["tech"]
+      level: 4
+
+    -
+      summary: Is an industry-leading expert in web client or sets strategic web client direction for an eng team
+      description:  >
+        **Example behaviors:**
+
+        * Invents new techniques to innovate and overcome distributed systems constraints
+
+        * Identifies and solved systemic problems with current architecture
+
+        * Defines a long-term vision for the backend architecture and ensures projects are in service of it
+
+      tags: ["tech"]
+      level: 5

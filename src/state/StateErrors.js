@@ -1,0 +1,1 @@
+export const INVALID_INPUT_STATE = "invalid_input_state";
