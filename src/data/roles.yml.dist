@@ -6,3 +6,15 @@
   key:  front
   name: Frontend Software Engineer
   levels: { comm: 3, pm: 3, des: 3, ops: 1, front: 3, back: 1 }
+-
+  key:  back
+  name: Backend Software Engineer
+  levels: { comm: 3, pm: 3, des: 3, ops: 2, front: 2, back: 3 }
+-
+  key:  sfront
+  name: Staff Frontend Software Engineer
+  levels: { comm: 5, pm: 4, des: 3, ops: 2, front: 5, back: 2 }
+-
+  key:  sback
+  name: Staff Backend Software Engineer
+  levels: { comm: 5, pm: 3, des: 3, ops: 3, front: 2, back: 5 }

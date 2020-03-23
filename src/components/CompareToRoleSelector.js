@@ -12,7 +12,7 @@ class CompareToRoleSelector extends React.Component {
 
     selectComparationRole = (e) => this.dispatchSelectComparationRole(e.target.value);
 
-    render = () => <label>
+    render = () => <label id="role-selector">
         Compare to <select className="form-control roles" 
                            onChange={this.selectComparationRole.bind(this)}
                            defaultValue={this.compareTo?.key}>
