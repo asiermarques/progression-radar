@@ -2,7 +2,6 @@ import { connect } from 'react-redux';
 import RadarChart from '../components/RadarChart';
 
 const mapStateToProps = state => {
-
   return {
     categories: state.personLevels.map(categoryWithLevel => categoryWithLevel.category.name),
     targetSerie: {

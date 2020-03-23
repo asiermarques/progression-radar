@@ -10,7 +10,7 @@ export class RoleRepository{
 
     getRoles = () => this.roles;
 
-    getRoleByKey = (key) => this.getRoles().reduce((selectedRole, role) => role.getKey() === key ? role : null, null)
+    getRoleByKey = (key) => this.roles.reduce((selectedRole, role) => role.getKey() === key ? role : selectedRole, null)
 }
 
 export const roleRepositoryInstance = new RoleRepository();
