@@ -11,7 +11,7 @@ import StateParser from './state/StateParser';
 import ParseError from './views/ParseError';
 import {categoryRepositoryInstance} from './repository/CategoryRepository';
 import {roleRepositoryInstance} from './repository/RoleRepository';
-import { INVALID_INPUT_STATE } from './state/StateErrors';
+import { INVALID_INPUT_STATE, NO_INPUT_STATE } from './state/StateErrors';
 import { stateSettedUp } from './actions/all';
 import {NO_ROLES_EXCEPTION, ExampleService } from "./domain/service/ExampleService";
 
@@ -19,12 +19,12 @@ const categoryService = new CategoryService(categoryRepositoryInstance);
 const exampleService = new ExampleService(roleRepositoryInstance);
 const stateValidatorFactory = new StateValidatorFactory(categoryService.getCategories());
 const stateParser = new StateParser(stateValidatorFactory.create(), categoryService, roleRepositoryInstance);
+const status = exampleService.getExample();
 
 try {
 
-    const status = exampleService.getExample();
-    if(!window.location.search)
-        window.location.href = stateParser.toUrl(status);
+    if(!window.location.search) 
+        throw NO_INPUT_STATE;
 
     const state = stateParser.fromUrl(window.location);
     const store = createStore(UpdateLevelsReducer, state);
@@ -44,6 +44,11 @@ try {
 } catch(err) {
 
     switch (err) {
+
+        case NO_INPUT_STATE:
+            window.location.href = stateParser.toUrl(status);
+            break;
+
         case INVALID_INPUT_STATE:
             ReactDOM.render(<ParseError schema={JSON.stringify(stateValidatorFactory.createSchema(), null, 1)}/>, document.getElementById('root'));
             break;
