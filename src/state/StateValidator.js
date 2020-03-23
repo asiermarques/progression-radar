@@ -5,10 +5,10 @@ export default class {
 
     constructor(categories = []) {
         this.categories = categories;
-        this.validatorCreator = new jsonSchemaValidator();
+        this.validator = (new jsonSchemaValidator()).compile(this.createSchema());
     }
 
-    create = () => this.validatorCreator.compile(this.createSchema());
+    validate = (data) => this.validator(data)
 
     createSchema = () => {
         return {
