@@ -32,7 +32,7 @@ it("should render the component", () => {
     );
   });
   expect(pretty(container.innerHTML)).toMatchInlineSnapshot(`
-    "<label>Compare to <select class=\\"form-control roles\\">
+    "<label id=\\"role-selector\\">Compare to <select class=\\"form-control roles\\">
         <option>Select a role</option>
         <option value=\\"test\\" selected=\\"\\">Test</option>
       </select></label>"

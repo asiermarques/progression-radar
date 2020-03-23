@@ -34,7 +34,7 @@ const RadarChart = (props) => {
       series: series
   };
 
-    return (<Chart 
+    return (<Chart id="radar-chart"
         options={state.options} 
         series={state.series} 
         type="radar" 

@@ -126,3 +126,11 @@ h1.title {
         }
     }
 }
+
+#radar-chart{
+        height: 400px!important;
+        @media screen and (min-width: #{map-get($container-max-widths, "md")}) {
+            height: 600px!important;
+        }
+    
+}
