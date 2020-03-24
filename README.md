@@ -23,6 +23,20 @@ This project is still in wip; there is no release yet.
 
 ## Getting started
 
+### Installation
+
+The first step is clone this repository and install all the dependencies.  
+You will need git and yarn intalled in your computer. You can see how to install yarn in the [yarn website](https://classic.yarnpkg.com/en/docs/install).
+
+Then, you are ready to clone and install the dependencies:
+
+```
+git clone git@github.com:asiermarques/progression-radar.git
+cd progression-radar
+
+yarn install
+```
+
 To start to use the app, you need to copy the configuration data files.
 
 ```
@@ -36,9 +50,9 @@ And then, start the development server.
 yarn start
 ```
 
-## Customize your path
+### Customize your path
 
-### Configure the categories
+#### Configure the categories
 
 The categories represent the areas in your path, i.e.: communication, software engineering. All the categories are configured in the ./src/data/categories.yaml file.
 
@@ -97,7 +111,7 @@ Each KPI will be an entry of the **kpis** category field and will have these fie
       level: 1
 ```
 
-### Configure the roles
+#### Configure the roles
 
 A role is a step in your ladder. You will grow from one role to another, reaching specific levels in each category.  
 All the roles are configured in the ./src/data/roles.yaml file.
