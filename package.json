@@ -1,7 +1,7 @@
 {
   "name": "progression-radar",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
   "dependencies": {
     "@babel/core": "7.7.4",
     "@friends-of-js/yaml-loader": "^1.0.4",
@@ -13,7 +13,7 @@
     "@typescript-eslint/parser": "^2.8.0",
     "ajv": "^6.11.0",
     "apexcharts": "^3.12.0",
-    "babel-eslint": "10.0.3",
+    "babel-eslint": "10.1.0",
     "babel-jest": "^24.9.0",
     "babel-loader": "8.0.6",
     "babel-plugin-named-asset-import": "^0.3.5",
