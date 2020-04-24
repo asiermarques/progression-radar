@@ -11,7 +11,7 @@ export default props => (
     <div className="container">
       <section className="row">
         <div className="col-sm-12 col-md-4">
-          <h1 className="title">合 Progression Radar</h1>
+          <h1 className="title">成長 Progression Radar</h1>
           <PersonPanel
             name={props.status.name}
             role={props.roles.reduce(
