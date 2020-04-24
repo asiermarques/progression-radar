@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux'
 import { createStore } from 'redux'
 import CategoryService from './domain/service/CategoryService';
+import './style/Layout.scss'
 import App from './views/App';
 import * as serviceWorker from './serviceWorker';
 import UpdateLevelsReducer from './reducers/all';

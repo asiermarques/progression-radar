@@ -1,5 +1,4 @@
 import React from 'react';
-import './Layout.scss';
 
 export default (props) =>
     <footer className="main">
