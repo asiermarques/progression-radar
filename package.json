@@ -1,6 +1,6 @@
 {
   "name": "progression-radar",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "private": false,
   "main": "index.js",
   "files": [
@@ -150,11 +150,15 @@
   },
   "babel": {
     "presets": [
-      "react-app"
+      ["react-app", { "absoluteRuntime": false }]
+    ],
+    "plugins": [
+      "@babel/transform-runtime"
     ]
   },
   "devDependencies": {
     "@babel/cli": "^7.8.4",
+    "@babel/plugin-transform-runtime": "^7.9.0",
     "prettier": "1.19.1"
   }
 }
