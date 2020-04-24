@@ -7,9 +7,11 @@ export default props => (
     <div className="container">
       <section className="row">
         <div className="col-sm col-md-12">
-          <h1 className="title">成長 Progression Radar</h1>
+          <a href={"/"}>
+            <h1 className="title">成長 Progression Radar</h1>
+          </a>
 
-          <div class="alert alert-primary" role="alert">
+          <div class="alert alert-info" role="alert">
             You need to specify a state param in the query url that match with
             the following json schema:
           </div>

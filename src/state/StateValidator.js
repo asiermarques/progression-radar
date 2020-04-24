@@ -1,9 +1,9 @@
-import jsonSchemaValidator from "ajv";
+import Ajv from "ajv";
 
-export default class {
+export default class StateValidator {
   constructor(categories = []) {
     this.categories = categories;
-    this.validator = new jsonSchemaValidator().compile(this.createSchema());
+    this.validator = new Ajv().compile(this.createSchema());
   }
 
   validate = data => this.validator(data);

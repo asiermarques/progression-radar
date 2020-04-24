@@ -83,7 +83,7 @@ try {
     case INVALID_INPUT_STATE:
       ReactDOM.render(
         <ParseError
-          schema={JSON.stringify(StateValidator.createSchema(), null, 1)}
+          schema={JSON.stringify(stateValidator.createSchema(), null, 1)}
         />,
         document.getElementById("root")
       );
