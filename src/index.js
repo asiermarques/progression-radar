@@ -1,12 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux'
-import { createStore } from 'redux'
+import { createStore, combineReducers } from 'redux'
 import CategoryService from './domain/service/CategoryService';
 import './style/Layout.scss'
 import App from './views/App';
 import * as serviceWorker from './serviceWorker';
-import UpdateLevelsReducer from './reducers/all';
+import {name, levels, roleKey, tags, compareToContainer, personLevelsContainer, compareToLevelsContainer} from './reducers/all';
 import StateValidator from './state/StateValidator';
 import ParseError from './views/ParseError';
 import { categoryRepositoryInstance } from './repository/CategoryRepository';
@@ -27,7 +27,15 @@ try {
         throw NO_INPUT_STATE;
 
     const state = processQueryString(window.location.search, stateValidator, roleRepositoryInstance);
-    const store = createStore(UpdateLevelsReducer, state);
+    const store = createStore(combineReducers({
+        name,
+        levels,
+        roleKey,
+        tags,
+        compareTo: compareToContainer(roleRepositoryInstance),
+        personLevels: personLevelsContainer(categoryService),
+        compareToLevels: compareToLevelsContainer(categoryService, roleRepositoryInstance)
+    }), state);
 
     store.dispatch(stateSettedUp(state));
     store.subscribe(() => onStateChangeQueryListener(store.getState()));

@@ -1,6 +1,6 @@
 {
   "name": "progression-radar",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "private": false,
   "main": "index.js",
   "files": [
@@ -81,7 +81,7 @@
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js",
-    "prepublish": "export BABEL_ENV=production && ./node_modules/.bin/babel src --out-dir lib --ignore 'src/index.js'"
+    "prepublish": "export BABEL_ENV=production && ./node_modules/.bin/babel src --out-dir lib --copy-files && rm lib/index.js"
   },
   "eslintConfig": {
     "extends": "react-app"

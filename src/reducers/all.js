@@ -1,13 +1,11 @@
-import { combineReducers } from 'redux';
-import {SELECT_CATEGORY_LEVEL} from '../actions/all'
-import {compareTo} from './compareToReducer';
-import {personLevels, compareToLevels} from './categoryLevelsReducers'
 
-function name(state="", action) {
+import {SELECT_CATEGORY_LEVEL} from '../actions/all'
+
+export function name(state="", action) {
     return state;
 }
 
-function levels(state={}, action) {
+export function levels(state={}, action) {
     switch(action.type) {
         case SELECT_CATEGORY_LEVEL:
             return state[action.category.key] ? 
@@ -17,20 +15,14 @@ function levels(state={}, action) {
     }
 }
 
-function roleKey(state="", action) {
+export function roleKey(state="", action) {
     return state;
 }
 
-function tags(state="", action) {
+export function tags(state="", action) {
     return state;
 }
 
-export default combineReducers({
-    name,
-    levels,
-    roleKey,
-    tags,
-    compareTo,
-    personLevels,
-    compareToLevels
-})
+export {compareToContainer} from './compareToReducer';
+export {personLevelsContainer} from './categoryLevelsReducers'
+export {compareToLevelsContainer} from './categoryLevelsReducers'
