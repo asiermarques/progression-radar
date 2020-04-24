@@ -30,6 +30,7 @@ it("should render the component", () => {
       container
     );
   });
+
   expect(pretty(container.innerHTML)).toMatchInlineSnapshot(`
     "<section id=\\"person-panel\\">
       <h3 class=\\"name\\">Test</h3>

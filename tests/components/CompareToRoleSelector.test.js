@@ -2,7 +2,6 @@ import React from "react";
 import { render, unmountComponentAtNode } from "react-dom";
 import { act } from "react-dom/test-utils";
 import pretty from "pretty";
-import PersonPanel from "../../src/components/PersonPanel";
 import Role from "../../src/domain/Role";
 import CompareToRoleSelector from "../../src/components/CompareToRoleSelector";
 

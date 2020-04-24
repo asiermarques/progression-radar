@@ -1,11 +1,11 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import ReactMarkdown from 'react-markdown'
+import React from "react";
+import PropTypes from "prop-types";
+import ReactMarkdown from "react-markdown";
 
-const MarkDown = (props) => <ReactMarkdown source={props.input} />
+const MarkDown = props => <ReactMarkdown source={props.input} />;
 
 MarkDown.propTypes = {
-    input: PropTypes.string.isRequired
+  input: PropTypes.string.isRequired
 };
 
 export default MarkDown;
