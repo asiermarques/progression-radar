@@ -1,6 +1,6 @@
 {
   "name": "progression-radar",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": false,
   "dependencies": {
     "@babel/core": "7.7.4",
@@ -76,7 +76,8 @@
   "scripts": {
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
-    "test": "node scripts/test.js"
+    "test": "node scripts/test.js",
+    "prepublishOnly": "./node_modules/.bin/babel src --out-dir lib"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -149,6 +150,7 @@
     ]
   },
   "devDependencies": {
+    "@babel/cli": "^7.8.4",
     "prettier": "1.19.1"
   }
 }
