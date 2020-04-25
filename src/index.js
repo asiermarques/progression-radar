@@ -4,6 +4,7 @@ import { Provider } from "react-redux";
 import { createStore, combineReducers } from "redux";
 import CategoryService from "./domain/service/CategoryService";
 import "./style/Layout.scss";
+import colors from "./style/Colors.scss";
 import App from "./views/App";
 import * as serviceWorker from "./serviceWorker";
 import {
@@ -62,6 +63,7 @@ try {
   ReactDOM.render(
     <Provider store={store}>
       <App
+        colors={colors}
         status={state}
         categories={categoryService.getCategories()}
         roles={roleRepositoryInstance.getRoles()}

@@ -27,7 +27,7 @@ export default props => (
           <CompareToRoleSelector roles={props.roles}></CompareToRoleSelector>
         </div>
         <div className="col-sm-12 col-md-8">
-          <Chart />
+          <Chart colors={props.colors} />
         </div>
       </section>
 

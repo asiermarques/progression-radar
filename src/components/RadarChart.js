@@ -37,6 +37,8 @@ const RadarChart = props => {
     series: series
   };
 
+  if (props.colors) state.options.colors = Object.values(props.colors);
+
   return (
     <Chart
       id="radar-chart"
@@ -52,7 +54,8 @@ const RadarChart = props => {
 RadarChart.propTypes = {
   targetSerie: PropTypes.object.isRequired,
   compareSerie: PropTypes.object,
-  categories: PropTypes.arrayOf(String)
+  categories: PropTypes.arrayOf(String),
+  colors: PropTypes.object
 };
 
 export default RadarChart;
