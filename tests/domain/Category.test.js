@@ -17,6 +17,12 @@ it("should return a list with all levels", () => {
   expect(TestCategory.getLevels()).toStrictEqual([0, 1, 2, 3]);
 });
 
+it("should return a list with almost the zero level", () => {
+  const KPIs = [];
+  const TestCategory = new Category("test", "test_name", KPIs);
+  expect(TestCategory.getLevels()).toStrictEqual([0]);
+});
+
 it("should return KPIs by levels", () => {
   const KPIs = [
     new KPI("test", "test", 1, ["test"]),
