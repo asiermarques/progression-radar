@@ -32,7 +32,7 @@ export function compareToLevelsContainer(
     switch (action.type) {
       case STATE_SETTED_UP:
         return action.state.compareTo
-          ? categoryService.categoriesWithLevels(action.state.compareTo)
+          ? categoryService.categoriesWithLevels(action.state.compareTo.levels)
           : state;
       case SELECT_COMPARATION_ROLE:
         const role = roleRepositoryInstance.getRoleByKey(action.roleKey);
