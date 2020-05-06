@@ -7,7 +7,7 @@ export function name(state = "", action) {
 export function levels(state = {}, action) {
   switch (action.type) {
     case SELECT_CATEGORY_LEVEL:
-      return state[action.category.key]
+      return state[action.category.key] || state[action.category.key] === 0
         ? Object.assign({}, state, { [action.category.key]: action.level })
         : state;
     default:

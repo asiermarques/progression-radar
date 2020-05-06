@@ -6,14 +6,14 @@ class CategoriesPanel extends React.Component {
   constructor(props) {
     super(props);
     this.categories = props.categories;
-    this.state = { selectedCategory: props.categories[0] };
+    this.state = { selectedCategory: props.categories[0], selectedLevel: 0 };
     this.dispatchSelectCategoryLevel = props.selectCategoryLevel;
   }
 
   getLevel = category =>
     this.props.selectedLevels[category.key]
       ? this.props.selectedLevels[category.key]
-      : 1;
+      : 0;
 
   getKPIs = () =>
     this.state.selectedCategory.getKpisByLevel(

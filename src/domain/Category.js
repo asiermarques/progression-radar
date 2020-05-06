@@ -11,7 +11,7 @@ export default class Category {
     this.KPIs.map(kpi => kpi.level).reduce(
       (levels, current) =>
         levels.includes(current) ? levels : [...levels, current],
-      []
+      [0]
     );
 
   getKpisByLevel = level => this.KPIs.filter(kpi => kpi.level === level);

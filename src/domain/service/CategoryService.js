@@ -7,7 +7,7 @@ export default class CategoryService {
 
   categoriesWithLevels = levels =>
     this.categories.map(category =>
-      this.createCategoryLevel(category, (levels && levels[category.key]) || 1)
+      this.createCategoryLevel(category, (levels && levels[category.key]) || 0)
     );
 
   createCategoryLevel = (category, level) => {
