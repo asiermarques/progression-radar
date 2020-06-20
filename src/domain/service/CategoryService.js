@@ -15,7 +15,7 @@ export default class CategoryService {
     return {
       category,
       level,
-      percentage: percentage <= 100 ? percentage : 100
+      percentage: percentage <= 100 ? percentage.toFixed(0) : 100
     };
   };
 }
