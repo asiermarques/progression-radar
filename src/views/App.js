@@ -2,7 +2,7 @@ import React from "react";
 import Layout from "../components/Layout";
 import Chart from "../containers/RadarChartContainer";
 import CategoriesPanel from "../containers/CategoriesPanelContainer";
-import PersonPanel from "../components/PersonPanel";
+import PersonPanel from "../containers/PersonPanelContainer";
 import CompareToRoleSelector from "../containers/CompareToRoleSelectorContainer";
 import Footer from "../components/Footer";
 

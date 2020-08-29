@@ -1,7 +1,12 @@
-import { SELECT_CATEGORY_LEVEL } from "../actions/all";
+import {SELECT_CATEGORY_LEVEL, UPDATE_NAME} from "../actions/all";
 
 export function name(state = "", action) {
-  return state;
+  switch (action.type) {
+    case UPDATE_NAME:
+      return action.state;
+    default:
+      return state;
+  }
 }
 
 export function levels(state = {}, action) {
