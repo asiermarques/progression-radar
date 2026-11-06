@@ -1,0 +1,13 @@
+# General settings for your deployment.
+
+# Shown in the header and as the browser tab title.
+title: 成長 Progression Radar
+
+# Optional logo shown next to the title. Put the image file in this `config/` folder
+# (svg, png, jpg, webp or gif) and reference it by file name.
+# logo: logo.svg
+
+# Optional footer. Markdown is supported. Remove it to hide the footer.
+footer: >
+  Coded with ❤️ by [Asier Marqués](https://twitter.com/asiermarques).
+  View [on GitHub](https://github.com/asiermarques/progression-radar).

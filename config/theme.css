@@ -1,0 +1,22 @@
+/*
+ * Theme overrides. This file is loaded after the base styles (src/styles.css),
+ * so anything defined here wins.
+ *
+ * The quickest way to re-brand the app is to override the CSS custom properties
+ * below. You can also target any of the stable class names documented in the
+ * README (.app-header, .person-panel, .radar, .category-panel, .kpi, ...).
+ */
+
+:root {
+  /* --color-primary: #e83e8c;  accent: title, active level, buttons */
+  /* --color-person: #495057;   radar series of the person */
+  /* --color-compare: #dc3545;  radar series of the compared role */
+  /* --color-text: #212529; */
+  /* --color-muted: #6c757d; */
+  /* --color-border: #adb5bd; */
+  /* --color-background: #ffffff; */
+  /* --color-surface: #f8f9fa; */
+  /* --font-family: system-ui, sans-serif; */
+  /* --font-size: 14px; */
+  /* --radius: 0; */
+}
