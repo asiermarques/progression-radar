@@ -1,5 +1,5 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 import { parseConfig } from "./config";
 
@@ -13,6 +13,7 @@ const config = parseConfig({
         { summary: "Drives meetings", level: 2 },
       ],
     },
+    { key: "ops", name: "Operations", kpis: [{ summary: "Runs deploys", level: 1 }] },
   ],
   roles: [{ key: "lead", name: "Lead", levels: { comm: 2 } }],
   site: { title: "My Radar", footer: "Made by [us](https://example.com)" },
@@ -20,7 +21,10 @@ const config = parseConfig({
 
 const person = { name: "Ada", levels: { comm: 1 }, tags: ["tech"] };
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 describe("App", () => {
   it("renders the person, the KPIs of the current level and the footer", () => {
@@ -43,5 +47,30 @@ describe("App", () => {
 
     const state = JSON.parse(new URLSearchParams(window.location.search).get("state")!);
     expect(state).toEqual({ name: "Ada", levels: { comm: 2 }, tags: ["tech"], compareTo: "lead" });
+  });
+
+  it("summarises the progress and the gap with the compared role", () => {
+    render(<App config={config} initialPerson={{ ...person, compareTo: "lead" }} />);
+    const summary = document.querySelector(".progress-summary")!;
+    expect(summary.textContent).toContain("Overall25%");
+    expect(summary.textContent).toContain("On target1/ 2");
+    expect(summary.textContent).toContain("Level to go1");
+    expect(screen.getByText(/1 level below Lead/)).toBeTruthy();
+  });
+
+  it("selects a category from the radar labels", () => {
+    render(<App config={config} initialPerson={person} />);
+    fireEvent.click(screen.getByText("Operations", { selector: ".radar-label tspan" }));
+    expect(screen.getByRole("heading", { level: 2 }).textContent).toBe("Operations");
+    expect(screen.getByRole("button", { name: /Operations/, current: true })).toBeTruthy();
+  });
+
+  it("copies the shareable URL", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("navigator", { ...navigator, clipboard: { writeText } });
+    render(<App config={config} initialPerson={person} />);
+    await act(async () => fireEvent.click(screen.getByRole("button", { name: "Copy link" })));
+    expect(writeText).toHaveBeenCalledWith(window.location.href);
+    expect(screen.getByRole("button", { name: "Link copied" })).toBeTruthy();
   });
 });

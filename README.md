@@ -20,12 +20,15 @@ There is no backend and no database: the whole state lives in the URL, so a link
 
 ## Features
 
-- A radar chart with the level reached in every category of your path.
-- Comparison with any configured role: its levels are drawn on the same radar, and the level each category requires
-  is marked in the level selector.
+- A radar chart with the level reached in every category of your path. Click a category name on the chart to open it.
+- Comparison with any configured role: its levels are drawn on the same radar, the level each category requires
+  is marked in the level selector, and a summary shows how many categories are on target and how many levels are
+  still to go.
 - For each category, the KPIs expected at every level, with Markdown descriptions.
 - An editable name, the person's current role and their tags.
-- Shareable URLs: every change is saved in the address bar, and nothing is stored anywhere else.
+- Shareable URLs: every change is saved in the address bar, and nothing is stored anywhere else. The "Copy link"
+  button copies it for you.
+- Light and dark themes (following the system setting), a responsive layout and a print-friendly page.
 - Your own content, title, logo, footer and styles, all in the `config/` folder.
 
 ## Getting started
@@ -138,16 +141,31 @@ the app is to override the CSS custom properties:
 /* config/theme.css */
 :root {
   --color-primary: #0b7285;
-  --color-person: #343a40;
+  --color-person: #0b7285;
   --color-compare: #f08c00;
-  --font-family: "Inter", sans-serif;
+  --font-family: system-ui, sans-serif;
+  --font-display: Georgia, serif;
+  --texture: none;
   --radius: 4px;
 }
 ```
 
-See the top of [`src/styles.css`](src/styles.css) for every available variable. You can also target the stable
-class names of the UI: `.app-header`, `.app-title`, `.app-logo`, `.person-panel`, `.radar`, `.radar-series--person`,
-`.radar-series--compare`, `.category-panel`, `.category-nav`, `.level-nav`, `.kpi` and `.app-footer`.
+See the top of [`src/styles.css`](src/styles.css) for every available variable.
+
+The base styles also define a dark palette inside `@media (prefers-color-scheme: dark)`. Variables you set in `:root`
+in `theme.css` apply to both palettes, so:
+
+- to keep dark mode, set your dark colours inside the same media query;
+- to have a single palette, set every `--color-*` variable in `:root` and add `color-scheme: light;` so form controls
+  match it.
+
+The default fonts (Shippori Mincho and Zen Kaku Gothic New) are bundled with the app, Latin characters only; other
+scripts use the fonts installed on the system. To use other fonts, load them in `theme.css` with `@font-face` or
+`@import` and set `--font-family` and `--font-display`.
+
+You can also target the stable class names of the UI: `.app-header`, `.app-title`, `.app-logo`, `.share-button`,
+`.person-panel`, `.person-seal`, `.progress-summary`, `.radar`, `.radar-series--person`, `.radar-series--compare`,
+`.category-panel`, `.category-nav`, `.level-nav`, `.kpi` and `.app-footer`.
 
 ## The state in the URL
 
@@ -195,6 +213,19 @@ git remote add upstream https://github.com/asiermarques/progression-radar.git
 git pull upstream master
 npm install
 ```
+
+## Upgrading a fork with a custom theme
+
+The default look changed after 1.0: new colours, fonts, a paper texture and a dark palette that follows the system
+setting. Your `config/theme.css` still wins over the base styles, but check two things after pulling the update:
+
+- **Dark mode.** If you override only some colours in `:root`, they also apply in dark mode, mixed with the dark
+  defaults, and can make text hard to read. Either add your dark colours inside
+  `@media (prefers-color-scheme: dark)`, or set every `--color-*` variable plus `color-scheme: light;` to keep a
+  single palette (see [Styles](#styles)).
+- **New variables.** `--font-display` (title, names and numbers), `--color-on-primary` (text on the accent colour)
+  and `--texture` (set it to `none` for a flat background) did not exist before, so set them if the defaults do not
+  fit your brand.
 
 ## Upgrading from 0.x
 

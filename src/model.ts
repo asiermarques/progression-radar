@@ -67,3 +67,41 @@ export function kpisAt(category: Category, level: number): KPI[] {
 export function findRole(roles: Role[], key: string | undefined): Role | undefined {
   return key === undefined ? undefined : roles.find((role) => role.key === key);
 }
+
+/** The level a role requires in a category. Categories the role does not mention count as level 0. */
+export function requiredLevel(role: Role, category: Category): number {
+  return role.levels[category.key] ?? 0;
+}
+
+/** Average progress across all categories, from 0 to 100. */
+export function overallPercentage(categories: Category[], levels: Levels): number {
+  if (categories.length === 0) return 0;
+  const sum = categories.reduce((total, c) => total + percentage(c, levels[c.key] ?? 0), 0);
+  return Math.round(sum / categories.length);
+}
+
+export interface RoleGap {
+  /** Categories where the person reaches the level required by the role. */
+  met: number;
+  total: number;
+  /** Levels still missing, added up across all categories. */
+  levelsToGo: number;
+}
+
+export function roleGap(categories: Category[], levels: Levels, role: Role): RoleGap {
+  let met = 0;
+  let levelsToGo = 0;
+  for (const category of categories) {
+    const missing = requiredLevel(role, category) - (levels[category.key] ?? 0);
+    if (missing <= 0) met++;
+    else levelsToGo += missing;
+  }
+  return { met, total: categories.length, levelsToGo };
+}
+
+/** Up to two initials for the person's seal, e.g. "Ada Lovelace" -> "AL". */
+export function initials(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  const letters = words.length > 1 ? [words[0], words[words.length - 1]] : words;
+  return letters.map((word) => Array.from(word)[0]!.toLocaleUpperCase()).join("");
+}

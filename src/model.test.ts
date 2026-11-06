@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { kpisAt, levelsOf, maxLevel, percentage, type Category } from "./model";
+import {
+  initials,
+  kpisAt,
+  levelsOf,
+  maxLevel,
+  overallPercentage,
+  percentage,
+  roleGap,
+  type Category,
+} from "./model";
 
 const kpi = (level: number) => ({ summary: `KPI ${level}`, description: "", level, tags: [] });
 const category = (levels: number[]): Category => ({ key: "c", name: "C", description: "", kpis: levels.map(kpi) });
@@ -28,5 +37,29 @@ describe("model", () => {
     const c = category([1, 1, 2]);
     expect(kpisAt(c, 1)).toHaveLength(2);
     expect(kpisAt(c, 4)).toEqual([]);
+  });
+
+  it("averages the progress of every category", () => {
+    const a = { ...category([1, 2]), key: "a" };
+    const b = { ...category([1, 2, 3, 4]), key: "b" };
+    expect(overallPercentage([a, b], { a: 2, b: 1 })).toBe(63);
+    expect(overallPercentage([a, b], {})).toBe(0);
+    expect(overallPercentage([], {})).toBe(0);
+  });
+
+  it("measures the gap with a role, counting missing categories as level 0", () => {
+    const a = { ...category([1, 2, 3]), key: "a" };
+    const b = { ...category([1, 2, 3]), key: "b" };
+    const c = { ...category([1, 2, 3]), key: "c" };
+    const role = { key: "r", name: "R", levels: { a: 3, b: 1 } };
+    expect(roleGap([a, b, c], { a: 1, b: 2 }, role)).toEqual({ met: 2, total: 3, levelsToGo: 2 });
+  });
+
+  it("builds initials from the first and last words", () => {
+    expect(initials("Ada Lovelace")).toBe("AL");
+    expect(initials("  grace  brewster murray hopper ")).toBe("GH");
+    expect(initials("ada")).toBe("A");
+    expect(initials("成長")).toBe("成");
+    expect(initials("")).toBe("");
   });
 });

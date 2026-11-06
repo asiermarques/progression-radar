@@ -5,18 +5,27 @@
  * The quickest way to re-brand the app is to override the CSS custom properties
  * below. You can also target any of the stable class names documented in the
  * README (.app-header, .person-panel, .radar, .category-panel, .kpi, ...).
+ *
+ * The base styles include a dark palette under `@media (prefers-color-scheme: dark)`.
+ * Variables set in :root here apply to both palettes. To keep dark mode, set your
+ * dark colours in the same media query. For a single palette, set every --color-*
+ * variable below and add `color-scheme: light;` so form controls match.
  */
 
 :root {
-  /* --color-primary: #e83e8c;  accent: title, active level, buttons */
-  /* --color-person: #495057;   radar series of the person */
-  /* --color-compare: #dc3545;  radar series of the compared role */
-  /* --color-text: #212529; */
-  /* --color-muted: #6c757d; */
-  /* --color-border: #adb5bd; */
-  /* --color-background: #ffffff; */
-  /* --color-surface: #f8f9fa; */
-  /* --font-family: system-ui, sans-serif; */
-  /* --font-size: 14px; */
-  /* --radius: 0; */
+  /* --color-primary: #c0361c;     accent: seal, reached levels, links */
+  /* --color-on-primary: #fff8ee;  text on top of the accent */
+  /* --color-person: #c0361c;      radar series of the person */
+  /* --color-compare: #24497d;     radar series of the compared role */
+  /* --color-text: #1c1915; */
+  /* --color-muted: #6a6258; */
+  /* --color-border: #d4cab9; */
+  /* --color-background: #f4efe5; */
+  /* --color-surface: #ebe3d3; */
+  /* --color-grid: #d3c8b5;        radar rings and axes */
+  /* --font-family: system-ui, sans-serif;   body text */
+  /* --font-display: Georgia, serif;         title, names and numbers */
+  /* --font-size: 15px; */
+  /* --radius: 2px; */
+  /* --texture: none;              paper grain behind the page */
 }

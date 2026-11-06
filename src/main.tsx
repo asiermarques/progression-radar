@@ -4,6 +4,16 @@ import App, { Footer, Header } from "./App";
 import { ConfigError, loadConfig } from "./config";
 import type { Config } from "./model";
 import { examplePerson, parseState } from "./urlState";
+// Self-hosted fonts, Latin subsets only: CJK characters fall back to the system fonts in the font stacks.
+import "@fontsource/shippori-mincho/latin-700.css";
+import "@fontsource/shippori-mincho/latin-ext-700.css";
+import "@fontsource/shippori-mincho/latin-800.css";
+import "@fontsource/zen-kaku-gothic-new/latin-400.css";
+import "@fontsource/zen-kaku-gothic-new/latin-500.css";
+import "@fontsource/zen-kaku-gothic-new/latin-700.css";
+import "@fontsource/zen-kaku-gothic-new/latin-ext-400.css";
+import "@fontsource/zen-kaku-gothic-new/latin-ext-500.css";
+import "@fontsource/zen-kaku-gothic-new/latin-ext-700.css";
 import "./styles.css";
 import "../config/theme.css";
 
