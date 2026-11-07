@@ -160,8 +160,8 @@ Only these exist; do not add new ones without a reason:
 
 ## Components
 
-Class names in bold are the **public theming contract** listed in the README ("Styles"): do not rename or remove
-them. New classes meant for theming must be added to that README list.
+Class names in bold are the **public theming contract** listed in `docs/guides/styles.md`: do not rename or remove
+them. New classes meant for theming must be added to that list.
 
 ### Header — **`.app-header`**, **`.app-title`**, **`.app-logo`**, **`.share-button`**
 
@@ -298,11 +298,11 @@ Adopters only provide a `theme.css` in their config folder (`config/` by default
 `config.example/theme.css` and is imported after `src/styles.css`. To keep that working:
 
 - Every colour, font, radius and texture comes from a custom property. A new themable value means a new property in
-  `:root` **and** in the dark palette, listed (commented out) in `config.example/theme.css` and documented in the README.
+  `:root` **and** in the dark palette, listed (commented out) in `config.example/theme.css` and documented in `docs/guides/styles.md`.
 - `config.example/theme.css` ships with commented-out examples only. Never put default styles there: an adopter's
   `theme.css` replaces it whole, so any default style in it would be lost.
 - Keep specificity low (one class, or class + attribute) so overrides work without `!important`.
-- Do not rename or remove the public class names in the README.
+- Do not rename or remove the public class names in `docs/guides/styles.md`.
 
 ## Working on the UI
 

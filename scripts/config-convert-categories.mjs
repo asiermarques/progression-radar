@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Converts config/categories.yml into a config/categories/ folder of Markdown category files (see README,
-// "Categories"). The folder is PROGRESSION_RADAR_CONFIG_DIR, or config. It never stages or commits.
+// Converts config/categories.yml into a config/categories/ folder of Markdown category files (see
+// docs/guides/categories.md). The folder is PROGRESSION_RADAR_CONFIG_DIR, or config. It never stages or commits.
 //
 //   npm run config:convert-categories
 //

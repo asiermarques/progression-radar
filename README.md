@@ -5,25 +5,49 @@
 
 Progression Radar is a simple visualisation tool for career and learning paths. Inspired by Medium's deprecated
 Snowflake tool, it shows the level a person has reached in each area of a path and compares it with the levels a
-role requires. There is no backend: the whole state lives in the URL, so a link is a shareable snapshot.
+role requires. There is no backend: the whole state lives in the URL, so a link is a shareable snapshot. To keep a
+record of a person over time, [snapshot commands](docs/guides/snapshots.md) save the link in dated CSV files on your
+machine.
+
+Live demo: [https://progression-radar.netlify.app](https://progression-radar.netlify.app/)
 
 Live demo: [https://progression-radar.netlify.app](https://progression-radar.netlify.app/)
 
 ![Progression Radar comparing a person with the Staff Frontend Software Engineer role](docs/screenshot.jpg)
 
-## Documentation
+## What you can do with this tool
 
-- [docs/PRODUCT.md](docs/PRODUCT.md): what it does, who it is for and the product decisions.
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): stack, layout of the code, data flow and key decisions.
-- [docs/DESIGN.md](docs/DESIGN.md): the design system and UI guidelines.
-- [docs/UBIQUITOUS_LANGUAGE.md](docs/UBIQUITOUS_LANGUAGE.md): the glossary of domain terms (category, expectation,
-  level, role…) and the words to avoid.
-- [docs/adr/](docs/adr): architecture decision records.
+**See where a person stands**
 
-## Getting started
+- Draw the level a person has reached in each category on a radar, as a percentage of the highest level.
+- Compare them with any role of your ladder: the required levels on the same radar, and a summary of the categories on
+  target and the levels still to go.
+- Read the expectations of every level of a category.
+- Share a person by sending a link, or keep it in a bookmark: the whole state is in the URL.
+  See [The share link](docs/guides/share-link.md).
 
-You need [Node.js](https://nodejs.org) 22.12 or newer. Node 24 LTS is recommended (see `.nvmrc`): npm 10 can fail
-while resolving the test dependencies.
+**Make it yours**
+
+- Write your own ladder as Markdown files or YAML: [Categories](docs/guides/categories.md) and
+  [Roles](docs/guides/roles.md).
+- Set the title, logo and footer, and choose where your configuration lives:
+  [Configuration](docs/guides/configuration.md).
+- Change colours, fonts and styles, including a dark mode: [Styles](docs/guides/styles.md).
+- Convert an existing `categories.yml` into category files with `npm run config:convert-categories`.
+
+**Keep a record over time**
+
+- Save people in dated CSV snapshots, open them again as they were, and check them against your current ladder, from
+  the command line or by asking Claude. See [Snapshots](docs/guides/snapshots.md).
+
+**Publish and maintain it**
+
+- Deploy it as static files anywhere (a Netlify configuration is included): [Deployment](docs/guides/deployment.md).
+- Keep a fork up to date with upstream and migrate when something changes: [Upgrading](docs/guides/upgrading.md).
+
+## Quick start
+
+You need [Node.js](https://nodejs.org) 22.12 or newer (Node 24 LTS is recommended, see `.nvmrc`).
 
 ```sh
 git clone git@github.com:asiermarques/progression-radar.git
@@ -32,366 +56,27 @@ npm install
 npm run dev
 ```
 
-To use it for your own organisation, fork the repository, put your files in [`config/`](config) and deploy it
-(see [Configuration](#configuration) and [Deployment](#deployment)).
-
-## Configuration
-
-Everything that is specific to your deployment lives in **your config folder**, which upstream never touches:
-
-| file             | purpose                                                      |
-|------------------|--------------------------------------------------------------|
-| `categories/` or `categories.yml` | the categories of your ladder and the expectations per level (see [Categories](#categories)) |
-| `roles.yml`      | the roles of your ladder and the levels each one requires    |
-| `site.yml`       | title, logo and footer                                       |
-| `theme.css`      | CSS overrides: colours, fonts or any other style             |
-
-The project ships a sample of each in [`config.example/`](config.example), and that is what you get on a fresh clone,
-with no setup. To customise a file, put a file with the same name in `config/` (copy the sample to start from it).
-At build time every file is read from `config/` if it is there, and from `config.example/` otherwise. Do not edit
-`config.example/`: it is upstream's, and leaving it alone is what lets updates merge without conflicts.
-
-- **A file replaces its counterpart completely.** Nothing is merged: your `site.yml` does not inherit the sample
-  footer, a `categories/` folder (or `categories.yml`) replaces all the sample categories, and your `theme.css` replaces the sample one (the base theme is in `src/styles.css`, so you lose no styles).
-- **Images** referenced from `site.yml` are looked up in `config/` first, then in `config.example/`.
-- **`config/` is git-ignored** (except its `README.md`), so a local experiment never ends up in a commit. To keep your
-  configuration in your fork, force-add the files (`git add -f config/roles.yml`) or use a tracked folder with
-  another name.
-- **Another folder.** Set `PROGRESSION_RADAR_CONFIG_DIR` to use any other folder: relative to the project root
-  (`my-ladder`), outside it (`../my-ladder`, e.g. a separate private repository) or absolute. The folder must exist,
-  otherwise the dev server and the build fail with an error naming it. In Netlify, set it under *Site configuration →
-  Environment variables*.
-
-  ```sh
-  PROGRESSION_RADAR_CONFIG_DIR=../my-ladder npm run dev
-  ```
-
-- **The build log tells you what was used.** It shows the folder each file was read from, and warns about files in
-  your folder that the app does not use (for example a misspelt `category.yml`). Images and `README.md` are not
-  reported.
-- In `npm run dev`, editing a file in your folder reloads the page, and so does adding or removing one, also inside
-  `categories/`.
-
-The configuration is validated when the app loads: if something is wrong, the app lists every problem instead of
-rendering, each one prefixed with the file and folder it comes from (`config/roles.yml: role "r" …` or
-`config.example/categories/02-pm.md:14: …`), and `npm test` fails too. The tests check your resolved configuration and,
-separately, `config.example/` on its own.
-
-### Categories
-
-Write the categories either as **one Markdown file per category** in a `categories/` folder (below) or as a single
-`categories.yml` ([further down](#categoriesyml)). Use one form per folder: a folder with both is reported as a
-configuration problem, and the form you use replaces all the sample categories.
-
-#### Category files
-
-```md
-<!-- config/categories/01-comm.md -->
----
-key: comm
-name: Communication
-description: Shares the right amount of information with the right people, at the right time
----
-
-## Level 1
-
-### Provides regular status updates to their team
-
-**Example behaviours:**
-
-* Communicates project status clearly and effectively
-* Exposes the blockers in the stand-up
-
-### Details the context in all the collaborative tools and channels
-
-## Level 2
-
-### Communicates effectively to close stakeholders when called upon
-```
-
-- The file starts on its first line with a frontmatter holding `key` and `name`, and optionally `description`. Any
-  other key is reported, so a typo such as `descripton:` is not silently ignored. The `key` is never taken from the
-  file name, so renaming a file to reorder it does not break existing share links.
-- Each `## Level N` heading (N a positive integer, always written in English, whatever the language of your ladder)
-  opens a level, and each `### Summary` under it is an expectation of that level. Levels may come in any order and
-  skip numbers.
-- The summary is the plain text of the `###` heading. The description is the Markdown that follows it, up to the next
-  `###` or `##`, kept as written: lists, code blocks and `####` headings are fine in it.
-- Nothing else is allowed outside an expectation: no `#` headings, no text between a `## Level N` and its first
-  `###`, no repeated level and no level without expectations. Every mistake is listed on the error screen with the file
-  and line, for example `config/categories/01-comm.md:14: "## Nivel 2" is not a level heading; use "## Level N"`.
-- **Order.** Categories are shown in the order of the file names: by leading number (`2-` comes before `10-`), then by
-  name character by character. Files without a number come last.
-- Only `.md` files are read. `README.md` is ignored and any other file or folder in `categories/` is reported by the
-  build log. A `categories/` folder with no category file is a configuration problem, never a reason to use the sample.
-
-#### Converting an existing categories.yml
-
-`npm run config:convert-categories` turns the `categories.yml` of your config folder (`config/`, or
-`PROGRESSION_RADAR_CONFIG_DIR`) into a `categories/` folder with one file per category:
-
-- Files are named `01-<key>.md`, `02-<key>.md`… in the order of the YAML, and the expectations are grouped under
-  `## Level N` in ascending order. `tags` are dropped.
-- Headings written as `#`, `##` or `###` inside an expectation description become `####`, because those levels are
-  structure in a category file. The command lists each one it changed, and also any summary it had to join into one
-  line.
-- `categories.yml` is renamed to `categories.yml.bak`; the build warns about it until you delete it.
-- If `categories.yml` has any configuration problem, or `categories/` already exists, nothing is written and the
-  reasons are listed. It never stages or commits anything.
-
-#### categories.yml
-
-Each entry of `categories.yml` has these fields:
-
-| field        | description                                    |
-|--------------|------------------------------------------------|
-| key          | a unique and short identifier for the category |
-| name         | the name of the category                       |
-| description  | optional: a brief description of the category  |
-| expectations | what is expected at each level of the category |
-
-The keys `name`, `role`, `compare`, `tag` and `state` are reserved by the [share link](#the-state-in-the-url): a
-category using one of them is reported as a configuration problem.
-
-An expectation is a skill, behaviour or concept expected of a person at one level of the category. Each one has
-these fields:
-
-| field       | description                                                     |
-|-------------|-----------------------------------------------------------------|
-| summary     | a title or brief description of the expectation                 |
-| description | optional: an extended description. Markdown is supported        |
-| level       | the level (a positive integer) this expectation belongs to      |
-
-The levels of a category are the levels used by its expectations, plus level 0. Earlier versions called the list
-`kpis`; that name is still read, but a category cannot have both.
-
-Write multi-line descriptions as a literal block (`description: |`), which keeps every line break, so Markdown lists
-and paragraphs work as written. A folded block (`description: >`) joins consecutive lines into one, so a list without
-blank lines between its items becomes a single paragraph.
-
-```yaml
-# config/categories.yml
-- key: comm
-  name: Communication
-  description: Shares the right amount of information with the right people, at the right time, and listens effectively
-  expectations:
-    - summary: Communicates effectively to close stakeholders when called upon
-      description: |
-        **Example behaviours:**
-
-        * Communicates project status clearly and effectively
-        * Asks for help at the appropriate juncture
-      level: 1
-```
-
-### Roles
-
-Each entry of `roles.yml` has these fields:
-
-| field  | description                                                                                         |
-|--------|-----------------------------------------------------------------------------------------------------|
-| key    | a unique and short identifier for the role                                                          |
-| name   | the name of the role, e.g. Senior Backend Engineer                                                  |
-| levels | the level the role requires in each category, by category key, e.g. `{ comm: 3, back: 2 }`. Missing categories count as level 0 |
-
-```yaml
-# config/roles.yml (or config.example/roles.yml)
-- key: aswe
-  name: Associate Software Engineer
-  levels: { comm: 1, pm: 1, des: 1, ops: 1, front: 1, back: 1 }
-```
-
-### Site, logo and footer
-
-```yaml
-# config/site.yml
-title: Acme Engineering Ladder
-logo: logo.svg          # optional, an image file placed in config/ (or config.example/)
-footer: Made by the **Acme** platform team.   # optional, Markdown
-```
-
-### Styles
-
-`config/theme.css` replaces `config.example/theme.css` (which only holds commented-out examples to copy) and is loaded
-after the base styles, so anything you write there wins. The easiest way to re-brand
-the app is to override the CSS custom properties (see [docs/DESIGN.md](docs/DESIGN.md#colour) for all of them):
-
-```css
-/* config/theme.css */
-:root {
-  --color-primary: #0b7285;
-  --color-person: #0b7285;
-  --color-compare: #f08c00;
-  --font-family: system-ui, sans-serif;
-  --font-display: Georgia, serif;
-  --texture: none;
-  --radius: 4px;
-}
-```
-
-The base styles also define a dark palette inside `@media (prefers-color-scheme: dark)`. Variables you set in `:root`
-apply to both palettes, so:
-
-- to keep dark mode, set your dark colours inside the same media query;
-- to have a single palette, set every `--color-*` variable in `:root` and add `color-scheme: light;` so form controls
-  match it.
-
-The default fonts are bundled with the app (Latin characters only). To use other fonts, load them in `theme.css`
-with `@font-face` or `@import` and set `--font-family` and `--font-display`.
-
-You can also target these stable class names: `.app-header`, `.app-title`, `.app-logo`, `.share-button`,
-`.person-panel`, `.person-seal`, `.progress-summary`, `.radar`, `.radar-series--person`, `.radar-series--compare`,
-`.link-notice`, `.category-panel`, `.category-nav`, `.level-nav`, `.expectation` and `.app-footer`. The expectation
-elements also keep their former `.kpi*` class names and the `--kpi-index` property, so existing themes keep working.
-
-## The state in the URL
-
-The person is stored in the URL fragment (the part after `#`) as readable parameters, which the app keeps up to date
-while you make changes. The fragment is never sent to the server, so the person's data does not reach access logs.
-
-| parameter        | description                                                                              |
-|------------------|------------------------------------------------------------------------------------------|
-| `name`           | the person's name; omitted when empty                                                    |
-| `role`           | optional: the key of the person's current role                                           |
-| `compare`        | optional: the key of the role to compare with                                            |
-| `tag`            | optional: a tag the person is interested in; repeated once per tag                       |
-| `<category key>` | the level reached in that category, e.g. `comm=2`; one per category, always written last |
-
-```
-/#name=John+Connor&role=aswe&compare=front&tag=tech&comm=2&pm=1&des=1&ops=1&front=1&back=1
-```
-
-You can edit the link by hand: changing the fragment in the address bar updates the page without reloading.
-
-Unknown categories and roles are ignored and levels are clamped, so old links keep working when the configuration
-changes. When a link had data that could not be used, or is not valid at all, the app still opens, with the valid data
-or with an example, and a dismissible notice names what was ignored. Without a fragment the app starts with an example
-based on a random role.
-
-Links created by earlier versions (`/?state={"name":"John Connor","levels":{…},"roleKey":"aswe",…}`) keep opening;
-the app rewrites them in the new format after the first change.
-
-## Scripts
-
-| command             | description                                             |
-|---------------------|---------------------------------------------------------|
-| `npm run dev`       | starts the development server with hot reload           |
-| `npm test`          | runs the tests in watch mode (`npm test -- --run` once) |
-| `npm run typecheck` | type-checks the project                                 |
-| `npm run build`     | type-checks and builds the static site into `dist/`     |
-| `npm run preview`   | serves the production build locally                     |
-| `npm run config:migrate` | moves a fork's edits out of `config.example/` (see [Upgrading](#upgrading)) |
-| `npm run config:convert-categories` | converts `categories.yml` into [category files](#converting-an-existing-categoriesyml) |
-
-## Deployment
-
-`npm run build` produces a static site in `dist/` with relative paths, so it can be served from any static host, at
-the root of a domain or in a sub-folder. The repository includes a `netlify.toml` for Netlify.
-
-### Keeping your fork up to date
-
-Upstream updates merge without conflicts as long as your changes stay in your config folder (`config/`, or the one in
-`PROGRESSION_RADAR_CONFIG_DIR`) and `src/` and `config.example/` are untouched:
-
-```sh
-git remote add upstream https://github.com/asiermarques/progression-radar.git
-git pull upstream master
-npm install
-```
-
-## Upgrading
-
-### A fork that edited `config.example/categories.yml` (the sample moved to category files)
-
-The sample categories are now Markdown category files in `config.example/categories/` and `config.example/categories.yml`
-is gone. If your fork edited that file, pulling the update reports a modify/delete conflict. Keep your file, then move
-it to your config folder, where it keeps working (`categories.yml` is still supported):
-
-```sh
-git pull upstream master                 # reports the conflict on config.example/categories.yml
-git add config.example/categories.yml    # keep your version, then finish the merge with git commit
-npm run config:migrate                   # moves it to config/categories.yml and restores config.example/
-```
-
-Until you do, `config.example/` holds both forms and the app reports it as a configuration problem. Afterwards you can
-keep the YAML, or convert it with `npm run config:convert-categories` (see [Categories](#categories)).
-
-### A fork that edited `config/` (the sample moved to `config.example/`)
-
-Upstream's sample configuration moved from `config/` to `config.example/`, and `config/` is now git-ignored and yours
-(see [Configuration](#configuration)). When you pull the update, git sees the rename and moves your edits into
-`config.example/`. The app still works, but your customisations now sit in upstream's folder and the next upstream
-change to the sample conflicts again. Move them out once:
-
-```sh
-git remote add upstream https://github.com/asiermarques/progression-radar.git   # once
-git fetch upstream
-git pull upstream master
-npm run config:migrate -- --dry-run   # lists the files you changed
-npm run config:migrate                # asks, moves them to config/ and restores config.example/
-```
-
-The command compares `config.example/` with `upstream/master` (pass another ref as an argument:
-`npm run config:migrate -- some/ref`), moves the files that differ, or that upstream does not have, to your config
-folder (it follows `PROGRESSION_RADAR_CONFIG_DIR`) and restores `config.example/` from the ref. It never overwrites
-a file already in your folder: it reports it, skips it and leaves your copy in `config.example/` for you to merge
-by hand. It does not stage or commit anything, stops without changing files if the ref is missing, a merge is in
-progress or `config.example/` has conflicts, and prints the next steps. Add `--yes` to skip the confirmation.
-`npm run config:migrate -- --dry-run` and `npm run config:migrate --dry-run` both work.
-
-If the pull reports conflicts under `config/` or `config.example/` (git's directory rename detection can leave
-files you had added there), resolve them first, keeping your versions, and run the command afterwards.
-
-Then keep your configuration in the fork, either by force-adding it (`config/` is git-ignored) or by committing it in
-a folder you track and setting `PROGRESSION_RADAR_CONFIG_DIR` where you build:
-
-```sh
-git add -f config            # or: git add my-ladder, with PROGRESSION_RADAR_CONFIG_DIR=my-ladder
-git add config.example       # the restored sample
-git commit -m "Move my configuration out of config.example"
-```
-
-To do it by hand instead:
-
-```sh
-mkdir -p config
-cp config.example/roles.yml config/                  # repeat for each file you edited
-git checkout upstream/master -- config.example      # restore the sample (it does not delete files only you added)
-git add -f config
-```
-
-A fork that deploys from its own repository and does not migrate still builds, with its customisations read from
-`config.example/`.
-
-### A fork with a category key `name`, `role`, `compare`, `tag` or `state`
-
-The share link now keeps the state in the URL fragment (see [The state in the URL](#the-state-in-the-url)) and those
-five keys are reserved for its fields. After pulling the update, the app lists any category that uses one of them as a
-configuration error: rename its `key` in `config/categories.yml` (and in `config/roles.yml`). Links that used the old
-key stop matching that category, and the notice says so.
-
-### KPIs are now called expectations
-
-The items of a category are now called expectations: they describe what is expected at a level, they are not
-measured indicators. Nothing breaks: the `kpis` list in `categories.yml` is still read, and the `.kpi*` class names
-and `--kpi-index` are still on the page. To adopt the new names, rename `kpis:` to `expectations:` in your
-`categories.yml` and the `.kpi*` selectors in your `theme.css` to `.expectation*` (e.g. `.kpi-summary` to
-`.expectation-summary`).
-
-### A fork with a custom theme
-
-The default look changed after 1.0 (new colours, fonts, a paper texture and a dark palette). After pulling the
-update, check the dark mode of your theme (see [Styles](#styles)) and set the new variables if the defaults do not
-fit your brand: `--font-display` (title, names and numbers), `--color-on-primary` (text on the accent colour) and
-`--texture` (`none` for a flat background).
-
-### From 0.x
-
-Version 1.0 is a rewrite (Vite, React 19 and TypeScript instead of Create React App, Redux and Bootstrap). Existing
-links keep working, but:
-
-- **Configuration location.** Move `src/data/categories.yml` and `src/data/roles.yml` to `config/`. There are no
-  `.dist` files any more: `config/` is yours and falls back to the sample in `config.example/`.
-- **No npm package.** Fork the repository and customise `config/` instead, including `config/theme.css` for styles.
-- **Percentages.** A level is now a percentage of the highest level in its category, so the top level is 100%.
-- **Tooling.** Use `npm` instead of `yarn` and `npm run dev` instead of `yarn start`. The build output is `dist/`.
+A fresh clone runs with a sample ladder, with no setup. More in [Getting started](docs/guides/getting-started.md).
+
+## Documentation
+
+### Guides
+
+- [Getting started](docs/guides/getting-started.md): install, run and the list of npm scripts.
+- [Configuration](docs/guides/configuration.md): the config folder, the sample as fallback, `site.yml` and validation.
+- [Categories](docs/guides/categories.md): category files, `categories.yml` and reserved keys.
+- [Roles](docs/guides/roles.md): `roles.yml`.
+- [Styles](docs/guides/styles.md): `theme.css`, colours, fonts and class names.
+- [The share link](docs/guides/share-link.md): the URL format and how old or partly outdated links are read.
+- [Snapshots](docs/guides/snapshots.md): record, reopen and check people over time.
+- [Deployment](docs/guides/deployment.md): static hosting and keeping your fork up to date.
+- [Upgrading](docs/guides/upgrading.md): what to do after an update, by what your fork customised.
+
+### About the project
+
+- [docs/PRODUCT.md](docs/PRODUCT.md): what it does, who it is for and the product decisions.
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): stack, layout of the code, data flow and key decisions.
+- [docs/DESIGN.md](docs/DESIGN.md): the design system and UI guidelines.
+- [docs/UBIQUITOUS_LANGUAGE.md](docs/UBIQUITOUS_LANGUAGE.md): the glossary of domain terms (category, expectation,
+  level, role…) and the words to avoid.
+- [docs/adr/](docs/adr): architecture decision records.

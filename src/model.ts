@@ -47,6 +47,9 @@ export interface Person {
 /** Share link field names: a category cannot use them as its key. */
 export const RESERVED_KEYS = ["name", "role", "compare", "tag", "state"];
 
+/** Snapshot column names: a category cannot use them as its key either, but they are not share link fields. */
+export const SNAPSHOT_RESERVED_KEYS = ["id"];
+
 /** Selectable levels of a category: 0 plus every level used by its expectations, ascending. */
 export function levelsOf(category: Category): number[] {
   return [...new Set([0, ...category.expectations.map((expectation) => expectation.level)])].sort((a, b) => a - b);

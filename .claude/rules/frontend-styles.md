@@ -23,7 +23,7 @@ motion are described there.
 - Derive tints with `color-mix(in oklab, var(--color-…) N%, transparent)`, as the existing rules do, instead of new
   hex values.
 - A new themable value is a new custom property in `:root` **and** in the `@media (prefers-color-scheme: dark)`
-  palette, listed in `config.example/theme.css` (commented) and in the README "Styles" section.
+  palette, listed in `config.example/theme.css` (commented) and in `docs/guides/styles.md`.
 - The radar series use `--color-person` and `--color-compare` through `--series-color`. Keep the compared role
   distinguishable without colour (dashed outline and hatching).
 

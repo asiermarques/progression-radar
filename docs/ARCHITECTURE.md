@@ -35,12 +35,19 @@ config.example/          upstream's sample configuration and the defaults (adopt
 config/                  the adopter's configuration; git-ignored except README.md. Same file names as the sample,
                            and each file replaces the sample one. Another folder: PROGRESSION_RADAR_CONFIG_DIR
 public/                  static files copied as-is (favicons, manifest)
+docs/                    PRODUCT, ARCHITECTURE, DESIGN, the glossary, the ADRs and guides/ (user guides; the README only lists and links them)
 scripts/
   config-sources.ts        decides which folder each configuration file is read from (used by vite.config.ts)
   category-markdown.ts     reads one Markdown category file into the raw shape of a categories.yml entry
   config-migrate.mjs       `npm run config:migrate`: moves a fork's edits out of config.example/
   config-convert-categories.mjs  `npm run config:convert-categories`: runs convert-categories.ts (Vite loads the TS)
   convert-categories.ts    converts categories.yml into Markdown category files, validating it with parseConfig()
+  snapshot.mjs             `npm run snapshot:record|link|check`: loads snapshot-commands.ts through Vite with the project's config plugins
+  snapshot-commands.ts     arguments, output and exit codes of the three snapshot commands
+  snapshots.ts             records a Person in a CSV snapshot, turns a row into a Share link and checks snapshots
+  csv.ts                   hand-written CSV reader and writer (quoting, `,` or `;`, line breaks)
+snapshots/               the user's snapshots (personal data); git-ignored except README.md. Another folder: PROGRESSION_RADAR_SNAPSHOTS_DIR
+.claude/skills/          the project skill that drives the snapshot scripts
 src/
   main.tsx                 entry point: loads config and theme, reads the URL, renders App or an error screen
   App.tsx                  owns the state, syncs it to the URL, composes the page
@@ -58,6 +65,26 @@ src/
   *.test.ts(x)             tests, next to the code they cover
 vite.config.ts           Vite + Vitest config, with a tiny YAML plugin and the plugin that resolves the configuration
 ```
+
+## Snapshots outside the browser
+
+Snapshots are plain CSV files that the app never reads ([ADR 0004](adr/0004-local-csv-snapshots-outside-the-app.md)).
+Three npm scripts work on them, and they reuse the app's code instead of copying its rules: the Share link is read
+with `parseState()` and written with `toUrl()` from `urlState.ts`, and the Configuration is `loadConfig()`, so
+Normalisation, the Highest level and the problems of an invalid Configuration are the ones the app has. `snapshot.mjs`
+gets that configuration the way the build does: it loads `snapshot-commands.ts` with Vite's `runnerImport` and the
+`yaml` and `progression-radar-config` plugins taken from `vite.config.ts` (Vite's `runnerImport` ignores the config
+file), so the virtual configuration module resolves from `config/` and `config.example/` with no build step. The
+parts that are pure (`csv.ts`, rows to and from a Person) are apart from file access, and `snapshots.ts` takes the
+Configuration as a parameter, so tests give it their own.
+
+- A snapshot is history: the only write to an existing file is bytes appended at its end, in the separator, line
+  breaks and byte-order mark the file already uses. A new file is created with `wx`, so it never overwrites.
+- Columns are found by header name. The separator (`,` or `;`) is the one that finds the `id` column in the header.
+- `snapshot:link` writes the link with `toUrl()` and appends the columns the Configuration no longer has, so the app's
+  notice lists them. `snapshot:record` and `snapshot:link` refuse a file they cannot read and point to
+  `snapshot:check`, which reports every problem with file and line.
+- The project skill in `.claude/skills/` only runs these scripts; the rules stay in the code.
 
 ## Data flow
 
@@ -111,7 +138,8 @@ key-value parameters (`#name=John+Connor&role=aswe&compare=front&tag=tech&comm=2
 written last), as decided in [ADR 0001](adr/0001-readable-share-url-format.md). This keeps the app backend-free, makes
 every view shareable and keeps the data out of server logs. Links created by previous versions (`?state=<JSON>`) are
 read forever and rewritten in the new format on the first change. `name`, `role`, `compare`, `tag` and `state` are
-reserved: `parseConfig()` rejects categories with those keys (`RESERVED_KEYS` in `model.ts`). Normalisation is lenient on purpose: unknown categories/roles are dropped and levels are clamped,
+reserved: `parseConfig()` rejects categories with those keys (`RESERVED_KEYS` in `model.ts`), and also `id`, the
+column that identifies a Person in a snapshot (`SNAPSHOT_RESERVED_KEYS`, which is not a Share link field). Normalisation is lenient on purpose: unknown categories/roles are dropped and levels are clamped,
 so old links survive configuration changes instead of breaking.
 
 ### Configuration is validated, not trusted
@@ -165,6 +193,11 @@ numbers of levels and still be comparable on the same chart.
   build log, and the migration command on temporary git repositories.
 - `urlState.test.ts`: fragment format and round-trip, legacy URLs, normalisation, ignored/corrected fields and invalid
   input.
+- `scripts/csv.test.ts`: quoting, separators, line numbers and unreadable files.
+- `scripts/snapshots.test.ts`: recording (new and existing snapshots, refused ids and names, spreadsheet files), the
+  Share link of a row and every error and warning of the check, on temporary folders.
+- `scripts/snapshot-commands.test.ts`: the output and exit codes of the three commands against the resolved
+  configuration.
 - `App.test.tsx`: rendering and the main interactions (level selection, compare role, debounced URL sync that survives
   a failing history API, summary, selecting a category from the radar, copying the link, editing the link by hand and
   the link notice).
@@ -174,6 +207,6 @@ CI (GitHub Actions) runs the tests and the production build on every push and pu
 ## Extending
 
 - **New field in the URL state**: add it to `Person` in `model.ts`, write and read it in `urlState.ts` (a new fragment parameter must not clash with a category key), use it in `App`.
-- **New config option**: add it to the type in `model.ts`, validate it in `config.ts`, document it in the README.
+- **New config option**: add it to the type in `model.ts`, validate it in `config.ts`, document it in the matching guide in `docs/guides/`.
 - **New UI section**: add a component in `src/components/`, give its root a stable class name, style it in
   `styles.css` using the existing custom properties.

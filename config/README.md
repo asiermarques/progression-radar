@@ -17,7 +17,7 @@ At build time each of these files is read from this folder if it is here, and fr
 
 The categories can be one Markdown file per category in a `categories/` folder (`01-comm.md`, `02-back.md`…, shown
 in the order of their names) or a single `categories.yml`, but not both. Either form replaces all the sample
-categories. The format is in the main README, under "Categories".
+categories. The format is in [docs/guides/categories.md](../docs/guides/categories.md).
 
 - **A file replaces its counterpart completely.** Nothing is merged: a `site.yml` here does not inherit the footer of
   the example, and a `theme.css` here replaces the example one (the base theme is in `src/styles.css`).

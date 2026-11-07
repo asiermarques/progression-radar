@@ -11,3 +11,7 @@ npm-debug.log*
 # Adopter configuration (see config/README.md); config.example/ is the upstream sample
 config/*
 !config/README.md
+
+# Recorded snapshots hold personal data (see snapshots/README.md)
+snapshots/*
+!snapshots/README.md

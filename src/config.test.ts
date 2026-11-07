@@ -148,6 +148,11 @@ describe("config", () => {
     expect(problems).toEqual([`categories.yml entry #1: the category key "${key}" is reserved by the share link`]);
   });
 
+  it("rejects the category key id, which is the column that identifies a person in a snapshot", () => {
+    const problems = problemsOf({ categories: [{ ...category, key: "id" }], roles: null, site: null });
+    expect(problems).toEqual(['categories.yml entry #1: the category key "id" is reserved by the snapshots']);
+  });
+
   it("allows keys that only look like reserved ones", () => {
     const categories = [{ ...category, key: "names" }, { ...category, key: "Role" }];
     expect(problemsOf({ categories, roles: null, site: null })).toEqual([]);

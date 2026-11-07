@@ -48,11 +48,19 @@ same concept, use the one in **bold** and avoid the aliases.
 | ------------------ | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
 | **Share link**     | The URL whose fragment holds the whole **Person**; it is the only place data is stored.                             | State URL, permalink, snapshot URL    |
 | **Legacy link**    | A **Share link** from earlier versions, with the **Person** as JSON in `?state=`; read forever, never written.       | Old URL, v0 link                      |
-| **Reserved key**   | A **Share link** field name (`name`, `role`, `compare`, `tag`, `state`) that no **Category key** may use.          | Keyword, forbidden key                |
+| **Reserved key**   | A **Share link** field name (`name`, `role`, `compare`, `tag`, `state`), or `id`, the **Snapshot** column, that no **Category key** may use. | Keyword, forbidden key                |
 | **Normalisation**  | Making a **Share link** fit the current **Configuration**: unknown keys dropped, **Levels** clamped.                | Sanitising, validation, migration     |
 | **Ignored field**  | Data in a **Share link** that **Normalisation** dropped or corrected.                                               | Issue, error, warning                 |
 | **Invalid link**   | A **Share link** with nothing usable, which opens the **Example person**.                                           | Broken link, bad state                |
 | **Link notice**    | The dismissible, non-blocking message that names the **Ignored fields** or explains an **Invalid link**.            | Error, alert, warning, toast          |
+
+## Snapshots
+
+| Term                | Definition                                                                                                                                  | Aliases to avoid                               |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| **Snapshot**        | A dated CSV file, outside the app, with one row per **Person** recorded from their **Share link**. Its date is the leading `YYYY-MM-DD` of the file name. | Record file, export, backup, snapshot URL      |
+| **Snapshots folder** | Where **Snapshots** live: `snapshots/` or `PROGRESSION_RADAR_SNAPSHOTS_DIR`; git-ignored upstream.                                           | Data folder, history folder                    |
+| **Person id**       | The `id` the user chooses for a **Person** in **Snapshots**: unique within a **Snapshot**, and the same `id` in two **Snapshots** is the same **Person**. It does not exist in the **Share link**. | User id, key, slug                             |
 
 ## Configuration and customisation
 
@@ -79,6 +87,8 @@ same concept, use the one in **bold** and avoid the aliases.
 - A **Category**'s **Levels** are derived from its **Expectations** (plus level 0); they are never declared on their
   own.
 - A **Role** has at most one **Required level** per **Category**.
+- A **Snapshot** holds many **Persons**, one row each with a **Person id**; a row converts to a **Share link** and back.
+  A **Category** with no column in a **Snapshot** is "not recorded", which is not **Level** 0.
 - A **Share link** holds exactly one **Person**; a **Person** has one **Reached level** per **Category**, at most one
   **Current role** and at most one **Compared role**.
 - The **Role gap** exists only while there is a **Compared role**; the **Current role** plays no part in it.

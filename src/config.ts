@@ -1,7 +1,7 @@
 // Loads the configuration files resolved at build time (the config folder, falling back to config.example/)
 // and turns them into a validated, typed Config.
 import { images as configImages, origins, raw as rawConfig } from "virtual:progression-radar-config";
-import { RESERVED_KEYS, type Category, type Config, type Expectation, type Levels, type Role, type Site } from "./model";
+import { RESERVED_KEYS, SNAPSHOT_RESERVED_KEYS, type Category, type Config, type Expectation, type Levels, type Role, type Site } from "./model";
 
 export class ConfigError extends Error {
   constructor(readonly problems: string[]) {
@@ -83,6 +83,8 @@ function parseCategories(raw: unknown, origins: Origins, knownProblems: number, 
     seen.add(item.key);
     if (RESERVED_KEYS.includes(item.key)) {
       problems.push(`${where}: the category key "${item.key}" is reserved by the share link`);
+    } else if (SNAPSHOT_RESERVED_KEYS.includes(item.key)) {
+      problems.push(`${where}: the category key "${item.key}" is reserved by the snapshots`);
     }
 
     // "kpis" is the legacy name of "expectations", still accepted so existing configurations keep working.

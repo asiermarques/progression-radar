@@ -15,7 +15,10 @@
     "test": "vitest",
     "typecheck": "tsc --noEmit",
     "config:migrate": "node scripts/config-migrate.mjs",
-    "config:convert-categories": "node scripts/config-convert-categories.mjs"
+    "config:convert-categories": "node scripts/config-convert-categories.mjs",
+    "snapshot:record": "node scripts/snapshot.mjs record",
+    "snapshot:link": "node scripts/snapshot.mjs link",
+    "snapshot:check": "node scripts/snapshot.mjs check"
   },
   "dependencies": {
     "@fontsource/shippori-mincho": "^5.3.0",

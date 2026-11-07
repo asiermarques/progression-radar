@@ -10,8 +10,8 @@ Live demo: https://progression-radar.netlify.app
 
 - **People on a path**: an individual contributor who wants to see where they stand and what is missing for a
   role.
-- **Managers and mentors**: someone who discusses progression with a person and shares a snapshot of it, e.g.
-  for a one-to-one or a growth plan.
+- **Managers and mentors**: someone who discusses progression with a person and shares a link to it, e.g. for a
+  one-to-one or a growth plan, and who keeps dated records of the people they mentor to see how they grow.
 - **Adopters**: an organisation or team that forks the repository, puts its own ladder in its own `config/` folder and
   deploys it.
 
@@ -26,6 +26,7 @@ Live demo: https://progression-radar.netlify.app
 | Person      | the person being shown: name, reached levels, current role, tags and the role compared to       |
 | Compare to  | the role whose required levels are drawn next to the person's on the radar                      |
 | Share link  | the URL that holds the whole state of the person, so it can be bookmarked or sent               |
+| Snapshot    | a dated CSV file, outside the app, with one row per person recorded from their share link       |
 
 ## What it does
 
@@ -48,11 +49,22 @@ Live demo: https://progression-radar.netlify.app
   recognise, and names the file and folder of every configuration problem.
 - Moves the customisations of an existing fork to the new layout with `npm run config:migrate`.
 - Converts an existing `categories.yml` into Markdown category files with `npm run config:convert-categories`.
+- Records people in dated CSV snapshots on the user's machine (`npm run snapshot:record`), turns a recorded row back
+  into a share link (`npm run snapshot:link`) and checks the snapshots against the current configuration
+  (`npm run snapshot:check`), including files edited in a spreadsheet. A project skill lets Claude Code drive these
+  commands from a request in natural language. The app itself does not read snapshots.
 
 ## Product decisions
 
-- **No backend, no accounts.** Nothing is stored anywhere except the share link. Sharing a person means sending
-  the link.
+- **No backend, no accounts.** The app stores nothing: the person lives in the share link, and sharing a person
+  means sending the link. The only records are the snapshot files that the user chooses to create on their own
+  machine (or in a folder they point to), which hold personal data, are git-ignored upstream and are never sent
+  anywhere. See [ADR 0004](adr/0004-local-csv-snapshots-outside-the-app.md).
+- **Snapshots are history.** A snapshot is a dated CSV with one row per person and a mandatory `id`. The tools never
+  rewrite one: they only add a row, and refuse a repeated `id`. Changing the ladder never rewrites or rejects old
+  snapshots: checking them reports warnings for what no longer fits, and errors only for what is wrong whatever the
+  ladder is. A missing category column means "not recorded", which is not level 0. `id` is reserved and cannot be a
+  category key. The Claude skill only drives the scripts: it does not assess people or propose levels.
 - **Old links keep working.** Links created by earlier versions (`?state=<JSON>`) must keep opening, forever. When
   the configuration changes, unknown categories and roles in a link are ignored and levels are clamped, instead of
   rejecting the link, and the person is told what was ignored. A link that is not valid at all opens the example
@@ -73,7 +85,8 @@ Live demo: https://progression-radar.netlify.app
 
 ## Non-goals
 
-- Storing people, history or progress on a server, or any login.
+- Storing people, history or progress on a server, or any login. Local snapshot files are the user's own.
 - An in-app editor for categories, expectations or roles: they are edited in the configuration files (Markdown category files and YAML).
 - Being an npm package or library that other projects depend on and override (removed in 1.0).
-- Comparing several people at once: a link holds one person.
+- Comparing several people at once in the app: a link holds one person, and the app does not open snapshots. Reports
+  over snapshots, such as how a category evolves, are outside the app.

@@ -39,8 +39,8 @@ not contradict an accepted decision.
 ## Components
 
 - One component per file in `src/components/`, default export, props typed as `interface Props`.
-- The root element has a stable, kebab-case class name (`category-panel`, `share-button`). Class names listed in the
-  README ("Styles") are a public contract for the adopters' `theme.css`: do not rename or remove them; document new ones
+- The root element has a stable, kebab-case class name (`category-panel`, `share-button`). Class names listed in
+  `docs/guides/styles.md` are a public contract for the adopters' `theme.css`: do not rename or remove them; document new ones
   meant for theming.
 - Express state with ARIA and data attributes (`aria-pressed`, `aria-current`, `data-status`) before adding classes;
   pass dynamic values to CSS as custom properties (`style={{ "--level-count": n }}`), not as inline colours or sizes.
@@ -69,4 +69,5 @@ not contradict an accepted decision.
 ## Docs
 
 - New file or responsibility: update "Layout" (and "Extending" if it adds a new pattern) in `docs/ARCHITECTURE.md`.
-- New config option, share link field or themable class name: update the README.
+- New config option, share link field or themable class name: update the matching guide in `docs/guides/`
+  (configuration, categories, roles, styles or share link).

@@ -8,6 +8,8 @@ No backend: content comes from `config.example/` and the adopter's `config/` fol
 - `docs/PRODUCT.md`: what it does and the product decisions.
 - `docs/ARCHITECTURE.md`: code layout, data flow and key decisions.
 - `docs/DESIGN.md`: design system, before touching UI.
+- `docs/guides/`: user guides (getting started, configuration, categories, roles, styles, share link, snapshots,
+  deployment, upgrading). Keep the matching guide up to date when behaviour changes; the README only lists and links.
 - `docs/adr/`: accepted decisions; do not contradict them.
 
 ## Rules
