@@ -6,8 +6,8 @@ compiled into the bundle at build time and the user's data lives in the URL.
 ## Goals
 
 - **Minimal.** Few dependencies, few files, no abstractions that the app does not need yet.
-- **Customisable by forking.** Adopters change files in `config/` only; `src/` stays untouched so upstream updates
-  merge cleanly.
+- **Customisable by forking.** Adopters change files in their own config folder only (`config/`, git-ignored upstream,
+  overrides the sample in `config.example/` file by file); `src/` stays untouched so upstream updates merge cleanly.
 - **Deployable anywhere.** `npm run build` produces plain static files with relative paths.
 
 ## Stack
@@ -27,17 +27,22 @@ compiled into the bundle at build time and the user's data lives in the URL.
 ## Layout
 
 ```
-config/                  everything a deployment customises
+config.example/          upstream's sample configuration and the defaults (adopters do not edit it)
   categories.yml           areas and their KPIs per level
   roles.yml                roles and the levels they require
   site.yml                 title, optional logo and footer
-  theme.css                CSS overrides, loaded after the base styles
+  theme.css                comment-only CSS overrides, loaded after the base styles
+config/                  the adopter's configuration; git-ignored except README.md. Same file names as the sample,
+                           and each file replaces the sample one. Another folder: PROGRESSION_RADAR_CONFIG_DIR
 public/                  static files copied as-is (favicons, manifest)
+scripts/
+  config-sources.ts        decides which folder each configuration file is read from (used by vite.config.ts)
+  config-migrate.mjs       `npm run config:migrate`: moves a fork's edits out of config.example/
 src/
-  main.tsx                 entry point: loads config, reads the URL, renders App or an error screen
+  main.tsx                 entry point: loads config and theme, reads the URL, renders App or an error screen
   App.tsx                  owns the state, syncs it to the URL, composes the page
   model.ts                 domain types and pure functions (levels, percentages)
-  config.ts                imports config/*.yml and validates it into a typed Config
+  config.ts                validates the resolved configuration into a typed Config
   urlState.ts              reads/writes the share link (URL fragment, legacy `?state=` read-only) and its notices
   components/
     PersonPanel.tsx        seal, name, role, tags and the "compare to" selector
@@ -48,13 +53,13 @@ src/
     LinkNotice.tsx         dismissible notice about data a link could not use
   styles.css               base styles and the CSS custom properties used for theming
   *.test.ts(x)             tests, next to the code they cover
-vite.config.ts           Vite + Vitest config, including a tiny YAML plugin
+vite.config.ts           Vite + Vitest config, with a tiny YAML plugin and the plugin that resolves the configuration
 ```
 
 ## Data flow
 
 ```
-config/*.yml ──(build: YAML plugin)──▶ config.ts: parseConfig() ──▶ Config
+config/ + config.example/ ──(build: resolve per file, YAML plugin)──▶ config.ts: parseConfig() ──▶ Config
                                                                        │
 URL #name=…&comm=2 ──▶ urlState.ts: parseState() ──▶ Person ──▶ App (useState)
 (or legacy ?state=…)     └─▶ issues ──▶ notice                  │      │
@@ -63,9 +68,16 @@ URL #name=…&comm=2 ──▶ urlState.ts: parseState() ──▶ Person ──
         URL ──(hashchange)──▶ parseState() ──▶ App
 ```
 
-1. **Build time.** `vite.config.ts` contains a small plugin that turns any `.yml` import into the parsed object.
-   YAML syntax errors fail the dev server and the build. Images in `config/` are collected with `import.meta.glob`
-   so `site.yml` can reference a logo by file name.
+1. **Build time.** `vite.config.ts` contains a small plugin that turns any `.yml` import into the parsed object (YAML
+   syntax errors fail the dev server and the build) and another one that resolves the configuration: each of
+   `categories.yml`, `roles.yml`, `site.yml` and `theme.css` is taken from the config folder if it is there and from
+   `config.example/` otherwise, and images are looked up in the same order so `site.yml` can reference a logo by file
+   name. The result reaches the app through two virtual modules (`virtual:progression-radar-config` and
+   `virtual:progression-radar-theme`), so no path is written in `src/` and the build stays static. The config folder
+   is `config/` or the path in `PROGRESSION_RADAR_CONFIG_DIR`, which must exist when it is set; the variable is not
+   `VITE_`-prefixed and absolute paths never reach the bundle (messages call the folder `PROGRESSION_RADAR_CONFIG_DIR`).
+   The build log lists where each file came from and warns about files the app does not use. In dev, editing a file
+   reloads the page, and so does adding or removing one in either folder.
 2. **Start-up.** `main.tsx` calls `loadConfig()`, which validates the raw data and either returns a typed `Config`
    or throws a `ConfigError` with *all* the problems found; those are rendered as a list.
 3. **URL state.** `parseState()` reads the share link: the legacy `state` query if present, otherwise the fragment.
@@ -96,16 +108,26 @@ so old links survive configuration changes instead of breaking.
 ### Configuration is validated, not trusted
 The YAML imports are typed as `unknown`. `parseConfig()` is the only place that turns them into domain types, and it
 checks required fields, positive integer levels, duplicated keys, roles referencing unknown categories and missing
-logo files. A test loads the shipped configuration, so CI catches configuration mistakes as well.
+logo files. Every problem names the file and folder it comes from (`config/roles.yml: role "r" …` or
+`config.example/categories.yml entry #2 …`), because the same file can come from either place. A test loads the
+resolved configuration and, separately, `config.example/` on its own, so CI catches mistakes in an adopter's
+configuration and in the sample, even when the sample is overridden.
 
 ### Customisation without being a library
 Earlier versions were published as an npm package with a Babel `lib/` build so other projects could depend on it and
 override pieces. That has been removed. Customisation is now limited to what adopters actually need:
 
-- **Content**: `config/*.yml`.
-- **Branding**: `config/site.yml` (title, logo, footer) and `config/theme.css`.
+- **Content**: `categories.yml` and `roles.yml`.
+- **Branding**: `site.yml` (title, logo, footer) and `theme.css`.
 
-`theme.css` is imported after `src/styles.css`, so it can override the CSS custom properties or any rule. Components
+These live in the adopter's config folder, which upstream git-ignores and never edits, and fall back file by file to
+`config.example/`. A file replaces its counterpart whole (no merging of YAML keys or CSS rules), which keeps the rule
+easy to explain and stops upstream's sample content from leaking into an adopter's ladder; see
+[ADR 0002](adr/0002-config-example-with-local-config-override.md). Forks that predate the split move their edits with
+`npm run config:migrate`.
+
+The resolved `theme.css` is imported after `src/styles.css`, so it can override the CSS custom properties or any rule.
+The base theme stays in `src/styles.css`, so replacing `theme.css` loses no styles. Components
 use stable, documented class names to make those overrides safe. If deeper changes are needed, the fork can change
 `src/` directly; the code base is small enough for that.
 
@@ -129,7 +151,9 @@ numbers of levels and still be comparable on the same chart.
 ## Testing
 
 - `model.test.ts`: level and percentage calculations.
-- `config.test.ts`: validation rules and the shipped configuration.
+- `config.test.ts`: validation rules, the resolved configuration and `config.example/` on its own.
+- `scripts/config-sources.test.ts` and `scripts/config-migrate.test.ts`: which folder each file comes from, the
+  build log, and the migration command on temporary git repositories.
 - `urlState.test.ts`: fragment format and round-trip, legacy URLs, normalisation, ignored/corrected fields and invalid
   input.
 - `App.test.tsx`: rendering and the main interactions (level selection, compare role, debounced URL sync that survives

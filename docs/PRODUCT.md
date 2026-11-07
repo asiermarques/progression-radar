@@ -12,17 +12,17 @@ Live demo: https://progression-radar.netlify.app
   role.
 - **Managers and mentors**: someone who discusses progression with a person and shares a snapshot of it, e.g.
   for a one-to-one or a growth plan.
-- **Adopters**: an organisation or team that forks the repository, puts its own ladder in `config/` and deploys
-  it.
+- **Adopters**: an organisation or team that forks the repository, puts its own ladder in its own `config/` folder and
+  deploys it.
 
 ## Core concepts
 
 | concept    | meaning                                                                                       |
 |------------|-----------------------------------------------------------------------------------------------|
-| Category   | an area of the path, e.g. Communication or Backend. Configured in `config/categories.yml`     |
+| Category   | an area of the path, e.g. Communication or Backend. Configured in `categories.yml`            |
 | KPI        | a skill, behaviour or concept expected at a given level of a category                          |
 | Level      | how far a person is in a category. Level 0 plus every level used by the category's KPIs        |
-| Role       | a step of the ladder, with the level it requires in each category. Configured in `config/roles.yml` |
+| Role       | a step of the ladder, with the level it requires in each category. Configured in `roles.yml`        |
 | Person     | the person being shown: name, reached levels, current role, tags and the role compared to      |
 | Compare to | the role whose required levels are drawn next to the person's on the radar                     |
 | Share link | the URL that holds the whole state of the person, so it can be bookmarked or sent              |
@@ -41,7 +41,12 @@ Live demo: https://progression-radar.netlify.app
 - Opens broken or partly outdated links anyway: it shows the valid data (or an example) and a dismissible notice
   that names what was ignored or corrected.
 - Offers light and dark themes (following the system setting), a responsive layout and a print-friendly page.
-- Lets adopters change the content, title, logo, footer and styles from the `config/` folder.
+- Lets adopters change the content, title, logo, footer and styles from their own config folder (`config/` by
+  default, or the path in `PROGRESSION_RADAR_CONFIG_DIR`). Each file in it replaces the sample file of the same name in
+  `config.example/`, and the files it does not have come from the sample, so a fresh clone runs with no setup.
+- Tells adopters, in the build log, which folder each configuration file was read from and which files it does not
+  recognise, and names the file and folder of every configuration problem.
+- Moves the customisations of an existing fork to the new layout with `npm run config:migrate`.
 
 ## Product decisions
 
@@ -55,12 +60,15 @@ Live demo: https://progression-radar.netlify.app
   documents, and the person's data should not reach the server, so it lives in the URL fragment as flat key-value
   parameters. `name`, `role`, `compare`, `tag` and `state` are reserved and cannot be category keys. See
   [ADR 0001](adr/0001-readable-share-url-format.md).
-- **Customisation by forking.** Adopters edit `config/` only, so upstream updates merge cleanly. Deeper changes are
-  done by changing `src/` in the fork.
+- **Customisation by forking.** Upstream owns `config.example/` (the sample and the defaults) and adopters own their
+  config folder, which is git-ignored upstream, so the two never edit the same file and updates merge cleanly. A file
+  in the adopter's folder replaces the sample file whole: nothing is merged. The configuration can stay local,
+  be committed in a fork, or live in a separate repository. Deeper changes are done by changing `src/` in the fork. See
+  [ADR 0002](adr/0002-config-example-with-local-config-override.md).
 - **Configuration mistakes are shown, not hidden.** An invalid configuration lists every problem instead of
   rendering, and fails the tests.
 - **The default theme is only a default.** It is inspired by Japanese print, but every colour, font and texture can
-  be overridden from `config/theme.css`.
+  be overridden from the adopter's `theme.css`.
 
 ## Non-goals
 

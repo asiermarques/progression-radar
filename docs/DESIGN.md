@@ -21,7 +21,7 @@ like a carefully typeset sheet that a manager and a person sit down with, not li
 Three things carry the identity and must survive any change: the **seal**, the **two-colour person vs. role
 language** and the **serif numbers**. Everything else stays quiet: few colours, thin rules, generous space.
 
-The theme is only a default. Adopters re-brand from `config/theme.css`, so every visual decision must be expressed
+The theme is only a default. Adopters re-brand from their own `theme.css`, so every visual decision must be expressed
 through the custom properties and stable class names described below, never hard-coded.
 
 ## Colour
@@ -294,11 +294,13 @@ print; new content blocks get `break-inside: avoid`.
 
 ## Theming contract for adopters
 
-Adopters only touch `config/theme.css`, which is imported after `src/styles.css`. To keep that working:
+Adopters only provide a `theme.css` in their config folder (`config/` by default), which replaces
+`config.example/theme.css` and is imported after `src/styles.css`. To keep that working:
 
 - Every colour, font, radius and texture comes from a custom property. A new themable value means a new property in
-  `:root` **and** in the dark palette, listed (commented out) in `config/theme.css` and documented in the README.
-- `config/theme.css` ships with commented-out examples only. Never put default styles there.
+  `:root` **and** in the dark palette, listed (commented out) in `config.example/theme.css` and documented in the README.
+- `config.example/theme.css` ships with commented-out examples only. Never put default styles there: an adopter's
+  `theme.css` replaces it whole, so any default style in it would be lost.
 - Keep specificity low (one class, or class + attribute) so overrides work without `!important`.
 - Do not rename or remove the public class names in the README.
 
@@ -326,7 +328,7 @@ Run `npm run dev` and look at:
 - a narrow screen (< 600px) and a tablet width (< 900px);
 - print preview;
 - `prefers-reduced-motion: reduce`;
-- a re-brand: uncomment a few variables in `config/theme.css`, including `--texture: none`, and check nothing is
+- a re-brand: uncomment a few variables in a copy of `config.example/theme.css` placed in `config/`, including `--texture: none`, and check nothing is
   hard-coded.
 
 Then run `npm test -- --run` and `npm run build`. If the default look changes visibly, update `docs/screenshot.jpg`.

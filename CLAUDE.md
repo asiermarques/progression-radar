@@ -1,7 +1,7 @@
 # Progression Radar
 
 Static React + TypeScript (Vite) app that draws a person's career levels on a radar and compares them with a role.
-No backend: content comes from `config/*.yml` at build time and the person's state lives in the URL.
+No backend: content comes from `config.example/` and the adopter's `config/` folder at build time and the person's state lives in the URL.
 
 ## Read first
 
@@ -12,7 +12,9 @@ No backend: content comes from `config/*.yml` at build time and the person's sta
 
 ## Rules
 
-- `config/` belongs to adopters and `src/` must work with any valid config: never hard-code category or role keys.
+- `config.example/` is the upstream sample and `config/` (or `PROGRESSION_RADAR_CONFIG_DIR`) belongs to adopters and is
+  git-ignored: each file is read from the adopter's folder if it is there, else from the example. `src/` must work with
+  any valid config: never hard-code category or role keys.
 - No new runtime dependencies without asking.
 - Do not reference user stories, requisite ids or issue numbers (`US-001`, `#25`, `FR-003`…) in code, comments, tests,
   `docs/`, the README or commit messages. Describe the behaviour itself; only the ADRs (`docs/adr/`) may be cited.

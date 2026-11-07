@@ -13,14 +13,15 @@ not contradict an accepted decision.
 ## Boundaries
 
 - `src/model.ts` holds domain types and pure functions only: no React, no browser APIs.
-- `src/config.ts` is the only place that turns the YAML imports (typed `unknown`) into domain types. Every new config
-  option is validated there and reported as a problem, never trusted.
+- `src/config.ts` is the only place that turns the resolved configuration (typed `unknown`) into domain types. Every
+  new config option is validated there and reported as a problem that names its file and folder, never trusted. Which
+  folder each file comes from is decided at build time in `vite.config.ts`, not in `src/`.
 - `src/urlState.ts` is the only place that reads or writes the share link format. Components never touch
   `location.search`, `location.hash` or `history` directly.
 - `App` owns the `Person` and the selected Category. Components get data and callbacks as props and keep only UI
   state of their own (e.g. scroll position effects). No context, store, reducer or router.
 - `src/` must work with any valid configuration: never hard-code Category or Role keys (`comm`, `front`…) or rely on
-  the shipped `config/` content. Adopters customise `config/` only.
+  the content of `config.example/`. Adopters customise their own `config/` folder only; `config.example/` is upstream's.
 
 ## Dependencies
 
@@ -39,7 +40,7 @@ not contradict an accepted decision.
 
 - One component per file in `src/components/`, default export, props typed as `interface Props`.
 - The root element has a stable, kebab-case class name (`category-panel`, `share-button`). Class names listed in the
-  README ("Styles") are a public contract for `config/theme.css`: do not rename or remove them; document new ones
+  README ("Styles") are a public contract for the adopters' `theme.css`: do not rename or remove them; document new ones
   meant for theming.
 - Express state with ARIA and data attributes (`aria-pressed`, `aria-current`, `data-status`) before adding classes;
   pass dynamic values to CSS as custom properties (`style={{ "--level-count": n }}`), not as inline colours or sizes.
@@ -59,8 +60,8 @@ not contradict an accepted decision.
 ## Tests and checks
 
 - Tests live next to the code (`*.test.ts(x)`), with Vitest and Testing Library on happy-dom.
-- Build configs inline with `parseConfig({...})` instead of reading `config/`; only `config.test.ts` checks the
-  shipped configuration.
+- Build configs inline with `parseConfig({...})` instead of reading `config/` or `config.example/`; only
+  `config.test.ts` checks the resolved configuration and `config.example/` on its own.
 - Query by role, label or visible text (`getByRole("button", { name: "Level 2" })`); use class selectors only to
   disambiguate. Stub browser APIs with `vi.stubGlobal` and restore them in `afterEach`.
 - Before finishing, run `npm test -- --run` and `npm run build` (type-check + build), the same steps as CI.

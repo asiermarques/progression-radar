@@ -15,7 +15,7 @@ import "@fontsource/zen-kaku-gothic-new/latin-ext-400.css";
 import "@fontsource/zen-kaku-gothic-new/latin-ext-500.css";
 import "@fontsource/zen-kaku-gothic-new/latin-ext-700.css";
 import "./styles.css";
-import "../config/theme.css";
+import "virtual:progression-radar-theme";
 
 const root = createRoot(document.getElementById("root")!);
 const render = (node: ReactNode) => root.render(<StrictMode>{node}</StrictMode>);
@@ -50,7 +50,7 @@ try {
   console.error(error);
   render(
     <ErrorScreen>
-      <p>The configuration in the config/ folder has problems:</p>
+      <p>The configuration has problems:</p>
       <ul>
         {error.problems.map((problem) => (
           <li key={problem}>{problem}</li>

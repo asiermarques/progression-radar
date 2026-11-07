@@ -7,3 +7,7 @@ coverage
 *.local
 npm-debug.log*
 .workflow
+
+# Adopter configuration (see config/README.md); config.example/ is the upstream sample
+config/*
+!config/README.md

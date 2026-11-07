@@ -11,8 +11,9 @@ motion are described there.
 
 ## Where styles go
 
-- `src/styles.css` holds every base style. `config/theme.css` belongs to adopters: it is loaded after the base
-  styles and ships with commented-out examples only. Never put default styles in it.
+- `src/styles.css` holds every base style. An adopter's `theme.css` (in their config folder, else `config.example/theme.css`) replaces the
+  example file and is loaded after the base styles. `config.example/theme.css` ships with commented-out examples only.
+  Never put default styles in it.
 - Plain CSS with custom properties only: no preprocessor, CSS framework, CSS modules or CSS-in-JS.
 
 ## Theming
@@ -22,7 +23,7 @@ motion are described there.
 - Derive tints with `color-mix(in oklab, var(--color-…) N%, transparent)`, as the existing rules do, instead of new
   hex values.
 - A new themable value is a new custom property in `:root` **and** in the `@media (prefers-color-scheme: dark)`
-  palette, listed in `config/theme.css` (commented) and in the README "Styles" section.
+  palette, listed in `config.example/theme.css` (commented) and in the README "Styles" section.
 - The radar series use `--color-person` and `--color-compare` through `--series-color`. Keep the compared role
   distinguishable without colour (dashed outline and hatching).
 
@@ -32,7 +33,7 @@ motion are described there.
   `--` (`radar-series--person`, `radar-label--interactive`).
 - Style states through the attributes the components set (`[aria-pressed="true"]`, `[aria-current]`,
   `[data-status="met"]`) rather than new state classes.
-- Keep specificity low so `config/theme.css` can override any rule without `!important`.
+- Keep specificity low so an adopter's `theme.css` can override any rule without `!important`.
 
 ## Layout, motion and print
 

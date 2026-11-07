@@ -30,12 +30,12 @@ npm install
 npm run dev
 ```
 
-To use it for your own organisation, fork the repository, edit the files in [`config/`](config) and deploy it
-(see [Deployment](#deployment)).
+To use it for your own organisation, fork the repository, put your files in [`config/`](config) and deploy it
+(see [Configuration](#configuration) and [Deployment](#deployment)).
 
 ## Configuration
 
-Everything that is specific to your deployment lives in the `config/` folder:
+Everything that is specific to your deployment lives in **your config folder**, which upstream never touches:
 
 | file             | purpose                                                    |
 |------------------|------------------------------------------------------------|
@@ -44,12 +44,39 @@ Everything that is specific to your deployment lives in the `config/` folder:
 | `site.yml`       | title, logo and footer                                     |
 | `theme.css`      | CSS overrides: colours, fonts or any other style           |
 
+The project ships a sample of each in [`config.example/`](config.example), and that is what you get on a fresh clone,
+with no setup. To customise a file, put a file with the same name in `config/` (copy the sample to start from it).
+At build time every file is read from `config/` if it is there, and from `config.example/` otherwise. Do not edit
+`config.example/`: it is upstream's, and leaving it alone is what lets updates merge without conflicts.
+
+- **A file replaces its counterpart completely.** Nothing is merged: your `site.yml` does not inherit the sample
+  footer, and your `theme.css` replaces the sample one (the base theme is in `src/styles.css`, so you lose no styles).
+- **Images** referenced from `site.yml` are looked up in `config/` first, then in `config.example/`.
+- **`config/` is git-ignored** (except its `README.md`), so a local experiment never ends up in a commit. To keep your
+  configuration in your fork, force-add the files (`git add -f config/roles.yml`) or use a tracked folder with
+  another name.
+- **Another folder.** Set `PROGRESSION_RADAR_CONFIG_DIR` to use any other folder: relative to the project root
+  (`my-ladder`), outside it (`../my-ladder`, e.g. a separate private repository) or absolute. The folder must exist,
+  otherwise the dev server and the build fail with an error naming it. In Netlify, set it under *Site configuration →
+  Environment variables*.
+
+  ```sh
+  PROGRESSION_RADAR_CONFIG_DIR=../my-ladder npm run dev
+  ```
+
+- **The build log tells you what was used.** It shows the folder each file was read from, and warns about files in
+  your folder that the app does not use (for example a misspelt `category.yml`). Images and `README.md` are not
+  reported.
+- In `npm run dev`, editing a file in your folder reloads the page, and so does adding or removing one.
+
 The configuration is validated when the app loads: if something is wrong, the app lists every problem instead of
-rendering, and `npm test` fails too.
+rendering, each one prefixed with the file and folder it comes from (`config/roles.yml: role "r" …` or
+`config.example/categories.yml entry #2 …`), and `npm test` fails too. The tests check your resolved configuration and,
+separately, `config.example/` on its own.
 
 ### Categories
 
-Each entry of `config/categories.yml` has these fields:
+Each entry of `categories.yml` has these fields:
 
 | field       | description                                     |
 |-------------|-------------------------------------------------|
@@ -73,7 +100,7 @@ Each KPI has these fields:
 The levels of a category are the levels used by its KPIs, plus level 0.
 
 ```yaml
-# config/categories.yml
+# config/categories.yml (or config.example/categories.yml)
 - key: comm
   name: Communication
   description: Shares the right amount of information with the right people, at the right time, and listens effectively
@@ -91,7 +118,7 @@ The levels of a category are the levels used by its KPIs, plus level 0.
 
 ### Roles
 
-Each entry of `config/roles.yml` has these fields:
+Each entry of `roles.yml` has these fields:
 
 | field  | description                                                                                         |
 |--------|-----------------------------------------------------------------------------------------------------|
@@ -100,7 +127,7 @@ Each entry of `config/roles.yml` has these fields:
 | levels | the level the role requires in each category, by category key, e.g. `{ comm: 3, back: 2 }`. Missing categories count as level 0 |
 
 ```yaml
-# config/roles.yml
+# config/roles.yml (or config.example/roles.yml)
 - key: aswe
   name: Associate Software Engineer
   levels: { comm: 1, pm: 1, des: 1, ops: 1, front: 1, back: 1 }
@@ -111,13 +138,14 @@ Each entry of `config/roles.yml` has these fields:
 ```yaml
 # config/site.yml
 title: Acme Engineering Ladder
-logo: logo.svg          # optional, an image file placed in config/
+logo: logo.svg          # optional, an image file placed in config/ (or config.example/)
 footer: Made by the **Acme** platform team.   # optional, Markdown
 ```
 
 ### Styles
 
-`config/theme.css` is loaded after the base styles, so anything you write there wins. The easiest way to re-brand
+`config/theme.css` replaces `config.example/theme.css` (which only holds commented-out examples to copy) and is loaded
+after the base styles, so anything you write there wins. The easiest way to re-brand
 the app is to override the CSS custom properties (see [docs/DESIGN.md](docs/DESIGN.md#colour) for all of them):
 
 ```css
@@ -183,6 +211,7 @@ the app rewrites them in the new format after the first change.
 | `npm run typecheck` | type-checks the project                                 |
 | `npm run build`     | type-checks and builds the static site into `dist/`     |
 | `npm run preview`   | serves the production build locally                     |
+| `npm run config:migrate` | moves a fork's edits out of `config.example/` (see [Upgrading](#upgrading)) |
 
 ## Deployment
 
@@ -191,7 +220,8 @@ the root of a domain or in a sub-folder. The repository includes a `netlify.toml
 
 ### Keeping your fork up to date
 
-Upstream updates merge without conflicts as long as your changes stay in `config/` and `src/` is untouched:
+Upstream updates merge without conflicts as long as your changes stay in your config folder (`config/`, or the one in
+`PROGRESSION_RADAR_CONFIG_DIR`) and `src/` and `config.example/` are untouched:
 
 ```sh
 git remote add upstream https://github.com/asiermarques/progression-radar.git
@@ -200,6 +230,53 @@ npm install
 ```
 
 ## Upgrading
+
+### A fork that edited `config/` (the sample moved to `config.example/`)
+
+Upstream's sample configuration moved from `config/` to `config.example/`, and `config/` is now git-ignored and yours
+(see [Configuration](#configuration)). When you pull the update, git sees the rename and moves your edits into
+`config.example/`. The app still works, but your customisations now sit in upstream's folder and the next upstream
+change to the sample conflicts again. Move them out once:
+
+```sh
+git remote add upstream https://github.com/asiermarques/progression-radar.git   # once
+git fetch upstream
+git pull upstream master
+npm run config:migrate -- --dry-run   # lists the files you changed
+npm run config:migrate                # asks, moves them to config/ and restores config.example/
+```
+
+The command compares `config.example/` with `upstream/master` (pass another ref as an argument:
+`npm run config:migrate -- some/ref`), moves the files that differ, or that upstream does not have, to your config
+folder (it follows `PROGRESSION_RADAR_CONFIG_DIR`) and restores `config.example/` from the ref. It never overwrites
+a file already in your folder: it reports it, skips it and leaves your copy in `config.example/` for you to merge
+by hand. It does not stage or commit anything, stops without changing files if the ref is missing, a merge is in
+progress or `config.example/` has conflicts, and prints the next steps. Add `--yes` to skip the confirmation.
+`npm run config:migrate -- --dry-run` and `npm run config:migrate --dry-run` both work.
+
+If the pull reports conflicts under `config/` or `config.example/` (git's directory rename detection can leave
+files you had added there), resolve them first, keeping your versions, and run the command afterwards.
+
+Then keep your configuration in the fork, either by force-adding it (`config/` is git-ignored) or by committing it in
+a folder you track and setting `PROGRESSION_RADAR_CONFIG_DIR` where you build:
+
+```sh
+git add -f config            # or: git add my-ladder, with PROGRESSION_RADAR_CONFIG_DIR=my-ladder
+git add config.example       # the restored sample
+git commit -m "Move my configuration out of config.example"
+```
+
+To do it by hand instead:
+
+```sh
+mkdir -p config
+cp config.example/categories.yml config/             # repeat for each file you edited
+git checkout upstream/master -- config.example      # restore the sample (it does not delete files only you added)
+git add -f config
+```
+
+A fork that deploys from its own repository and does not migrate still builds, with its customisations read from
+`config.example/`.
 
 ### A fork with a category key `name`, `role`, `compare`, `tag` or `state`
 
@@ -221,7 +298,7 @@ Version 1.0 is a rewrite (Vite, React 19 and TypeScript instead of Create React 
 links keep working, but:
 
 - **Configuration location.** Move `src/data/categories.yml` and `src/data/roles.yml` to `config/`. There are no
-  `.dist` files any more; edit the committed sample configuration directly.
+  `.dist` files any more: `config/` is yours and falls back to the sample in `config.example/`.
 - **No npm package.** Fork the repository and customise `config/` instead, including `config/theme.css` for styles.
 - **Percentages.** A level is now a percentage of the highest level in its category, so the top level is 100%.
 - **Tooling.** Use `npm` instead of `yarn` and `npm run dev` instead of `yarn start`. The build output is `dist/`.
