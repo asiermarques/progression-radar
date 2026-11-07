@@ -5,11 +5,10 @@
 
 Progression Radar is a simple visualisation tool for career and learning paths. Inspired by Medium's deprecated
 Snowflake tool, it shows the level a person has reached in each area of a path and compares it with the levels a
-role requires. There is no backend: the whole state lives in the URL, so a link is a shareable snapshot. To keep a
-record of a person over time, [snapshot commands](docs/guides/snapshots.md) save the link in dated CSV files on your
-machine.
+role requires. There is no backend: the whole state lives in the URL, so a link is a shareable snapshot.
 
-Live demo: [https://progression-radar.netlify.app](https://progression-radar.netlify.app/)
+To keep a record of a person over time, [snapshot commands](docs/guides/snapshots.md) save the link in dated CSV files on your
+machine.
 
 Live demo: [https://progression-radar.netlify.app](https://progression-radar.netlify.app/)
 
