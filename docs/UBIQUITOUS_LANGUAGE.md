@@ -13,7 +13,6 @@ same concept, use the one in **bold** and avoid the aliases.
 | **Expectation**             | A skill, behaviour or concept expected of a **Person** at one **Level** of one **Category**.                 | KPI (legacy name), competency, criterion, milestone, behaviour, item |
 | **Expectation summary**     | The one-line title of an **Expectation**.                                                                    | KPI summary, name, title                                             |
 | **Expectation description** | The Markdown body of an **Expectation**, usually its example behaviours.                                     | KPI description, details, body                                       |
-| **Expectation tag**         | A label attached to an **Expectation** (e.g. `tech`, `management`); configured but not shown yet.            | KPI tag, tag (unqualified)                                           |
 | **Level**                   | A step within a **Category**: level 0 plus every level used by the **Category**'s **Expectations**.          | Grade, rank, stage, step                                             |
 | **Highest level**           | The largest **Level** of a **Category**, which counts as 100 %.                                              | Max level, top level                                                 |
 | **Role**                    | A step of the **Ladder** with the **Required level** it sets for each **Category**.                          | Position, job, title, grade                                          |
@@ -63,14 +62,14 @@ same concept, use the one in **bold** and avoid the aliases.
 | **Upstream**                | The original repository, which owns `src/` and the **Sample configuration**.                                       | Core, main repo, template                 |
 | **Sample configuration**    | The files in `config.example/`: the demo **Ladder** and the defaults.                                              | Example config, default config, template  |
 | **Config folder**           | The **Adopter**'s folder (`config/` or `PROGRESSION_RADAR_CONFIG_DIR`) whose files replace the sample ones.        | Local config, override folder, custom dir |
-| **Configuration file**      | One of `categories.yml`, `roles.yml`, `site.yml` or `theme.css`, read from the **Config folder** or the sample.   | Config entry, setting file                |
+| **Configuration file**      | One of `categories.yml` (or the `categories/` folder of **Category files**, as one unit), `roles.yml`, `site.yml` or `theme.css`, read from the **Config folder** or the sample. | Config entry, setting file                |
 | **Per-file fallback**       | The rule that each **Configuration file** comes from the **Config folder** if present, else from the sample, whole. | Merge, inheritance, overlay              |
 | **Resolved configuration**  | The set of **Configuration files** chosen by the **Per-file fallback** for a build.                                 | Effective config, final config            |
 | **Configuration**           | The validated, typed content of the **Resolved configuration**: **Site**, **Categories** and **Roles**.             | Settings, options                         |
 | **Configuration problem**   | A mistake in a **Configuration file**, named with its file and folder; all of them block rendering and fail tests. | Config error (in prose), warning          |
 | **Site**                    | The deployment's branding settings: title, optional logo and optional footer.                                       | App settings, header config               |
 | **Theme**                   | The colours, fonts and textures of the page; the default one can be overridden by the **Adopter**'s `theme.css`.  | Skin, style, palette                      |
-| **Category file**           | *(Proposed, ADR 0003)* A Markdown file that defines one **Category** in a `categories/` folder.                    | Category document, category page          |
+| **Category file**           | A Markdown file in the `categories/` folder that defines one **Category**: its frontmatter and its **Expectations** grouped under `## Level N`. An alternative to `categories.yml`. | Category document, category page          |
 
 ## Relationships
 
@@ -112,8 +111,6 @@ same concept, use the one in **bold** and avoid the aliases.
 - **"Role" means two things.** The `role` parameter and `Person.roleKey` are the **Current role**, while `compare` /
   `compareTo` is the **Compared role**. Always qualify the word when talking about a **Person**; unqualified
   "Role" refers only to the **Ladder** entry.
-- **"Tag" means two things.** **Expectation tags** live in the configuration and are not shown; **Person tags** live in the
-  **Share link** and are shown. They are unrelated today. Never say "tag" alone in specs.
 - **"Level" is overloaded.** It names a step of a **Category**, the **Reached level**, the **Required level** and the
   `levels` maps in both `Person` and `Role`. Qualify it whenever it is not the bare step.
 - **"Target" vs "Compared role" vs "Required level".** The UI uses "Target" for the **Required level** mark and "On

@@ -21,14 +21,14 @@ compiled into the bundle at build time and the user's data lives in the URL.
 | fonts       | Fontsource packages (Latin subsets) | self-hosted, no third-party requests, small CSS                     |
 | chart       | hand-written SVG (`RadarChart.tsx`) | ~100 lines, no chart library, fully styleable from CSS              |
 | markdown    | react-markdown                      | renders expectation descriptions and footer safely (no raw HTML)    |
-| config      | YAML parsed at build time           | readable for non-developers, no runtime fetch                       |
+| config      | YAML and Markdown read at build time | readable for non-developers, no runtime fetch                      |
 | tests       | Vitest + Testing Library (happy-dom)| shares the Vite config, so YAML imports work in tests too           |
 
 ## Layout
 
 ```
 config.example/          upstream's sample configuration and the defaults (adopters do not edit it)
-  categories.yml           categories and their expectations per level
+  categories/              one Markdown category file per category, grouped by level (an adopter may use categories.yml instead)
   roles.yml                roles and the levels they require
   site.yml                 title, optional logo and footer
   theme.css                comment-only CSS overrides, loaded after the base styles
@@ -37,7 +37,10 @@ config/                  the adopter's configuration; git-ignored except README.
 public/                  static files copied as-is (favicons, manifest)
 scripts/
   config-sources.ts        decides which folder each configuration file is read from (used by vite.config.ts)
+  category-markdown.ts     reads one Markdown category file into the raw shape of a categories.yml entry
   config-migrate.mjs       `npm run config:migrate`: moves a fork's edits out of config.example/
+  config-convert-categories.mjs  `npm run config:convert-categories`: runs convert-categories.ts (Vite loads the TS)
+  convert-categories.ts    converts categories.yml into Markdown category files, validating it with parseConfig()
 src/
   main.tsx                 entry point: loads config and theme, reads the URL, renders App or an error screen
   App.tsx                  owns the state, syncs it to the URL, composes the page
@@ -59,7 +62,7 @@ vite.config.ts           Vite + Vitest config, with a tiny YAML plugin and the p
 ## Data flow
 
 ```
-config/ + config.example/ ──(build: resolve per file, YAML plugin)──▶ config.ts: parseConfig() ──▶ Config
+config/ + config.example/ ──(build: resolve per file, YAML / category-file plugins)──▶ config.ts: parseConfig() ──▶ Config
                                                                        │
 URL #name=…&comm=2 ──▶ urlState.ts: parseState() ──▶ Person ──▶ App (useState)
 (or legacy ?state=…)     └─▶ issues ──▶ notice                  │      │
@@ -70,14 +73,20 @@ URL #name=…&comm=2 ──▶ urlState.ts: parseState() ──▶ Person ──
 
 1. **Build time.** `vite.config.ts` contains a small plugin that turns any `.yml` import into the parsed object (YAML
    syntax errors fail the dev server and the build) and another one that resolves the configuration: each of
-   `categories.yml`, `roles.yml`, `site.yml` and `theme.css` is taken from the config folder if it is there and from
-   `config.example/` otherwise, and images are looked up in the same order so `site.yml` can reference a logo by file
+   the categories (as `categories.yml` or a `categories/` folder, never both), `roles.yml`, `site.yml` and `theme.css`
+   is taken from the config folder if it is there and from `config.example/` otherwise, and images are looked up in the same order so `site.yml` can reference a logo by file
    name. The result reaches the app through two virtual modules (`virtual:progression-radar-config` and
    `virtual:progression-radar-theme`), so no path is written in `src/` and the build stays static. The config folder
    is `config/` or the path in `PROGRESSION_RADAR_CONFIG_DIR`, which must exist when it is set; the variable is not
    `VITE_`-prefixed and absolute paths never reach the bundle (messages call the folder `PROGRESSION_RADAR_CONFIG_DIR`).
-   The build log lists where each file came from and warns about files the app does not use. In dev, editing a file
-   reloads the page, and so does adding or removing one in either folder.
+   The build log lists where each file came from (and whether the categories are a file or a folder) and warns about
+   files the app does not use. In dev, editing a file reloads the page, and so does adding or removing one in either
+   folder or in their `categories/` folder.
+   Each Markdown category file is imported through `?category`: a transform (`scripts/category-markdown.ts`) parses
+   it with `mdast-util-from-markdown`, a build-time dev dependency that never reaches the bundle, into the same raw
+   shape as one entry of `categories.yml` plus the mistakes it found (`file:line: message`). The virtual module hands
+   both to the app, so `src/` does not know which form the categories came from. See
+   [ADR 0003](adr/0003-markdown-category-files-alongside-yaml.md).
 2. **Start-up.** `main.tsx` calls `loadConfig()`, which validates the raw data and either returns a typed `Config`
    or throws a `ConfigError` with *all* the problems found; those are rendered as a list.
 3. **URL state.** `parseState()` reads the share link: the legacy `state` query if present, otherwise the fragment.
@@ -106,10 +115,10 @@ reserved: `parseConfig()` rejects categories with those keys (`RESERVED_KEYS` in
 so old links survive configuration changes instead of breaking.
 
 ### Configuration is validated, not trusted
-The YAML imports are typed as `unknown`. `parseConfig()` is the only place that turns them into domain types, and it
+The raw configuration is typed as `unknown`. `parseConfig()` is the only place that turns it into domain types, and it
 checks required fields, positive integer levels, duplicated keys, roles referencing unknown categories and missing
-logo files. Every problem names the file and folder it comes from (`config/roles.yml: role "r" …` or
-`config.example/categories.yml entry #2 …`), because the same file can come from either place. A test loads the
+logo files, and lists the mistakes found while reading the category files with its own. Every problem names the file and folder it comes from (`config/roles.yml: role "r" …`,
+`config.example/categories.yml entry #2 …` or `config/categories/03-pm.md: …`), because the same file can come from either place. A test loads the
 resolved configuration and, separately, `config.example/` on its own, so CI catches mistakes in an adopter's
 configuration and in the sample, even when the sample is overridden.
 
@@ -117,7 +126,7 @@ configuration and in the sample, even when the sample is overridden.
 Earlier versions were published as an npm package with a Babel `lib/` build so other projects could depend on it and
 override pieces. That has been removed. Customisation is now limited to what adopters actually need:
 
-- **Content**: `categories.yml` and `roles.yml`.
+- **Content**: the categories (`categories/` or `categories.yml`) and `roles.yml`.
 - **Branding**: `site.yml` (title, logo, footer) and `theme.css`.
 
 These live in the adopter's config folder, which upstream git-ignores and never edits, and fall back file by file to

@@ -41,7 +41,7 @@ Everything that is specific to your deployment lives in **your config folder**, 
 
 | file             | purpose                                                      |
 |------------------|--------------------------------------------------------------|
-| `categories.yml` | the categories of your ladder and the expectations per level |
+| `categories/` or `categories.yml` | the categories of your ladder and the expectations per level (see [Categories](#categories)) |
 | `roles.yml`      | the roles of your ladder and the levels each one requires    |
 | `site.yml`       | title, logo and footer                                       |
 | `theme.css`      | CSS overrides: colours, fonts or any other style             |
@@ -52,7 +52,7 @@ At build time every file is read from `config/` if it is there, and from `config
 `config.example/`: it is upstream's, and leaving it alone is what lets updates merge without conflicts.
 
 - **A file replaces its counterpart completely.** Nothing is merged: your `site.yml` does not inherit the sample
-  footer, and your `theme.css` replaces the sample one (the base theme is in `src/styles.css`, so you lose no styles).
+  footer, a `categories/` folder (or `categories.yml`) replaces all the sample categories, and your `theme.css` replaces the sample one (the base theme is in `src/styles.css`, so you lose no styles).
 - **Images** referenced from `site.yml` are looked up in `config/` first, then in `config.example/`.
 - **`config/` is git-ignored** (except its `README.md`), so a local experiment never ends up in a commit. To keep your
   configuration in your fork, force-add the files (`git add -f config/roles.yml`) or use a tracked folder with
@@ -69,14 +69,77 @@ At build time every file is read from `config/` if it is there, and from `config
 - **The build log tells you what was used.** It shows the folder each file was read from, and warns about files in
   your folder that the app does not use (for example a misspelt `category.yml`). Images and `README.md` are not
   reported.
-- In `npm run dev`, editing a file in your folder reloads the page, and so does adding or removing one.
+- In `npm run dev`, editing a file in your folder reloads the page, and so does adding or removing one, also inside
+  `categories/`.
 
 The configuration is validated when the app loads: if something is wrong, the app lists every problem instead of
 rendering, each one prefixed with the file and folder it comes from (`config/roles.yml: role "r" …` or
-`config.example/categories.yml entry #2 …`), and `npm test` fails too. The tests check your resolved configuration and,
+`config.example/categories/02-pm.md:14: …`), and `npm test` fails too. The tests check your resolved configuration and,
 separately, `config.example/` on its own.
 
 ### Categories
+
+Write the categories either as **one Markdown file per category** in a `categories/` folder (below) or as a single
+`categories.yml` ([further down](#categoriesyml)). Use one form per folder: a folder with both is reported as a
+configuration problem, and the form you use replaces all the sample categories.
+
+#### Category files
+
+```md
+<!-- config/categories/01-comm.md -->
+---
+key: comm
+name: Communication
+description: Shares the right amount of information with the right people, at the right time
+---
+
+## Level 1
+
+### Provides regular status updates to their team
+
+**Example behaviours:**
+
+* Communicates project status clearly and effectively
+* Exposes the blockers in the stand-up
+
+### Details the context in all the collaborative tools and channels
+
+## Level 2
+
+### Communicates effectively to close stakeholders when called upon
+```
+
+- The file starts on its first line with a frontmatter holding `key` and `name`, and optionally `description`. Any
+  other key is reported, so a typo such as `descripton:` is not silently ignored. The `key` is never taken from the
+  file name, so renaming a file to reorder it does not break existing share links.
+- Each `## Level N` heading (N a positive integer, always written in English, whatever the language of your ladder)
+  opens a level, and each `### Summary` under it is an expectation of that level. Levels may come in any order and
+  skip numbers.
+- The summary is the plain text of the `###` heading. The description is the Markdown that follows it, up to the next
+  `###` or `##`, kept as written: lists, code blocks and `####` headings are fine in it.
+- Nothing else is allowed outside an expectation: no `#` headings, no text between a `## Level N` and its first
+  `###`, no repeated level and no level without expectations. Every mistake is listed on the error screen with the file
+  and line, for example `config/categories/01-comm.md:14: "## Nivel 2" is not a level heading; use "## Level N"`.
+- **Order.** Categories are shown in the order of the file names: by leading number (`2-` comes before `10-`), then by
+  name character by character. Files without a number come last.
+- Only `.md` files are read. `README.md` is ignored and any other file or folder in `categories/` is reported by the
+  build log. A `categories/` folder with no category file is a configuration problem, never a reason to use the sample.
+
+#### Converting an existing categories.yml
+
+`npm run config:convert-categories` turns the `categories.yml` of your config folder (`config/`, or
+`PROGRESSION_RADAR_CONFIG_DIR`) into a `categories/` folder with one file per category:
+
+- Files are named `01-<key>.md`, `02-<key>.md`… in the order of the YAML, and the expectations are grouped under
+  `## Level N` in ascending order. `tags` are dropped.
+- Headings written as `#`, `##` or `###` inside an expectation description become `####`, because those levels are
+  structure in a category file. The command lists each one it changed, and also any summary it had to join into one
+  line.
+- `categories.yml` is renamed to `categories.yml.bak`; the build warns about it until you delete it.
+- If `categories.yml` has any configuration problem, or `categories/` already exists, nothing is written and the
+  reasons are listed. It never stages or commits anything.
+
+#### categories.yml
 
 Each entry of `categories.yml` has these fields:
 
@@ -98,7 +161,6 @@ these fields:
 | summary     | a title or brief description of the expectation                 |
 | description | optional: an extended description. Markdown is supported        |
 | level       | the level (a positive integer) this expectation belongs to      |
-| tags        | optional: a list of tags (not shown in the UI yet)              |
 
 The levels of a category are the levels used by its expectations, plus level 0. Earlier versions called the list
 `kpis`; that name is still read, but a category cannot have both.
@@ -108,7 +170,7 @@ and paragraphs work as written. A folded block (`description: >`) joins consecut
 blank lines between its items becomes a single paragraph.
 
 ```yaml
-# config/categories.yml (or config.example/categories.yml)
+# config/categories.yml
 - key: comm
   name: Communication
   description: Shares the right amount of information with the right people, at the right time, and listens effectively
@@ -119,7 +181,6 @@ blank lines between its items becomes a single paragraph.
 
         * Communicates project status clearly and effectively
         * Asks for help at the appropriate juncture
-      tags: ["tech", "management"]
       level: 1
 ```
 
@@ -220,6 +281,7 @@ the app rewrites them in the new format after the first change.
 | `npm run build`     | type-checks and builds the static site into `dist/`     |
 | `npm run preview`   | serves the production build locally                     |
 | `npm run config:migrate` | moves a fork's edits out of `config.example/` (see [Upgrading](#upgrading)) |
+| `npm run config:convert-categories` | converts `categories.yml` into [category files](#converting-an-existing-categoriesyml) |
 
 ## Deployment
 
@@ -238,6 +300,21 @@ npm install
 ```
 
 ## Upgrading
+
+### A fork that edited `config.example/categories.yml` (the sample moved to category files)
+
+The sample categories are now Markdown category files in `config.example/categories/` and `config.example/categories.yml`
+is gone. If your fork edited that file, pulling the update reports a modify/delete conflict. Keep your file, then move
+it to your config folder, where it keeps working (`categories.yml` is still supported):
+
+```sh
+git pull upstream master                 # reports the conflict on config.example/categories.yml
+git add config.example/categories.yml    # keep your version, then finish the merge with git commit
+npm run config:migrate                   # moves it to config/categories.yml and restores config.example/
+```
+
+Until you do, `config.example/` holds both forms and the app reports it as a configuration problem. Afterwards you can
+keep the YAML, or convert it with `npm run config:convert-categories` (see [Categories](#categories)).
 
 ### A fork that edited `config/` (the sample moved to `config.example/`)
 
@@ -278,7 +355,7 @@ To do it by hand instead:
 
 ```sh
 mkdir -p config
-cp config.example/categories.yml config/             # repeat for each file you edited
+cp config.example/roles.yml config/                  # repeat for each file you edited
 git checkout upstream/master -- config.example      # restore the sample (it does not delete files only you added)
 git add -f config
 ```

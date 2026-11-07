@@ -69,6 +69,28 @@ describe("migrate", () => {
     expect(git("diff", "--name-only", "upstream/master", "--", "config.example")).toBe("");
   });
 
+  it("moves a categories.yml that upstream no longer ships, and leaves the new categories/ folder alone", async () => {
+    // Upstream replaced config.example/categories.yml with config.example/categories/; the fork kept its own file
+    // when it resolved the modify/delete conflict.
+    git("checkout", "-q", "upstream/master", "--detach");
+    git("rm", "-q", "config.example/categories.yml");
+    write("config.example/categories/01-a.md", "---\nkey: a\nname: A\n---\n");
+    git("add", "-A");
+    git("commit", "-q", "-m", "upstream: category files");
+    git("update-ref", "refs/remotes/upstream/master", "HEAD");
+    write("config.example/categories.yml", "fork categories\n");
+    git("add", "-A");
+    git("commit", "-q", "-m", "fork keeps its categories.yml");
+
+    const result = await run({ dryRun: true });
+    expect(result.files).toEqual(["categories.yml"]);
+    await run();
+    expect(read("config/categories.yml")).toBe("fork categories\n");
+    expect(existsSync(join(repo, "config.example/categories.yml"))).toBe(false);
+    expect(read("config.example/categories/01-a.md")).toContain("key: a");
+    expect(git("diff", "--name-only", "upstream/master", "--", "config.example")).toBe("");
+  });
+
   it("prints the next steps", async () => {
     await run();
     const text = output.join("\n");

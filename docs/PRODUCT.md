@@ -19,7 +19,7 @@ Live demo: https://progression-radar.netlify.app
 
 | concept     | meaning                                                                                         |
 |-------------|-------------------------------------------------------------------------------------------------|
-| Category    | an area of the path, e.g. Communication or Backend. Configured in `categories.yml`              |
+| Category    | an area of the path, e.g. Communication or Backend. Configured as category files or `categories.yml` |
 | Expectation | a skill, behaviour or concept expected at a given level of a category                           |
 | Level       | how far a person is in a category. Level 0 plus every level used by the category's expectations |
 | Role        | a step of the ladder, with the level it requires in each category. Configured in `roles.yml`    |
@@ -47,6 +47,7 @@ Live demo: https://progression-radar.netlify.app
 - Tells adopters, in the build log, which folder each configuration file was read from and which files it does not
   recognise, and names the file and folder of every configuration problem.
 - Moves the customisations of an existing fork to the new layout with `npm run config:migrate`.
+- Converts an existing `categories.yml` into Markdown category files with `npm run config:convert-categories`.
 
 ## Product decisions
 
@@ -73,10 +74,6 @@ Live demo: https://progression-radar.netlify.app
 ## Non-goals
 
 - Storing people, history or progress on a server, or any login.
-- An in-app editor for categories, expectations or roles: they are edited in the YAML files.
+- An in-app editor for categories, expectations or roles: they are edited in the configuration files (Markdown category files and YAML).
 - Being an npm package or library that other projects depend on and override (removed in 1.0).
 - Comparing several people at once: a link holds one person.
-
-## Not shown yet
-
-- Expectation tags are part of the configuration but are not shown in the UI.

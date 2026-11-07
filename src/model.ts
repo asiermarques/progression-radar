@@ -5,7 +5,6 @@ export interface Expectation {
   summary: string;
   description: string;
   level: number;
-  tags: string[];
 }
 
 export interface Category {

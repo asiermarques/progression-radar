@@ -10,7 +10,7 @@ import {
   type Category,
 } from "./model";
 
-const expectation = (level: number) => ({ summary: `Expectation ${level}`, description: "", level, tags: [] });
+const expectation = (level: number) => ({ summary: `Expectation ${level}`, description: "", level });
 const category = (levels: number[]): Category => ({ key: "c", name: "C", description: "", expectations: levels.map(expectation) });
 
 describe("model", () => {

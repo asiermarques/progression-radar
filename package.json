@@ -14,7 +14,8 @@
     "preview": "vite preview",
     "test": "vitest",
     "typecheck": "tsc --noEmit",
-    "config:migrate": "node scripts/config-migrate.mjs"
+    "config:migrate": "node scripts/config-migrate.mjs",
+    "config:convert-categories": "node scripts/config-convert-categories.mjs"
   },
   "dependencies": {
     "@fontsource/shippori-mincho": "^5.3.0",
@@ -30,6 +31,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.2.1",
     "happy-dom": "^21.0.4",
+    "mdast-util-from-markdown": "^2.1.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.6",
     "vitest": "^5.1.0",

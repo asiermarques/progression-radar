@@ -16,7 +16,10 @@ export function loadConfig(): Config {
 
 /** Where each file was read from, e.g. "config/roles.yml", so problems can name it. */
 export interface Origins {
+  /** The categories.yml file or categories/ folder. */
   categories: string;
+  /** With category files: the file of each raw category, in the same order, so problems can name it. */
+  categoryFiles?: string[];
   roles: string;
   site: string;
   /** Folders searched for images, in order, e.g. ["config/", "config.example/"]. */
@@ -29,6 +32,8 @@ interface RawConfig {
   categories: unknown;
   roles: unknown;
   site: unknown;
+  /** Mistakes already found while reading the category files, listed with the ones found here. */
+  problems?: string[];
 }
 
 type Raw = Record<string, unknown>;
@@ -47,9 +52,9 @@ export function parseConfig(
   images: Record<string, string> = {},
   origins: Origins = defaultOrigins,
 ): Config {
-  const problems: string[] = [];
+  const problems: string[] = [...(raw.problems ?? [])];
 
-  const categories = parseCategories(raw.categories, origins.categories, problems);
+  const categories = parseCategories(raw.categories, origins, raw.problems?.length ?? 0, problems);
   const roles = parseRoles(raw.roles, categories, origins.roles, problems);
   const site = parseSite(raw.site, images, origins, problems);
 
@@ -57,15 +62,19 @@ export function parseConfig(
   return { site, categories, roles };
 }
 
-function parseCategories(raw: unknown, file: string, problems: string[]): Category[] {
+function parseCategories(raw: unknown, origins: Origins, knownProblems: number, problems: string[]): Category[] {
+  const yamlFile = origins.categories;
   if (!Array.isArray(raw) || raw.length === 0) {
-    problems.push(`${file} must contain a non-empty list of categories`);
+    // When the source itself was reported as wrong there is nothing more to say about the missing list.
+    if (knownProblems === 0) problems.push(`${yamlFile} must contain a non-empty list of categories`);
     return [];
   }
 
   const seen = new Set<string>();
   return raw.flatMap((item, index): Category[] => {
-    const where = `${file} entry #${index + 1}`;
+    // A category file names itself; the entries of categories.yml are named by their position.
+    const file = origins.categoryFiles?.[index] ?? yamlFile;
+    const where = origins.categoryFiles ? file : `${file} entry #${index + 1}`;
     if (!isObject(item) || !isNonEmptyString(item.key) || !isNonEmptyString(item.name)) {
       problems.push(`${where} needs a "key" and a "name"`);
       return [];
@@ -111,7 +120,6 @@ function parseExpectation(raw: unknown, where: string, problems: string[]): Expe
       summary: raw.summary,
       description: optionalString(raw.description),
       level: raw.level as number,
-      tags: Array.isArray(raw.tags) ? raw.tags.filter((tag): tag is string => typeof tag === "string") : [],
     },
   ];
 }

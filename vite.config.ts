@@ -1,13 +1,16 @@
-import { dirname, join } from "node:path";
+import { join } from "node:path";
 import { searchForWorkspaceRoot, type Plugin, type ResolvedConfig } from "vite";
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import { parse } from "yaml";
+import { readCategoryFile } from "./scripts/category-markdown.ts";
 import {
+  CATEGORIES_FOLDER,
   CONFIG_DIR_VARIABLE,
   EXAMPLE_FOLDER,
   configModuleSource,
   describeSources,
+  isConfigPath,
   resolveConfigSources,
   themeModuleSource,
   type ConfigSources,
@@ -56,22 +59,33 @@ function configFolder(): Plugin {
       for (const line of info) resolved.logger.info(`config: ${line}`);
       for (const warning of warnings) resolved.logger.warn(`config: ${warning}`);
     },
+    // Turns `import reading from "01-comm.md?category"` into { category, problems }: see scripts/category-markdown.ts.
+    transform: {
+      filter: { id: /\.md\?category$/ },
+      handler(source, id) {
+        const path = id.replace(/\?category$/, "");
+        const label = sources().categories.files.find((file) => file.path === path)?.label ?? path;
+        // A YAML syntax error in the frontmatter throws, failing the dev server and the build.
+        return { code: `export default ${JSON.stringify(readCategoryFile(source, label))};`, map: null, moduleType: "js" };
+      },
+    },
     configureServer(server) {
       const { configPath } = sources();
       // A folder outside the project is served too.
       server.config.server.fs.allow.push(configPath, searchForWorkspaceRoot(resolved.root));
-      // Vite only watches imported files: reload also when a file is added to or removed from the folders.
+      // Vite only watches imported files: reload also when a file is added to or removed from the folders, or from
+      // their categories/ folder. Editing an existing category file reloads through its import.
       const folders = [configPath, join(resolved.root, EXAMPLE_FOLDER)];
-      server.watcher.add(folders);
+      server.watcher.add([...folders, ...folders.map((folder) => join(folder, CATEGORIES_FOLDER))]);
       const reload = (file: string) => {
-        if (!folders.includes(dirname(file))) return;
+        if (!isConfigPath(file, folders)) return;
         for (const id of [CONFIG_MODULE, THEME_MODULE]) {
           const module = server.moduleGraph.getModuleById(resolvedId(id));
           if (module) server.moduleGraph.invalidateModule(module);
         }
         server.ws.send({ type: "full-reload" });
       };
-      server.watcher.on("add", reload).on("unlink", reload);
+      server.watcher.on("add", reload).on("unlink", reload).on("addDir", reload).on("unlinkDir", reload);
     },
     resolveId(id) {
       return id === CONFIG_MODULE || id === THEME_MODULE ? resolvedId(id) : null;
