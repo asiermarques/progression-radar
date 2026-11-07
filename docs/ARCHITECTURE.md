@@ -107,7 +107,7 @@ dashed and hatched, so the two series can be told apart without relying on colou
 The default theme is inspired by Japanese print, after the 成長 ("growth") in the demo title: paper and ink colours,
 a vermilion seal (hanko) with the person's initials and indigo for the compared role. It is only the default: every
 colour, font and the paper texture are CSS variables, and there is a dark palette for `prefers-color-scheme: dark`.
-Animations are CSS-only and disabled for `prefers-reduced-motion`.
+Animations are CSS-only and disabled for `prefers-reduced-motion`. See [DESIGN.md](DESIGN.md) for the design system.
 
 ### Percentages
 A level is shown on the radar as `level / highest level of the category`. Categories can therefore have different
