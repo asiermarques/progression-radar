@@ -8,18 +8,20 @@ How Progression Radar looks and why, and the rules to follow when changing or ad
 ## Concept: a printed growth record
 
 The default theme is inspired by Japanese print, after the 成長 ("growth") in the demo title. The page should feel
-like a carefully typeset sheet that a manager and a person sit down with, not like a dashboard.
+like a carefully typeset sheet that a manager and a person sit down with, not like a dashboard: a white sheet with a
+band of washi paper across it, where the person and their radar sit.
 
 | metaphor            | in the UI                                                                       |
 |---------------------|---------------------------------------------------------------------------------|
-| washi paper         | warm off-white background with a fractal-noise grain (`--texture`)             |
-| sumi ink            | near-black text, ink-filled active states, double rules framing the page        |
+| white sheet         | almost white page: header, areas and footer (`--color-background`)             |
+| washi paper         | full-width band behind the person and the radar, with a fractal-noise grain (`--color-band`, `--texture`) |
+| sumi ink            | near-black text, ink-filled active states                                      |
 | vermilion seal      | the person: their hanko with initials, their radar series, the levels reached   |
 | indigo              | the compared role: its radar series, the target level, categories "on target"   |
 | mincho type         | editorial serif for titles, names and every number                              |
 
 Three things carry the identity and must survive any change: the **seal**, the **two-colour person vs. role
-language** and the **serif numbers**. Everything else stays quiet: few colours, thin rules, generous space.
+language** and the **serif numbers**. Everything else stays quiet: few colours, few rules, generous space.
 
 The theme is only a default. Adopters re-brand from their own `theme.css`, so every visual decision must be expressed
 through the custom properties and stable class names described below, never hard-coded.
@@ -39,9 +41,14 @@ Defined in `:root` in `src/styles.css`, with a dark palette in `@media (prefers-
 | `--color-text`       | `#1c1915` | `#ede6d9` | ink: body text, rules, inverted (active) backgrounds        |
 | `--color-muted`      | `#6a6258` | `#a39a8c` | labels, secondary text, descriptions                        |
 | `--color-border`     | `#d4cab9` | `#3b362e` | inner dividers and control borders                          |
-| `--color-background` | `#f4efe5` | `#16140f` | paper                                                       |
+| `--color-background` | `#fdfcf9` | `#16140f` | the sheet: page, header, areas and footer                   |
 | `--color-surface`    | `#ebe3d3` | `#211e18` | slightly darker paper for controls and the radar rings      |
 | `--color-grid`       | `#d3c8b5` | `#3a352c` | radar rings and axes                                        |
+| `--color-band`       | mix of background and surface (50% light, 70% surface dark) | | the washi band behind the person and the radar |
+
+`--color-band` is derived with `color-mix`, so a theme that only changes `--color-background` and `--color-surface`
+gets a matching band. Inside the band (`.overview`) `--color-background` is set to `--color-band`: whatever shows the
+paper through (the seal's inner ring, the radar's even rings and hollow points) matches the band.
 
 ### Semantics
 
@@ -107,46 +114,53 @@ are zero-padded (`01 / 06`) and expectations are numbered `level.n` (`2.1`).
 ## Shape, lines and space
 
 - **Almost square corners**: `--radius: 2px`. The only rounded element is the seal (`7px`, rotated `-5deg`).
-- **Rules carry the hierarchy**, not cards or shadows:
-  - `3px double var(--color-text)`: frames the page (header bottom, footer top).
-  - `1px solid var(--color-text)`: opens a major section (the category panel).
-  - `1px solid var(--color-border)`: divides items inside a section (nav items, expectations, the summary).
+- **Tone, not rules, separates the sections**: the header and the areas sit on the sheet, the overview on the washi
+  band, each band running the full width of the window. Do not add a rule where a band edge already separates.
+- **Few rules**, never around a block, only where items need it:
+  - `1px solid var(--color-border)`: the footer's top (the colophon line).
+  - a hairline (`--color-border` at 60%) between expectations, none around the list.
   - `1px dashed var(--color-border)`: empty or placeholder states (`.expectation-empty`).
+  - Category nav items have no rules: spacing, their meter and the hover tint separate them.
 - **No drop shadows and no cards.** `box-shadow` is only used to draw rings (the seal's inner line, the pressed
   level).
-- Page width `--max-width: 1200px`, side padding `clamp(1rem, 4vw, 3rem)`. Vertical rhythm is generous and uses
-  `clamp()` for section gaps.
-- Decorative details are small and geometric: the vermilion diamond above the footer, the hatched swatches, the
+- Bands are full width; their content stays in a column of `--max-width: 1200px` with a gutter of
+  `clamp(1rem, 4vw, 3rem)`. Each band uses `padding-inline: var(--bleed)` (or `margin-inline` when the box itself must
+  stay in the column, like the footer rule and the notices), defined on `.app`, instead of a wrapper element.
+  Vertical rhythm is generous and uses `clamp()` for section gaps.
+- Decorative details are small and geometric: the vermilion diamond before the footer title, the hatched swatches, the
   meter target tick.
 
 ## Background
 
-`body` stacks three layers, fixed to the viewport:
+The page (`body`) is the flat sheet colour. The washi band (`.overview`) stacks three layers on `--color-band`:
 
-1. `--texture`: an inline SVG `feTurbulence` grain (different tint and opacity per palette). `none` gives a flat page.
-2. A faint vermilion glow at the top right (`--color-primary` at 11%).
-3. A faint indigo glow at the bottom left (`--color-compare` at 8%).
+1. `--texture`: an inline SVG `feTurbulence` grain (different tint and opacity per palette). `none` gives a flat band.
+2. A faint vermilion glow at its top right (`--color-primary` at 9%).
+3. A faint indigo glow at its bottom left (`--color-compare` at 6%).
 
 The glows are derived from the tokens, so they follow a re-brand automatically.
 
 ## Layout
 
 ```
-┌ app-header ─────────────────────────────────────────────── double rule ┐
+┌ app-header ──────────────────────────────────────────────────── sheet ┐
 │ [logo] Title                                  6 AREAS · 5 ROLES [Copy] │
-├ overview (grid 1fr / 2fr ≥ 900px) ─────────────────────────────────────┤
+├ overview (grid 1fr / 2fr ≥ 900px) ─────────────────────── washi band ──┤
 │ overview-side                  │ radar (SVG + legend)                  │
 │   person-panel (seal, name,    │                                       │
 │   role, tags, compare to)      │                                       │
 │   progress-summary (stats)     │                                       │
-├ category-panel (grid 1fr / 3fr ≥ 900px) ──────────────── ink rule ─────┤
+├ category-panel (grid 1fr / 3fr ≥ 900px) ───────────────────── sheet ───┤
 │ category-sidebar (sticky)      │ category-detail                       │
 │   AREAS                        │   01 / 06, name, description          │
-│   category-nav (index, name,   │   level-nav (staircase)               │
-│   level, meter)                │   level-status                        │
+│   category-nav (name, level,   │   level-nav (staircase)               │
+│   meter)                       │   level-status                        │
 │                                │   expectation-list → expectation × n  │
-├ app-footer ─────────────────────────────────────────────── double rule ┤
+│ app-footer ──────────────────────────────────────────────── hairline   │
+└────────────────────────────────────────────────────────────────────────┘
 ```
+
+The header, the overview and the category panel span the window; the content of each stays in the centred column.
 
 ### Breakpoints
 
@@ -165,8 +179,8 @@ them. New classes meant for theming must be added to that list.
 
 ### Header — **`.app-header`**, **`.app-title`**, **`.app-logo`**, **`.share-button`**
 
-Large serif title with an optional logo, the "N areas · N roles" meta label and the share button on the right, all
-above a double rule. The share button is outlined in ink, inverts to ink on hover and turns vermilion with a check
+A full-width band on the sheet colour: serif title with an optional logo, the "N areas · N roles" meta label and the
+share button on the right. No rule under it: the washi band below marks the edge. The share button is outlined in ink, inverts to ink on hover and turns vermilion with a check
 icon when the link is copied (`data-status="copied"`). Its label is announced with `aria-live`.
 
 ### Person — **`.person-panel`**, **`.person-seal`**
@@ -203,9 +217,12 @@ surface fill / dashed paper. All colours come from CSS through `--series-color`,
 
 ### Category nav — **`.category-nav`**
 
-Each category is a `<button>` laid out as a grid: zero-padded serif index, name, `reached/max` level, and a 3px meter
-(vermilion fill for the person, indigo tick for the role's target). The active item is **inverted to ink** with a
-vermilion index (`aria-current`). Met categories get an indigo "✓" (`data-status="met"`).
+Each category is a `<button>` laid out as a grid: name, `reached/max` level, and a 3px meter (vermilion fill for the
+person, indigo tick for the role's target). Items have no dividers; below `900px` they become cards with a faint
+surface tint instead of a border. There is no index: the order of the categories is not a sequence, and the
+position is shown once, in the eyebrow of the category detail. The active item is **inverted to ink**
+(`aria-current`). Met categories get an indigo "✓" (`data-status="met"`). The nav is `position: relative`, so the
+screen-reader text of its buttons scrolls with the row on narrow screens instead of widening the page.
 
 ### Category detail — **`.category-panel`**, **`.level-nav`**, **`.expectation`**
 
@@ -215,12 +232,16 @@ vermilion index (`aria-current`). Met categories get an indigo "✓" (`data-stat
   vermilion (`.reached`); the current one gets a double ring (`aria-pressed="true"`). The role's target level has an
   indigo bar above it and a "Target" label (`.target`).
 - Status line: "Level **2** of 5 · 3 levels below …" or an indigo "✓ meets …".
-- Expectations: a grid of index (`2.1`, vermilion serif) and body (serif summary, Markdown description). A paragraph
+- Expectations: a grid of index (`2.1`, vermilion serif) and body (serif summary, Markdown description), with a
+  hairline between them. A paragraph
   that is only a bold phrase ("**Example behaviours:**") is styled as a small-caps label, and list markers are vermilion.
 
-### Footer — **`.app-footer`**
+### Footer — **`.app-footer`**, **`.app-footer-title`**, **`.app-footer-text`**
 
-Markdown from `site.yml`, centred and muted, under a double rule with a small vermilion diamond.
+A colophon that mirrors the header, above a single hairline: the site title in the display font on the left, after a
+small vermilion diamond that works as an end mark (`.app-footer-title`), and the Markdown from `site.yml`, muted and
+right-aligned (`.app-footer-text`). Below `900px` both stack, left-aligned. Without a footer in `site.yml` there is no
+footer at all.
 
 ### Error screen — `.error-message`
 
@@ -279,7 +300,7 @@ stops blending (`--seal-blend: normal`). Any new token needs a value in both pal
 
 ## Print
 
-`@media print` produces a clean copy for a growth conversation: no texture or background glows, no share button or
+`@media print` produces a clean copy for a growth conversation: no band, texture or background glows, no share button or
 select chevron, the sidebar is not sticky and expectations avoid page breaks. New interactive-only controls are hidden
 in print; new content blocks get `break-inside: avoid`.
 

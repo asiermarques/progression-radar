@@ -93,6 +93,12 @@ update, check the dark mode of your theme (see [Styles](styles.md)) and set the 
 fit your brand: `--font-display` (title, names and numbers), `--color-on-primary` (text on the accent colour) and
 `--texture` (`none` for a flat background).
 
+Later the page became a column of full-width bands: a header and the areas on the sheet colour
+(`--color-background`, now almost white), and the person and the radar on a band of paper (`--color-band`, which
+also carries the texture). The double rules around the page and most dividers are gone. If your theme set
+`--color-background` to a paper tone, the band is derived from it and `--color-surface`; set `--color-band` to choose
+it yourself.
+
 ## From 0.x
 
 Version 1.0 is a rewrite (Vite, React 19 and TypeScript instead of Create React App, Redux and Bootstrap). Existing

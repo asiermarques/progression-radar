@@ -42,7 +42,7 @@ export default function CategoryPanel({ categories, levels, compareTo, selectedK
       <div className="category-sidebar">
         <p className="section-label">Areas</p>
         <nav className="category-nav" aria-label="Categories" ref={navRef}>
-          {categories.map((c, i) => {
+          {categories.map((c) => {
             const reached = levels[c.key] ?? 0;
             const required = compareTo && requiredLevel(compareTo, c);
             const active = c.key === category.key;
@@ -55,9 +55,6 @@ export default function CategoryPanel({ categories, levels, compareTo, selectedK
                 data-status={required === undefined ? undefined : reached >= required ? "met" : "below"}
                 onClick={() => onSelect(c.key)}
               >
-                <span className="category-nav-index" aria-hidden="true">
-                  {pad(i + 1)}
-                </span>
                 <span className="category-nav-name">{c.name}</span>
                 <span className="category-nav-level">
                   <span className="visually-hidden">level </span>

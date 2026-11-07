@@ -31,8 +31,9 @@ with `@font-face` or `@import` and set `--font-family` and `--font-display`.
 
 You can also target these stable class names: `.app-header`, `.app-title`, `.app-logo`, `.share-button`,
 `.person-panel`, `.person-seal`, `.progress-summary`, `.radar`, `.radar-series--person`, `.radar-series--compare`,
-`.link-notice`, `.category-panel`, `.category-nav`, `.level-nav`, `.expectation` and `.app-footer`. The expectation
-elements also keep their former `.kpi*` class names and the `--kpi-index` property, so existing themes keep working.
+`.link-notice`, `.category-panel`, `.category-nav`, `.level-nav`, `.expectation`, `.app-footer`, `.app-footer-title`
+and `.app-footer-text`. The expectation elements also keep their former `.kpi*` class names and the `--kpi-index`
+property, so existing themes keep working.
 
 See also: [the design system](../DESIGN.md) for the meaning of every variable, and [Configuration](configuration.md) for
 where `theme.css` goes.

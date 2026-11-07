@@ -148,7 +148,10 @@ export function Footer({ site }: { site: Config["site"] }) {
   if (!site.footer) return null;
   return (
     <footer className="app-footer">
-      <Markdown>{site.footer}</Markdown>
+      <p className="app-footer-title">{site.title}</p>
+      <div className="app-footer-text">
+        <Markdown>{site.footer}</Markdown>
+      </div>
     </footer>
   );
 }

@@ -20,12 +20,13 @@
   /* --color-text: #1c1915; */
   /* --color-muted: #6a6258; */
   /* --color-border: #d4cab9; */
-  /* --color-background: #f4efe5; */
+  /* --color-background: #fdfcf9;  the sheet: header, areas and footer */
   /* --color-surface: #ebe3d3; */
   /* --color-grid: #d3c8b5;        radar rings and axes */
+  /* --color-band: #f4efe5;        band behind the person and the radar (a mix of background and surface by default) */
   /* --font-family: system-ui, sans-serif;   body text */
   /* --font-display: Georgia, serif;         title, names and numbers */
   /* --font-size: 15px; */
   /* --radius: 2px; */
-  /* --texture: none;              paper grain behind the page */
+  /* --texture: none;              paper grain of the band behind the radar */
 }
