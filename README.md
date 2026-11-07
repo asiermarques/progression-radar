@@ -12,7 +12,7 @@ machine.
 
 Live demo: [https://progression-radar.netlify.app](https://progression-radar.netlify.app/)
 
-![Progression Radar comparing a person with the Staff Frontend Software Engineer role](docs/screenshot.jpg)
+![Progression Radar comparing a person with a role, changing the role and raising levels](docs/demo.gif)
 
 ## What you can do with this tool
 

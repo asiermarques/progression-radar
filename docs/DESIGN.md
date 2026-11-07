@@ -352,7 +352,7 @@ Run `npm run dev` and look at:
 - a re-brand: uncomment a few variables in a copy of `config.example/theme.css` placed in `config/`, including `--texture: none`, and check nothing is
   hard-coded.
 
-Then run `npm test -- --run` and `npm run build`. If the default look changes visibly, update `docs/screenshot.jpg`.
+Then run `npm test -- --run` and `npm run build`. If the default look changes visibly, update `docs/screenshot.jpg` and the README animation, `docs/demo.gif`.
 
 ### Avoid
 
