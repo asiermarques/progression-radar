@@ -1,3 +1,6 @@
+# yaml-language-server: $schema=none
+# (The line above stops editors from validating this file as an Ansible playbook, which is also named site.yml.)
+
 # General settings for your deployment.
 
 # Shown in the header and as the browser tab title.
@@ -8,6 +11,6 @@ title: 成長 Progression Radar
 # logo: logo.svg
 
 # Optional footer. Markdown is supported. Remove it to hide the footer.
-footer: >
+footer: |
   Coded with ❤️ by [Asier Marqués](https://twitter.com/asiermarques).
   View [on GitHub](https://github.com/asiermarques/progression-radar).
