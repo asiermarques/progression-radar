@@ -8,14 +8,14 @@ Each entry of `roles.yml` has these fields:
 | field  | description                                                                                         |
 |--------|-----------------------------------------------------------------------------------------------------|
 | key    | a unique and short identifier for the role                                                          |
-| name   | the name of the role, e.g. Senior Backend Engineer                                                  |
-| levels | the level the role requires in each category, by category key, e.g. `{ comm: 3, back: 2 }`. Missing categories count as level 0 |
+| name   | the name of the role, e.g. Senior AI Platform Engineer                                              |
+| levels | the level the role requires in each category, by category key, e.g. `{ comm: 3, ai: 2 }`. Missing categories count as level 0 |
 
 ```yaml
 # config/roles.yml (or config.example/roles.yml)
-- key: aswe
-  name: Associate Software Engineer
-  levels: { comm: 1, pm: 1, des: 1, ops: 1, front: 1, back: 1 }
+- key: assoc
+  name: Associate
+  levels: { build: 1, ai: 1, data: 1, cloud: 1, trust: 1, agentic: 1, deliv: 1, biz: 1, comm: 1 }
 ```
 
 See also: [Categories](categories.md) for the category keys a role can mention, and [Configuration](configuration.md) for

@@ -37,7 +37,7 @@ At build time every file is read from `config/` if it is there, and from `config
 
 The configuration is validated when the app loads: if something is wrong, the app lists every problem instead of
 rendering, each one prefixed with the file and folder it comes from (`config/roles.yml: role "r" …` or
-`config.example/categories/02-pm.md:14: …`), and `npm test` fails too. The tests check your resolved configuration and,
+`config.example/categories/02-ai.md:14: …`), and `npm test` fails too. The tests check your resolved configuration and,
 separately, `config.example/` on its own.
 
 ## Site, logo and footer

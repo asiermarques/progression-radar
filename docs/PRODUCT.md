@@ -19,7 +19,7 @@ Live demo: https://progression-radar.netlify.app
 
 | concept     | meaning                                                                                         |
 |-------------|-------------------------------------------------------------------------------------------------|
-| Category    | an area of the path, e.g. Communication or Backend. Configured as category files or `categories.yml` |
+| Category    | an area of the path, e.g. Communication or AI Systems. Configured as category files or `categories.yml` |
 | Expectation | a skill, behaviour or concept expected at a given level of a category                           |
 | Level       | how far a person is in a category. Level 0 plus every level used by the category's expectations |
 | Role        | a step of the ladder, with the level it requires in each category. Configured in `roles.yml`    |

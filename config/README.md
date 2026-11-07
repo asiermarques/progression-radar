@@ -15,7 +15,7 @@ At build time each of these files is read from this folder if it is here, and fr
 | `site.yml`       | title, logo and footer                                       |
 | `theme.css`      | CSS overrides: colours, fonts or any other style             |
 
-The categories can be one Markdown file per category in a `categories/` folder (`01-comm.md`, `02-back.md`…, shown
+The categories can be one Markdown file per category in a `categories/` folder (`01-build.md`, `02-ai.md`…, shown
 in the order of their names) or a single `categories.yml`, but not both. Either form replaces all the sample
 categories. The format is in [docs/guides/categories.md](../docs/guides/categories.md).
 

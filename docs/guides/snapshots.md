@@ -34,19 +34,19 @@ Open the app (`npm run dev`, or your deployed one), choose the person's levels, 
 Paste the link **between quotes** (an unquoted `#` starts a comment in the shell) and choose an `id` for the person:
 
 ```sh
-npm run snapshot:record -- "http://localhost:5173/#name=Ana+Garc%C3%ADa&role=aswe&compare=front&tag=tech&comm=2&pm=1&des=1&ops=1&front=1&back=1" --id ana-garcia
+npm run snapshot:record -- "http://localhost:5173/#name=Ana+Garc%C3%ADa&role=assoc&compare=maker&tag=tech&build=2&ai=1&data=1&cloud=1&trust=1&agentic=2&deliv=1&biz=1&comm=2&people=0" --id ana-garcia
 ```
 
 ```
 Recorded ana-garcia in snapshots/2026-11-07.csv (new file, line 2):
-ana-garcia,Ana García,aswe,front,tech,2,1,1,1,1,1
+ana-garcia,Ana García,assoc,maker,tech,2,1,1,1,1,2,1,1,2,0
 ```
 
 The file is named after today's date. If the link had something the app would have ignored or corrected (an unknown
 category, a level above the highest), the command lists it after the row, and the row holds the corrected person:
 
 ```
-Ignored in the link: zz, back=9 (changed to 5)
+Ignored in the link: zz, build=9 (changed to 5)
 ```
 
 The `id` is yours to choose: short, without spaces, and the same one every time you record that person. The same `id` in
@@ -93,7 +93,7 @@ npm run snapshot:check
 ```
 
 ```
-snapshots/2026-11-07.csv:1: warning: column "pm" is not a Category of the current Configuration: the data is kept but the app ignores it
+snapshots/2026-11-07.csv:1: warning: column "front" is not a Category of the current Configuration: the data is kept but the app ignores it
 Checked 3 snapshots: 0 errors, 1 warning.
 ```
 
@@ -160,9 +160,9 @@ ignored; any other file that is not `.csv` gets a warning.
 ## What is in the file
 
 ```csv
-id,name,role,compare,tags,comm,pm,des,ops,front,back
-ana-garcia,Ana García,aswe,front,tech|design,2,1,1,1,1,1
-luis-perez,Luis Pérez,back,,,3,2,2,1,0,1
+id,name,role,compare,tags,build,ai,data,cloud,trust,agentic,deliv,biz,comm,people
+ana-garcia,Ana García,assoc,maker,tech|design,2,1,1,1,1,2,1,1,2,0
+luis-perez,Luis Pérez,dpe,sdpe,,1,1,3,2,2,2,2,1,2,1
 ```
 
 - The first row is the header and columns are found **by name**, in any order.

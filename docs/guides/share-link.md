@@ -15,7 +15,7 @@ while you make changes. The fragment is never sent to the server, so the person'
 | `<category key>` | the level reached in that category, e.g. `comm=2`; one per category, always written last |
 
 ```
-/#name=John+Connor&role=aswe&compare=front&tag=tech&comm=2&pm=1&des=1&ops=1&front=1&back=1
+/#name=John+Connor&role=assoc&compare=maker&tag=tech&build=2&ai=1&data=1&cloud=1&trust=1&agentic=2&deliv=1&biz=1&comm=2&people=0
 ```
 
 You can edit the link by hand: changing the fragment in the address bar updates the page without reloading.
@@ -25,7 +25,7 @@ changes. When a link had data that could not be used, or is not valid at all, th
 or with an example, and a dismissible notice names what was ignored. Without a fragment the app starts with an example
 based on a random role.
 
-Links created by earlier versions (`/?state={"name":"John Connor","levels":{…},"roleKey":"aswe",…}`) keep opening;
+Links created by earlier versions (`/?state={"name":"John Connor","levels":{…},"roleKey":"assoc",…}`) keep opening;
 the app rewrites them in the new format after the first change.
 
 See also: [Snapshots](snapshots.md), which save and reopen links, and [ADR 0001](../adr/0001-readable-share-url-format.md)

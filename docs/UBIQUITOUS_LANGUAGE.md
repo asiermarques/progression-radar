@@ -8,7 +8,7 @@ same concept, use the one in **bold** and avoid the aliases.
 | Term                        | Definition                                                                                                   | Aliases to avoid                                                     |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
 | **Ladder**                  | The whole progression content of a deployment: its **Categories**, their **Expectations** and its **Roles**. | Path, career path, framework, matrix                                 |
-| **Category**                | An area of the **Ladder** in which a **Person** progresses, e.g. Communication or Backend.                   | Area (outside UI copy), skill, axis, dimension                       |
+| **Category**                | An area of the **Ladder** in which a **Person** progresses, e.g. Communication or AI Systems.                | Area (outside UI copy), skill, axis, dimension                       |
 | **Category key**            | The short, stable identifier of a **Category**, used in **Roles** and in the **Share link**.                 | Id, slug, code                                                       |
 | **Expectation**             | A skill, behaviour or concept expected of a **Person** at one **Level** of one **Category**.                 | KPI (legacy name), competency, criterion, milestone, behaviour, item |
 | **Expectation summary**     | The one-line title of an **Expectation**.                                                                    | KPI summary, name, title                                             |

@@ -146,7 +146,7 @@ so old links survive configuration changes instead of breaking.
 The raw configuration is typed as `unknown`. `parseConfig()` is the only place that turns it into domain types, and it
 checks required fields, positive integer levels, duplicated keys, roles referencing unknown categories and missing
 logo files, and lists the mistakes found while reading the category files with its own. Every problem names the file and folder it comes from (`config/roles.yml: role "r" …`,
-`config.example/categories.yml entry #2 …` or `config/categories/03-pm.md: …`), because the same file can come from either place. A test loads the
+`config.example/categories.yml entry #2 …` or `config/categories/03-data.md: …`), because the same file can come from either place. A test loads the
 resolved configuration and, separately, `config.example/` on its own, so CI catches mistakes in an adopter's
 configuration and in the sample, even when the sample is overridden.
 
