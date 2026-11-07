@@ -4,8 +4,8 @@ import { examplePerson, noticeFor, normalizePerson, parseState, toFragment, toUr
 
 const config = parseConfig({
   categories: [
-    { key: "comm", name: "Communication", kpis: [1, 2, 3].map((level) => ({ summary: `s${level}`, level })) },
-    { key: "back", name: "Backend", kpis: [{ summary: "s", level: 1 }] },
+    { key: "comm", name: "Communication", expectations: [1, 2, 3].map((level) => ({ summary: `s${level}`, level })) },
+    { key: "back", name: "Backend", expectations: [{ summary: "s", level: 1 }] },
   ],
   roles: [
     { key: "swe", name: "Software Engineer", levels: { comm: 2, back: 1 } },

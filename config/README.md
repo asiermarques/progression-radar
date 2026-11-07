@@ -8,12 +8,12 @@ from it, and do not edit it.
 
 At build time each of these files is read from this folder if it is here, and from `config.example/` otherwise:
 
-| file             | purpose                                                    |
-|------------------|------------------------------------------------------------|
-| `categories.yml` | the areas of your path and the KPIs for each level         |
-| `roles.yml`      | the roles of your ladder and the levels each one requires  |
-| `site.yml`       | title, logo and footer                                     |
-| `theme.css`      | CSS overrides: colours, fonts or any other style           |
+| file             | purpose                                                      |
+|------------------|--------------------------------------------------------------|
+| `categories.yml` | the categories of your ladder and the expectations per level |
+| `roles.yml`      | the roles of your ladder and the levels each one requires    |
+| `site.yml`       | title, logo and footer                                       |
+| `theme.css`      | CSS overrides: colours, fonts or any other style             |
 
 - **A file replaces its counterpart completely.** Nothing is merged: a `site.yml` here does not inherit the footer of
   the example, and a `theme.css` here replaces the example one (the base theme is in `src/styles.css`).

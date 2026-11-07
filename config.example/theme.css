@@ -4,7 +4,7 @@
  *
  * The quickest way to re-brand the app is to override the CSS custom properties
  * below. You can also target any of the stable class names documented in the
- * README (.app-header, .person-panel, .radar, .category-panel, .kpi, ...).
+ * README (.app-header, .person-panel, .radar, .category-panel, .expectation, ...).
  *
  * The base styles include a dark palette under `@media (prefers-color-scheme: dark)`.
  * Variables set in :root here apply to both palettes. To keep dark mode, set your

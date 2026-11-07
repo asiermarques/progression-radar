@@ -1,6 +1,6 @@
 import { useEffect, useRef, type CSSProperties } from "react";
 import Markdown from "react-markdown";
-import { kpisAt, levelsOf, maxLevel, percentage, requiredLevel, type Category, type Levels, type Role } from "../model";
+import { expectationsAt, levelsOf, maxLevel, percentage, requiredLevel, type Category, type Levels, type Role } from "../model";
 
 interface Props {
   categories: Category[];
@@ -35,7 +35,7 @@ export default function CategoryPanel({ categories, levels, compareTo, selectedK
   const level = levels[category.key] ?? 0;
   const max = maxLevel(category);
   const target = compareTo && requiredLevel(compareTo, category);
-  const kpis = kpisAt(category, level);
+  const expectations = expectationsAt(category, level);
 
   return (
     <section className="category-panel">
@@ -126,26 +126,31 @@ export default function CategoryPanel({ categories, levels, compareTo, selectedK
           )}
         </p>
 
-        <div className="kpi-list">
-          {kpis.length === 0 ? (
-            <p className="kpi-empty">
+        {/* kpi-* and --kpi-index are the legacy names of expectation-*, kept so adopters' themes still apply. */}
+        <div className="expectation-list kpi-list">
+          {expectations.length === 0 ? (
+            <p className="expectation-empty kpi-empty">
               {level === 0
                 ? "Level 0 is the starting point. Select a level to see what is expected to reach it."
-                : `There are no KPIs defined for level ${level}.`}
+                : `There are no expectations defined for level ${level}.`}
             </p>
           ) : (
-            <p className="kpi-list-heading">What level {level} looks like</p>
+            <p className="expectation-list-heading kpi-list-heading">What level {level} looks like</p>
           )}
-          {kpis.map((kpi, i) => (
-            <article className="kpi" key={`${level}-${i}`} style={{ "--kpi-index": i } as CSSProperties}>
-              <span className="kpi-index" aria-hidden="true">
+          {expectations.map((expectation, i) => (
+            <article
+              className="expectation kpi"
+              key={`${level}-${i}`}
+              style={{ "--expectation-index": i, "--kpi-index": i } as CSSProperties}
+            >
+              <span className="expectation-index kpi-index" aria-hidden="true">
                 {level}.{i + 1}
               </span>
-              <div className="kpi-body">
-                <h3 className="kpi-summary">{kpi.summary}</h3>
-                {kpi.description && (
-                  <div className="kpi-description">
-                    <Markdown>{kpi.description}</Markdown>
+              <div className="expectation-body kpi-body">
+                <h3 className="expectation-summary kpi-summary">{expectation.summary}</h3>
+                {expectation.description && (
+                  <div className="expectation-description kpi-description">
+                    <Markdown>{expectation.description}</Markdown>
                   </div>
                 )}
               </div>

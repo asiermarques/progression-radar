@@ -1,6 +1,7 @@
 // Domain types and pure functions. No React, no browser APIs.
 
-export interface KPI {
+/** A skill, behaviour or concept expected of a person at one level of a category. */
+export interface Expectation {
   summary: string;
   description: string;
   level: number;
@@ -11,7 +12,7 @@ export interface Category {
   key: string;
   name: string;
   description: string;
-  kpis: KPI[];
+  expectations: Expectation[];
 }
 
 export interface Role {
@@ -47,13 +48,13 @@ export interface Person {
 /** Share link field names: a category cannot use them as its key. */
 export const RESERVED_KEYS = ["name", "role", "compare", "tag", "state"];
 
-/** Selectable levels of a category: 0 plus every level used by its KPIs, ascending. */
+/** Selectable levels of a category: 0 plus every level used by its expectations, ascending. */
 export function levelsOf(category: Category): number[] {
-  return [...new Set([0, ...category.kpis.map((kpi) => kpi.level)])].sort((a, b) => a - b);
+  return [...new Set([0, ...category.expectations.map((expectation) => expectation.level)])].sort((a, b) => a - b);
 }
 
 export function maxLevel(category: Category): number {
-  return Math.max(0, ...category.kpis.map((kpi) => kpi.level));
+  return Math.max(0, ...category.expectations.map((expectation) => expectation.level));
 }
 
 /** How far `level` is towards the highest level of the category, from 0 to 100. */
@@ -63,8 +64,8 @@ export function percentage(category: Category, level: number): number {
   return Math.round((Math.min(Math.max(level, 0), max) / max) * 100);
 }
 
-export function kpisAt(category: Category, level: number): KPI[] {
-  return category.kpis.filter((kpi) => kpi.level === level);
+export function expectationsAt(category: Category, level: number): Expectation[] {
+  return category.expectations.filter((expectation) => expectation.level === level);
 }
 
 export function findRole(roles: Role[], key: string | undefined): Role | undefined {

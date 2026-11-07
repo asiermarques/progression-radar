@@ -16,6 +16,8 @@ Live demo: [https://progression-radar.netlify.app](https://progression-radar.net
 - [docs/PRODUCT.md](docs/PRODUCT.md): what it does, who it is for and the product decisions.
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): stack, layout of the code, data flow and key decisions.
 - [docs/DESIGN.md](docs/DESIGN.md): the design system and UI guidelines.
+- [docs/UBIQUITOUS_LANGUAGE.md](docs/UBIQUITOUS_LANGUAGE.md): the glossary of domain terms (category, expectation,
+  level, role…) and the words to avoid.
 - [docs/adr/](docs/adr): architecture decision records.
 
 ## Getting started
@@ -37,12 +39,12 @@ To use it for your own organisation, fork the repository, put your files in [`co
 
 Everything that is specific to your deployment lives in **your config folder**, which upstream never touches:
 
-| file             | purpose                                                    |
-|------------------|------------------------------------------------------------|
-| `categories.yml` | the areas of your path and the KPIs for each level         |
-| `roles.yml`      | the roles of your ladder and the levels each one requires  |
-| `site.yml`       | title, logo and footer                                     |
-| `theme.css`      | CSS overrides: colours, fonts or any other style           |
+| file             | purpose                                                      |
+|------------------|--------------------------------------------------------------|
+| `categories.yml` | the categories of your ladder and the expectations per level |
+| `roles.yml`      | the roles of your ladder and the levels each one requires    |
+| `site.yml`       | title, logo and footer                                       |
+| `theme.css`      | CSS overrides: colours, fonts or any other style             |
 
 The project ships a sample of each in [`config.example/`](config.example), and that is what you get on a fresh clone,
 with no setup. To customise a file, put a file with the same name in `config/` (copy the sample to start from it).
@@ -78,39 +80,44 @@ separately, `config.example/` on its own.
 
 Each entry of `categories.yml` has these fields:
 
-| field       | description                                     |
-|-------------|-------------------------------------------------|
-| key         | a unique and short identifier for the category  |
-| name        | the name of the category                        |
-| description | optional: a brief description of the category   |
-| kpis        | a list of KPIs or skills for the category       |
+| field        | description                                    |
+|--------------|------------------------------------------------|
+| key          | a unique and short identifier for the category |
+| name         | the name of the category                       |
+| description  | optional: a brief description of the category  |
+| expectations | what is expected at each level of the category |
 
 The keys `name`, `role`, `compare`, `tag` and `state` are reserved by the [share link](#the-state-in-the-url): a
 category using one of them is reported as a configuration problem.
 
-Each KPI has these fields:
+An expectation is a skill, behaviour or concept expected of a person at one level of the category. Each one has
+these fields:
 
 | field       | description                                                     |
 |-------------|-----------------------------------------------------------------|
-| summary     | a title or brief description of the KPI                         |
+| summary     | a title or brief description of the expectation                 |
 | description | optional: an extended description. Markdown is supported        |
-| level       | the level (a positive integer) this KPI belongs to              |
-| tags        | optional: a list of tags for this KPI (not shown in the UI yet) |
+| level       | the level (a positive integer) this expectation belongs to      |
+| tags        | optional: a list of tags (not shown in the UI yet)              |
 
-The levels of a category are the levels used by its KPIs, plus level 0.
+The levels of a category are the levels used by its expectations, plus level 0. Earlier versions called the list
+`kpis`; that name is still read, but a category cannot have both.
+
+Write multi-line descriptions as a literal block (`description: |`), which keeps every line break, so Markdown lists
+and paragraphs work as written. A folded block (`description: >`) joins consecutive lines into one, so a list without
+blank lines between its items becomes a single paragraph.
 
 ```yaml
 # config/categories.yml (or config.example/categories.yml)
 - key: comm
   name: Communication
   description: Shares the right amount of information with the right people, at the right time, and listens effectively
-  kpis:
+  expectations:
     - summary: Communicates effectively to close stakeholders when called upon
-      description: >
+      description: |
         **Example behaviours:**
 
         * Communicates project status clearly and effectively
-
         * Asks for help at the appropriate juncture
       tags: ["tech", "management"]
       level: 1
@@ -173,7 +180,8 @@ with `@font-face` or `@import` and set `--font-family` and `--font-display`.
 
 You can also target these stable class names: `.app-header`, `.app-title`, `.app-logo`, `.share-button`,
 `.person-panel`, `.person-seal`, `.progress-summary`, `.radar`, `.radar-series--person`, `.radar-series--compare`,
-`.link-notice`, `.category-panel`, `.category-nav`, `.level-nav`, `.kpi` and `.app-footer`.
+`.link-notice`, `.category-panel`, `.category-nav`, `.level-nav`, `.expectation` and `.app-footer`. The expectation
+elements also keep their former `.kpi*` class names and the `--kpi-index` property, so existing themes keep working.
 
 ## The state in the URL
 
@@ -284,6 +292,14 @@ The share link now keeps the state in the URL fragment (see [The state in the UR
 five keys are reserved for its fields. After pulling the update, the app lists any category that uses one of them as a
 configuration error: rename its `key` in `config/categories.yml` (and in `config/roles.yml`). Links that used the old
 key stop matching that category, and the notice says so.
+
+### KPIs are now called expectations
+
+The items of a category are now called expectations: they describe what is expected at a level, they are not
+measured indicators. Nothing breaks: the `kpis` list in `categories.yml` is still read, and the `.kpi*` class names
+and `--kpi-index` are still on the page. To adopt the new names, rename `kpis:` to `expectations:` in your
+`categories.yml` and the `.kpi*` selectors in your `theme.css` to `.expectation*` (e.g. `.kpi-summary` to
+`.expectation-summary`).
 
 ### A fork with a custom theme
 

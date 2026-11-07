@@ -20,7 +20,7 @@ compiled into the bundle at build time and the user's data lives in the URL.
 | styles      | plain CSS with custom properties    | easy theming without a preprocessor or a CSS framework              |
 | fonts       | Fontsource packages (Latin subsets) | self-hosted, no third-party requests, small CSS                     |
 | chart       | hand-written SVG (`RadarChart.tsx`) | ~100 lines, no chart library, fully styleable from CSS              |
-| markdown    | react-markdown                      | renders KPI descriptions and footer safely (raw HTML is not allowed) |
+| markdown    | react-markdown                      | renders expectation descriptions and footer safely (no raw HTML)    |
 | config      | YAML parsed at build time           | readable for non-developers, no runtime fetch                       |
 | tests       | Vitest + Testing Library (happy-dom)| shares the Vite config, so YAML imports work in tests too           |
 
@@ -28,7 +28,7 @@ compiled into the bundle at build time and the user's data lives in the URL.
 
 ```
 config.example/          upstream's sample configuration and the defaults (adopters do not edit it)
-  categories.yml           areas and their KPIs per level
+  categories.yml           categories and their expectations per level
   roles.yml                roles and the levels they require
   site.yml                 title, optional logo and footer
   theme.css                comment-only CSS overrides, loaded after the base styles
@@ -48,7 +48,7 @@ src/
     PersonPanel.tsx        seal, name, role, tags and the "compare to" selector
     ProgressSummary.tsx    overall progress and the gap with the compared role
     RadarChart.tsx         SVG radar chart
-    CategoryPanel.tsx      category tabs, level selector and KPIs
+    CategoryPanel.tsx      category tabs, level selector and expectations
     ShareButton.tsx        copies the share link of the person on screen
     LinkNotice.tsx         dismissible notice about data a link could not use
   styles.css               base styles and the CSS custom properties used for theming

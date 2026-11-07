@@ -79,7 +79,7 @@ person-vs-role visual must follow the same rule.
 
 | token            | default                                        | used for                                                   |
 |------------------|------------------------------------------------|------------------------------------------------------------|
-| `--font-display` | Shippori Mincho (700, 800)                     | app title, person name, category name, KPI summaries, all numbers (stats, indices, level numbers), the seal |
+| `--font-display` | Shippori Mincho (700, 800)                     | app title, person name, category name, expectation summaries, all numbers (stats, indices, level numbers), the seal |
 | `--font-family`  | Zen Kaku Gothic New (400, 500, 700)            | everything else                                            |
 | `--font-size`    | `15px`                                         | root body size, `line-height: 1.6`                         |
 
@@ -94,7 +94,7 @@ person-vs-role visual must follow the same rule.
 
 ### The small-caps label
 
-Section labels, stat names, the header meta, eyebrows and the KPI list heading share one style: `0.7rem`, weight
+Section labels, stat names, the header meta, eyebrows and the expectation list heading share one style: `0.7rem`, weight
 700, `letter-spacing: 0.16em`, uppercase, muted. It is defined once as a selector list under "Small caps labels" in
 `styles.css`. A new label joins that list instead of redefining the style. Buttons and tags use a close variant
 (`0.68–0.72rem`, `0.12–0.14em`).
@@ -102,7 +102,7 @@ Section labels, stat names, the header meta, eyebrows and the KPI list heading s
 ### Copy
 
 English, sentence case, short. Plurals are handled (`1 level` / `2 levels`, `Level to go` / `Levels to go`). Indices
-are zero-padded (`01 / 06`) and KPIs are numbered `level.n` (`2.1`).
+are zero-padded (`01 / 06`) and expectations are numbered `level.n` (`2.1`).
 
 ## Shape, lines and space
 
@@ -110,8 +110,8 @@ are zero-padded (`01 / 06`) and KPIs are numbered `level.n` (`2.1`).
 - **Rules carry the hierarchy**, not cards or shadows:
   - `3px double var(--color-text)`: frames the page (header bottom, footer top).
   - `1px solid var(--color-text)`: opens a major section (the category panel).
-  - `1px solid var(--color-border)`: divides items inside a section (nav items, KPIs, the summary).
-  - `1px dashed var(--color-border)`: empty or placeholder states (`.kpi-empty`).
+  - `1px solid var(--color-border)`: divides items inside a section (nav items, expectations, the summary).
+  - `1px dashed var(--color-border)`: empty or placeholder states (`.expectation-empty`).
 - **No drop shadows and no cards.** `box-shadow` is only used to draw rings (the seal's inner line, the pressed
   level).
 - Page width `--max-width: 1200px`, side padding `clamp(1rem, 4vw, 3rem)`. Vertical rhythm is generous and uses
@@ -144,7 +144,7 @@ The glows are derived from the tokens, so they follow a re-brand automatically.
 │   AREAS                        │   01 / 06, name, description          │
 │   category-nav (index, name,   │   level-nav (staircase)               │
 │   level, meter)                │   level-status                        │
-│                                │   kpi-list → kpi × n                  │
+│                                │   expectation-list → expectation × n  │
 ├ app-footer ─────────────────────────────────────────────── double rule ┤
 ```
 
@@ -207,7 +207,7 @@ Each category is a `<button>` laid out as a grid: zero-padded serif index, name,
 (vermilion fill for the person, indigo tick for the role's target). The active item is **inverted to ink** with a
 vermilion index (`aria-current`). Met categories get an indigo "✓" (`data-status="met"`).
 
-### Category detail — **`.category-panel`**, **`.level-nav`**, **`.kpi`**
+### Category detail — **`.category-panel`**, **`.level-nav`**, **`.expectation`**
 
 - Eyebrow `01 / 06` with the current index in vermilion, a large serif name and a muted description.
 - **Level selector as a staircase**: one button per level, each step `0.6rem` taller than the previous one
@@ -215,8 +215,8 @@ vermilion index (`aria-current`). Met categories get an indigo "✓" (`data-stat
   vermilion (`.reached`); the current one gets a double ring (`aria-pressed="true"`). The role's target level has an
   indigo bar above it and a "Target" label (`.target`).
 - Status line: "Level **2** of 5 · 3 levels below …" or an indigo "✓ meets …".
-- KPIs: a grid of index (`2.1`, vermilion serif) and body (serif summary, Markdown description). A paragraph that is
-  only a bold phrase ("**Example behaviours:**") is styled as a small-caps label, and list markers are vermilion.
+- Expectations: a grid of index (`2.1`, vermilion serif) and body (serif summary, Markdown description). A paragraph
+  that is only a bold phrase ("**Example behaviours:**") is styled as a small-caps label, and list markers are vermilion.
 
 ### Footer — **`.app-footer`**
 
@@ -263,7 +263,7 @@ CSS only, one easing (`--ease: cubic-bezier(0.2, 0.8, 0.2, 1)`), and everything 
 | page load             | `rise` (fade + 12px up, 0.7s) staggered: header, side, radar (+0.08s), summary (+0.12s), categories (+0.2s) |
 | radar load            | `radar-grow` (scale from 0.35 and rotate -8°, 1s); the role series starts first  |
 | seal                  | `stamp` (from 1.5× and -14°, 0.55s, after 0.35s)                                  |
-| category change       | `.category-detail` is keyed by category, so it replays `rise` (0.45s); KPIs stagger by 70ms (`--kpi-index`) |
+| category change       | `.category-detail` is keyed by category, so it replays `rise` (0.45s); expectations stagger by 70ms (`--expectation-index`) |
 | level / role change   | radar shape and points tween over 0.6s; meters over 0.5s                          |
 | hover / colour        | `0.2s`–`0.25s` transitions                                                        |
 
@@ -280,8 +280,8 @@ stops blending (`--seal-blend: normal`). Any new token needs a value in both pal
 ## Print
 
 `@media print` produces a clean copy for a growth conversation: no texture or background glows, no share button or
-select chevron, the sidebar is not sticky and KPIs avoid page breaks. New interactive-only controls are hidden in
-print; new content blocks get `break-inside: avoid`.
+select chevron, the sidebar is not sticky and expectations avoid page breaks. New interactive-only controls are hidden
+in print; new content blocks get `break-inside: avoid`.
 
 ## Accessibility
 
@@ -324,7 +324,7 @@ Adopters only provide a `theme.css` in their config folder (`config/` by default
 Run `npm run dev` and look at:
 
 - light and dark palettes (switch the OS or the browser's emulated `prefers-color-scheme`);
-- with and without a compared role, and with a category at level 0 (empty KPI state);
+- with and without a compared role, and with a category at level 0 (empty expectation state);
 - a narrow screen (< 600px) and a tablet width (< 900px);
 - print preview;
 - `prefers-reduced-motion: reduce`;

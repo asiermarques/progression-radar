@@ -1,7 +1,7 @@
 // Loads the configuration files resolved at build time (the config folder, falling back to config.example/)
 // and turns them into a validated, typed Config.
 import { images as configImages, origins, raw as rawConfig } from "virtual:progression-radar-config";
-import { RESERVED_KEYS, type Category, type Config, type KPI, type Levels, type Role, type Site } from "./model";
+import { RESERVED_KEYS, type Category, type Config, type Expectation, type Levels, type Role, type Site } from "./model";
 
 export class ConfigError extends Error {
   constructor(readonly problems: string[]) {
@@ -76,21 +76,28 @@ function parseCategories(raw: unknown, file: string, problems: string[]): Catego
       problems.push(`${where}: the category key "${item.key}" is reserved by the share link`);
     }
 
-    const kpis = Array.isArray(item.kpis) ? item.kpis : [];
-    if (!Array.isArray(item.kpis)) problems.push(`${file}: category "${item.key}" needs a "kpis" list`);
+    // "kpis" is the legacy name of "expectations", still accepted so existing configurations keep working.
+    if (item.expectations !== undefined && item.kpis !== undefined) {
+      problems.push(`${file}: category "${item.key}" has both "expectations" and "kpis"; keep only "expectations"`);
+    }
+    const list = item.expectations ?? item.kpis;
+    const expectations = Array.isArray(list) ? list : [];
+    if (!Array.isArray(list)) problems.push(`${file}: category "${item.key}" needs an "expectations" list`);
 
     return [
       {
         key: item.key,
         name: item.name,
         description: optionalString(item.description),
-        kpis: kpis.flatMap((kpi, kpiIndex) => parseKpi(kpi, `${file}: category "${item.key}" KPI #${kpiIndex + 1}`, problems)),
+        expectations: expectations.flatMap((expectation, i) =>
+          parseExpectation(expectation, `${file}: category "${item.key}" expectation #${i + 1}`, problems),
+        ),
       },
     ];
   });
 }
 
-function parseKpi(raw: unknown, where: string, problems: string[]): KPI[] {
+function parseExpectation(raw: unknown, where: string, problems: string[]): Expectation[] {
   if (!isObject(raw) || !isNonEmptyString(raw.summary)) {
     problems.push(`${where} needs a "summary"`);
     return [];

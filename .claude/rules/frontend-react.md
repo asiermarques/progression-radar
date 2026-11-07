@@ -33,7 +33,7 @@ not contradict an accepted decision.
 
 - `strict`, `noUnusedLocals`, `noUnusedParameters` and `verbatimModuleSyntax` are on: use `import { type X }` for
   types, no `any`, no non-null assertions unless the value is guaranteed (e.g. `document.getElementById("root")!`).
-- Use the domain types from `model.ts` (`Person`, `Category`, `Role`, `Levels`, `KPI`) instead of redefining shapes.
+- Use the domain types from `model.ts` (`Person`, `Category`, `Role`, `Levels`, `Expectation`) instead of redefining shapes.
 - Style: double quotes, semicolons, 2-space indent, lines up to ~120 characters, as in the existing files.
 
 ## Components

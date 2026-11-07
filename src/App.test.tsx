@@ -8,12 +8,12 @@ const config = parseConfig({
     {
       key: "comm",
       name: "Communication",
-      kpis: [
+      expectations: [
         { summary: "Gives status updates", description: "**Daily**", level: 1 },
         { summary: "Drives meetings", level: 2 },
       ],
     },
-    { key: "ops", name: "Operations", kpis: [{ summary: "Runs deploys", level: 1 }] },
+    { key: "ops", name: "Operations", expectations: [{ summary: "Runs deploys", level: 1 }] },
   ],
   roles: [{ key: "lead", name: "Lead", levels: { comm: 2 } }],
   site: { title: "My Radar", footer: "Made by [us](https://example.com)" },
@@ -43,7 +43,7 @@ afterEach(() => {
 });
 
 describe("App", () => {
-  it("renders the person, the KPIs of the current level and the footer", () => {
+  it("renders the person, the expectations of the current level and the footer", () => {
     render(<App config={config} initialPerson={person} />);
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("My Radar");
     expect((screen.getByLabelText("Name") as HTMLInputElement).value).toBe("Ada");

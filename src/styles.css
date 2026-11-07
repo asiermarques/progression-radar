@@ -121,7 +121,7 @@ select {
 .compare-to-label,
 .stat dt,
 .category-eyebrow,
-.kpi-list-heading {
+.expectation-list-heading {
   margin: 0;
   font-size: 0.7rem;
   font-weight: 700;
@@ -893,15 +893,15 @@ select {
   content: "✓ " / "";
 }
 
-.kpi-list {
+.expectation-list {
   margin-top: 2.75rem;
 }
 
-.kpi-list-heading {
+.expectation-list-heading {
   padding-bottom: 0.75rem;
 }
 
-.kpi {
+.expectation {
   display: grid;
   grid-template-columns: 3rem 1fr;
   gap: 1rem;
@@ -909,14 +909,14 @@ select {
   padding: 1.6rem 0;
   border-top: 1px solid var(--color-border);
   animation: rise 0.5s var(--ease) both;
-  animation-delay: calc(var(--kpi-index, 0) * 70ms + 120ms);
+  animation-delay: calc(var(--expectation-index, 0) * 70ms + 120ms);
 }
 
-.kpi:last-child {
+.expectation:last-child {
   border-bottom: 1px solid var(--color-border);
 }
 
-.kpi-index {
+.expectation-index {
   padding-top: 0.15rem;
   font-family: var(--font-display);
   font-size: 1.05rem;
@@ -925,11 +925,11 @@ select {
   color: var(--color-primary);
 }
 
-.kpi-body {
+.expectation-body {
   min-width: 0;
 }
 
-.kpi-summary {
+.expectation-summary {
   margin: 0;
   font-family: var(--font-display);
   font-size: 1.3rem;
@@ -937,43 +937,43 @@ select {
   line-height: 1.3;
 }
 
-.kpi-description {
+.expectation-description {
   max-width: 68ch;
   margin-top: 0.6rem;
 }
 
-.kpi-description p {
+.expectation-description p {
   margin: 0.6rem 0;
 }
 
 /* A paragraph that only holds a bold phrase ("**Example behaviours:**") reads as a label. */
-.kpi-description p > strong:only-child {
+.expectation-description p > strong:only-child {
   font-size: 0.7rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--color-muted);
 }
 
-.kpi-description ul,
-.kpi-description ol {
+.expectation-description ul,
+.expectation-description ol {
   margin: 0.4rem 0;
   padding-left: 1.15rem;
 }
 
-.kpi-description li {
+.expectation-description li {
   margin: 0.3rem 0;
   padding-left: 0.25rem;
 }
 
-.kpi-description li p {
+.expectation-description li p {
   margin: 0;
 }
 
-.kpi-description li::marker {
+.expectation-description li::marker {
   color: var(--color-primary);
 }
 
-.kpi-empty {
+.expectation-empty {
   margin: 0;
   padding: 1.5rem;
   color: var(--color-muted);
@@ -1134,7 +1134,7 @@ select {
     position: static;
   }
 
-  .kpi {
+  .expectation {
     break-inside: avoid;
   }
 }

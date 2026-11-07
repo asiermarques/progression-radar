@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   initials,
-  kpisAt,
+  expectationsAt,
   levelsOf,
   maxLevel,
   overallPercentage,
@@ -10,11 +10,11 @@ import {
   type Category,
 } from "./model";
 
-const kpi = (level: number) => ({ summary: `KPI ${level}`, description: "", level, tags: [] });
-const category = (levels: number[]): Category => ({ key: "c", name: "C", description: "", kpis: levels.map(kpi) });
+const expectation = (level: number) => ({ summary: `Expectation ${level}`, description: "", level, tags: [] });
+const category = (levels: number[]): Category => ({ key: "c", name: "C", description: "", expectations: levels.map(expectation) });
 
 describe("model", () => {
-  it("lists level 0 plus every KPI level, unique and sorted", () => {
+  it("lists level 0 plus every expectation level, unique and sorted", () => {
     expect(levelsOf(category([3, 1, 1, 2]))).toEqual([0, 1, 2, 3]);
     expect(levelsOf(category([]))).toEqual([0]);
   });
@@ -33,10 +33,10 @@ describe("model", () => {
     expect(percentage(category([]), 3)).toBe(0);
   });
 
-  it("returns the KPIs of a level", () => {
+  it("returns the expectations of a level", () => {
     const c = category([1, 1, 2]);
-    expect(kpisAt(c, 1)).toHaveLength(2);
-    expect(kpisAt(c, 4)).toEqual([]);
+    expect(expectationsAt(c, 1)).toHaveLength(2);
+    expect(expectationsAt(c, 4)).toEqual([]);
   });
 
   it("averages the progress of every category", () => {
