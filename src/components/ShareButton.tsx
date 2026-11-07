@@ -8,8 +8,13 @@ const LABELS: Record<Status, string> = {
   failed: "Copy the URL from the address bar",
 };
 
-/** Copies the current URL, which holds the whole state, so it can be shared. */
-export default function ShareButton() {
+interface Props {
+  /** The share link of the person on screen, which may be ahead of the address bar. */
+  link: string;
+}
+
+/** Copies the share link, which holds the whole state, so it can be shared. */
+export default function ShareButton({ link }: Props) {
   const [status, setStatus] = useState<Status>("idle");
 
   useEffect(() => {
@@ -20,7 +25,7 @@ export default function ShareButton() {
 
   async function copy() {
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      await navigator.clipboard.writeText(link);
       setStatus("copied");
     } catch {
       setStatus("failed");

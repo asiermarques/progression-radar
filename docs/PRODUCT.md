@@ -36,7 +36,10 @@ Live demo: https://progression-radar.netlify.app
 - Lists, for each category, the KPIs expected at every level, with Markdown descriptions.
 - Lets the person edit their name, their levels and the compared role. The current role and the tags are read
   from the share link but cannot be edited in the UI.
-- Keeps the share link up to date with every change, and copies it with a button.
+- Keeps the share link up to date with every change, and copies it with a button. The link can be edited by hand
+  in the address bar and the page follows.
+- Opens broken or partly outdated links anyway: it shows the valid data (or an example) and a dismissible notice
+  that names what was ignored or corrected.
 - Offers light and dark themes (following the system setting), a responsive layout and a print-friendly page.
 - Lets adopters change the content, title, logo, footer and styles from the `config/` folder.
 
@@ -44,12 +47,14 @@ Live demo: https://progression-radar.netlify.app
 
 - **No backend, no accounts.** Nothing is stored anywhere except the share link. Sharing a person means sending
   the link.
-- **Old links keep working.** Links created by earlier versions must keep opening. When the configuration changes,
-  unknown categories and roles in a link are ignored and levels are clamped, instead of rejecting the link.
+- **Old links keep working.** Links created by earlier versions (`?state=<JSON>`) must keep opening, forever. When
+  the configuration changes, unknown categories and roles in a link are ignored and levels are clamped, instead of
+  rejecting the link, and the person is told what was ignored. A link that is not valid at all opens the example
+  with a notice; there is no blocking error screen for links.
 - **Readable share links.** The share link should be short, readable and safe to paste in chat, e-mail or
-  documents, and the person's data should not reach the server. See
-  [ADR 0001](adr/0001-readable-share-url-format.md) (accepted, not implemented yet: links are still JSON in
-  `?state=`).
+  documents, and the person's data should not reach the server, so it lives in the URL fragment as flat key-value
+  parameters. `name`, `role`, `compare`, `tag` and `state` are reserved and cannot be category keys. See
+  [ADR 0001](adr/0001-readable-share-url-format.md).
 - **Customisation by forking.** Adopters edit `config/` only, so upstream updates merge cleanly. Deeper changes are
   done by changing `src/` in the fork.
 - **Configuration mistakes are shown, not hidden.** An invalid configuration lists every problem instead of

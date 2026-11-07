@@ -44,6 +44,9 @@ export interface Person {
   compareTo?: string;
 }
 
+/** Share link field names: a category cannot use them as its key. */
+export const RESERVED_KEYS = ["name", "role", "compare", "tag", "state"];
+
 /** Selectable levels of a category: 0 plus every level used by its KPIs, ascending. */
 export function levelsOf(category: Category): number[] {
   return [...new Set([0, ...category.kpis.map((kpi) => kpi.level)])].sort((a, b) => a - b);

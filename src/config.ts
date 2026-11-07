@@ -2,7 +2,7 @@
 import categoriesYaml from "../config/categories.yml";
 import rolesYaml from "../config/roles.yml";
 import siteYaml from "../config/site.yml";
-import type { Category, Config, KPI, Levels, Role, Site } from "./model";
+import { RESERVED_KEYS, type Category, type Config, type KPI, type Levels, type Role, type Site } from "./model";
 
 /** Image files dropped in /config, by file name, so `logo: logo.svg` can be resolved. */
 const configImages: Record<string, string> = Object.fromEntries(
@@ -69,6 +69,9 @@ function parseCategories(raw: unknown, problems: string[]): Category[] {
     }
     if (seen.has(item.key)) problems.push(`${where}: duplicated category key "${item.key}"`);
     seen.add(item.key);
+    if (RESERVED_KEYS.includes(item.key)) {
+      problems.push(`${where}: the category key "${item.key}" is reserved by the share link`);
+    }
 
     const kpis = Array.isArray(item.kpis) ? item.kpis : [];
     if (!Array.isArray(item.kpis)) problems.push(`category "${item.key}" needs a "kpis" list`);

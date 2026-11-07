@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import App, { Footer, Header } from "./App";
 import { ConfigError, loadConfig } from "./config";
 import type { Config } from "./model";
-import { examplePerson, parseState } from "./urlState";
+import { examplePerson, noticeFor, parseState } from "./urlState";
 // Self-hosted fonts, Latin subsets only: CJK characters fall back to the system fonts in the font stacks.
 import "@fontsource/shippori-mincho/latin-700.css";
 import "@fontsource/shippori-mincho/latin-ext-700.css";
@@ -36,21 +36,15 @@ try {
   const config = loadConfig();
   document.title = config.site.title;
 
-  const state = parseState(window.location.search, config);
-  if (state.kind === "invalid") {
-    render(
-      <ErrorScreen config={config}>
-        <p>
-          The <code>state</code> parameter in this URL is not valid JSON. See the README for the expected format.
-        </p>
-        <p>
-          <a href="./">Start with an example</a>
-        </p>
-      </ErrorScreen>,
-    );
-  } else {
-    render(<App config={config} initialPerson={state.kind === "ok" ? state.person : examplePerson(config)} />);
-  }
+  const state = parseState(window.location, config);
+  render(
+    <App
+      config={config}
+      initialPerson={state.kind === "ok" ? state.person : examplePerson(config)}
+      initialNotice={noticeFor(state, "an example is shown instead")}
+      writeOnLoad={state.kind === "empty"}
+    />,
+  );
 } catch (error) {
   if (!(error instanceof ConfigError)) throw error;
   console.error(error);

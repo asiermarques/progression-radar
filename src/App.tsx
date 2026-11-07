@@ -4,27 +4,59 @@ import CategoryPanel from "./components/CategoryPanel";
 import PersonPanel from "./components/PersonPanel";
 import ProgressSummary from "./components/ProgressSummary";
 import RadarChart, { type RadarSeries } from "./components/RadarChart";
+import LinkNotice from "./components/LinkNotice";
 import ShareButton from "./components/ShareButton";
 import { findRole, maxLevel, percentage, requiredLevel, type Config, type Person } from "./model";
-import { toSearch } from "./urlState";
+import { noticeFor, parseState, saveUrl, toUrl } from "./urlState";
 
 interface Props {
   config: Config;
   initialPerson: Person;
+  /** What to tell the person about the link they opened, if anything. */
+  initialNotice?: string | null;
+  /** No link was opened, so the address bar does not hold `initialPerson` yet: write it on load. */
+  writeOnLoad?: boolean;
 }
+
+/** The address bar is written this long after the last change, so typing does not hammer the history API. */
+const URL_WRITE_DELAY = 250;
 
 const prefersReducedMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
 
-export default function App({ config, initialPerson }: Props) {
+export default function App({ config, initialPerson, initialNotice = null, writeOnLoad = false }: Props) {
   const { site, categories, roles } = config;
   const [person, setPerson] = useState(initialPerson);
   const [selectedKey, setSelectedKey] = useState(categories[0]?.key);
   const categoriesRef = useRef<HTMLDivElement>(null);
 
-  // Keep the URL in sync so it can always be bookmarked or shared.
+  const [notice, setNotice] = useState(initialNotice);
+
+  // Keep the address bar in sync, debounced and not on load, so it can be bookmarked or shared.
   useEffect(() => {
-    window.history.replaceState(null, "", toSearch(person));
-  }, [person]);
+    if (person === initialPerson && !writeOnLoad) return;
+    const write = () => saveUrl(person, config);
+    const timeout = window.setTimeout(write, URL_WRITE_DELAY);
+    const flush = () => {
+      window.clearTimeout(timeout);
+      write();
+    };
+    window.addEventListener("pagehide", flush);
+    return () => {
+      window.clearTimeout(timeout);
+      window.removeEventListener("pagehide", flush);
+    };
+  }, [person, initialPerson, writeOnLoad, config]);
+
+  // The link can be edited by hand in the address bar; the app's own writes (replaceState) do not fire this.
+  useEffect(() => {
+    function readFragment() {
+      const state = parseState(window.location, config);
+      if (state.kind === "ok") setPerson(state.person);
+      setNotice(noticeFor(state, "it was ignored"));
+    }
+    window.addEventListener("hashchange", readFragment);
+    return () => window.removeEventListener("hashchange", readFragment);
+  }, [config]);
 
   const role = findRole(roles, person.roleKey);
   const compareTo = findRole(roles, person.compareTo);
@@ -58,8 +90,9 @@ export default function App({ config, initialPerson }: Props) {
           {categories.length} {categories.length === 1 ? "area" : "areas"} · {roles.length}{" "}
           {roles.length === 1 ? "role" : "roles"}
         </p>
-        <ShareButton />
+        <ShareButton link={toUrl(person, config, window.location.href)} />
       </Header>
+      {notice && <LinkNotice message={notice} onDismiss={() => setNotice(null)} />}
 
       <main>
         <div className="overview">

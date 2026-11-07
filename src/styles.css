@@ -1019,6 +1019,44 @@ select {
   font-weight: 700;
 }
 
+/* Link notice: how the share link was read */
+
+.link-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  margin-top: 1.25rem;
+  padding: 0.75rem 1.25rem;
+  background: color-mix(in oklab, var(--color-surface) 70%, transparent);
+  border-left: 3px solid var(--color-primary);
+}
+
+.link-notice-message {
+  margin: 0;
+}
+
+.link-notice-dismiss {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border: 1px solid var(--color-text);
+  border-radius: var(--radius);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+.link-notice-dismiss:hover {
+  color: var(--color-background);
+  background: var(--color-text);
+}
+
 /* Motion */
 
 .app-header,
@@ -1087,6 +1125,7 @@ select {
   }
 
   .share-button,
+  .link-notice,
   .compare-to-control::after {
     display: none;
   }

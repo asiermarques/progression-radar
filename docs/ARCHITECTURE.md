@@ -38,13 +38,14 @@ src/
   App.tsx                  owns the state, syncs it to the URL, composes the page
   model.ts                 domain types and pure functions (levels, percentages)
   config.ts                imports config/*.yml and validates it into a typed Config
-  urlState.ts              reads/writes the `state` query parameter
+  urlState.ts              reads/writes the share link (URL fragment, legacy `?state=` read-only) and its notices
   components/
     PersonPanel.tsx        seal, name, role, tags and the "compare to" selector
     ProgressSummary.tsx    overall progress and the gap with the compared role
     RadarChart.tsx         SVG radar chart
     CategoryPanel.tsx      category tabs, level selector and KPIs
-    ShareButton.tsx        copies the current URL
+    ShareButton.tsx        copies the share link of the person on screen
+    LinkNotice.tsx         dismissible notice about data a link could not use
   styles.css               base styles and the CSS custom properties used for theming
   *.test.ts(x)             tests, next to the code they cover
 vite.config.ts           Vite + Vitest config, including a tiny YAML plugin
@@ -55,9 +56,11 @@ vite.config.ts           Vite + Vitest config, including a tiny YAML plugin
 ```
 config/*.yml ──(build: YAML plugin)──▶ config.ts: parseConfig() ──▶ Config
                                                                        │
-URL ?state=… ──▶ urlState.ts: parseState() ──▶ Person ──▶ App (useState)
-                                                             │      │
-                          URL ◀── history.replaceState ◀─────┘      └──▶ components
+URL #name=…&comm=2 ──▶ urlState.ts: parseState() ──▶ Person ──▶ App (useState)
+(or legacy ?state=…)     └─▶ issues ──▶ notice                  │      │
+                                                                │      └──▶ components
+        URL ◀── saveUrl() (debounced replaceState) ◀────────────┘
+        URL ──(hashchange)──▶ parseState() ──▶ App
 ```
 
 1. **Build time.** `vite.config.ts` contains a small plugin that turns any `.yml` import into the parsed object.
@@ -65,19 +68,29 @@ URL ?state=… ──▶ urlState.ts: parseState() ──▶ Person ──▶ Ap
    so `site.yml` can reference a logo by file name.
 2. **Start-up.** `main.tsx` calls `loadConfig()`, which validates the raw data and either returns a typed `Config`
    or throws a `ConfigError` with *all* the problems found; those are rendered as a list.
-3. **URL state.** `parseState()` reads the `state` parameter. It returns `empty` (start with an example),
-   `invalid` (not JSON / not an object: show a message) or `ok` with a normalised `Person`.
-4. **Interaction.** Components receive data and callbacks as props. `App` updates the `Person` and an effect writes
-   it back to the URL with `history.replaceState` (no history entry per click). `App` also owns the selected
+3. **URL state.** `parseState()` reads the share link: the legacy `state` query if present, otherwise the fragment.
+   It returns `empty` (start with an example), `invalid` with a reason (nothing usable: start with an example) or `ok`
+   with a normalised `Person` and the list of `issues` (fields that were ignored or corrected). `noticeFor()` turns
+   `invalid` and non-empty `issues` into the message of a non-blocking `LinkNotice`; only configuration errors are
+   blocking.
+4. **Interaction.** Components receive data and callbacks as props. `App` updates the `Person` and an effect writes it
+   back with `saveUrl()` (`history.replaceState`, no history entry per click) 250 ms after the last change, and on
+   `pagehide`. It does not write on load when a link was opened, so that link is left as it was; with no link, the example `Person` is
+   written on load so a reload or a copy of the address bar keeps it, and a failing history API is caught.
+   "Copy link" builds the link from the `Person` (`toUrl()`), so it is right even while a write is pending. `App` also
+   listens to `hashchange` to apply links edited by hand (`replaceState` does not fire it). `App` owns the selected
    category, which is UI state and is not stored in the URL, so both the radar labels and the category nav can
    change it.
 
 ## Key decisions
 
 ### The URL is the database
-The `Person` object (`name`, `levels`, `roleKey`, `tags`, `compareTo`) is serialised as JSON in `?state=`. This keeps
-the app backend-free and makes every view shareable. The format is backwards compatible with links created by
-previous versions. Normalisation is lenient on purpose: unknown categories/roles are dropped and levels are clamped,
+The `Person` object (`name`, `levels`, `roleKey`, `tags`, `compareTo`) is serialised in the URL fragment as flat
+key-value parameters (`#name=John+Connor&role=aswe&compare=front&tag=tech&comm=2&pm=1&…`, one parameter per category,
+written last), as decided in [ADR 0001](adr/0001-readable-share-url-format.md). This keeps the app backend-free, makes
+every view shareable and keeps the data out of server logs. Links created by previous versions (`?state=<JSON>`) are
+read forever and rewritten in the new format on the first change. `name`, `role`, `compare`, `tag` and `state` are
+reserved: `parseConfig()` rejects categories with those keys (`RESERVED_KEYS` in `model.ts`). Normalisation is lenient on purpose: unknown categories/roles are dropped and levels are clamped,
 so old links survive configuration changes instead of breaking.
 
 ### Configuration is validated, not trusted
@@ -117,15 +130,17 @@ numbers of levels and still be comparable on the same chart.
 
 - `model.test.ts`: level and percentage calculations.
 - `config.test.ts`: validation rules and the shipped configuration.
-- `urlState.test.ts`: round-trip, legacy URLs, normalisation and invalid input.
-- `App.test.tsx`: rendering and the main interactions (level selection, compare role, URL sync, summary, selecting
-  a category from the radar, copying the link).
+- `urlState.test.ts`: fragment format and round-trip, legacy URLs, normalisation, ignored/corrected fields and invalid
+  input.
+- `App.test.tsx`: rendering and the main interactions (level selection, compare role, debounced URL sync that survives
+  a failing history API, summary, selecting a category from the radar, copying the link, editing the link by hand and
+  the link notice).
 
 CI (GitHub Actions) runs the tests and the production build on every push and pull request.
 
 ## Extending
 
-- **New field in the URL state**: add it to `Person` in `model.ts`, normalise it in `urlState.ts`, use it in `App`.
+- **New field in the URL state**: add it to `Person` in `model.ts`, write and read it in `urlState.ts` (a new fragment parameter must not clash with a category key), use it in `App`.
 - **New config option**: add it to the type in `model.ts`, validate it in `config.ts`, document it in the README.
 - **New UI section**: add a component in `src/components/`, give its root a stable class name, style it in
   `styles.css` using the existing custom properties.

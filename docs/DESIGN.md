@@ -225,7 +225,13 @@ Markdown from `site.yml`, centred and muted, under a double rule with a small ve
 ### Error screen — `.error-message`
 
 Header plus a surface-tinted block with a vermilion left border and `role="alert"`. Used for invalid configuration
-(lists every problem) and invalid share links.
+(lists every problem). Share links never block the page: see the link notice.
+
+### Link notice — **`.link-notice`**
+
+A slimmer version of the error block, under the header, with `role="status"`: a message (`.link-notice-message`) about
+data the share link could not use, or a link that was not valid, and an outlined "Dismiss" button
+(`.link-notice-dismiss`, same look as the share button). Not shown when printing.
 
 ## States
 

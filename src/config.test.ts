@@ -41,6 +41,16 @@ describe("config", () => {
     ]);
   });
 
+  it.each(["name", "role", "compare", "tag", "state"])("rejects the reserved category key %s", (key) => {
+    const problems = problemsOf({ categories: [{ ...category, key }], roles: null, site: null });
+    expect(problems).toEqual([`categories.yml entry #1: the category key "${key}" is reserved by the share link`]);
+  });
+
+  it("allows keys that only look like reserved ones", () => {
+    const categories = [{ ...category, key: "names" }, { ...category, key: "Role" }];
+    expect(problemsOf({ categories, roles: null, site: null })).toEqual([]);
+  });
+
   it("requires at least one category", () => {
     expect(problemsOf({ categories: [], roles: [], site: {} })).toHaveLength(1);
   });

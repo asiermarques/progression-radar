@@ -58,6 +58,9 @@ Each entry of `config/categories.yml` has these fields:
 | description | optional: a brief description of the category   |
 | kpis        | a list of KPIs or skills for the category       |
 
+The keys `name`, `role`, `compare`, `tag` and `state` are reserved by the [share link](#the-state-in-the-url): a
+category using one of them is reported as a configuration problem.
+
 Each KPI has these fields:
 
 | field       | description                                                     |
@@ -142,26 +145,34 @@ with `@font-face` or `@import` and set `--font-family` and `--font-display`.
 
 You can also target these stable class names: `.app-header`, `.app-title`, `.app-logo`, `.share-button`,
 `.person-panel`, `.person-seal`, `.progress-summary`, `.radar`, `.radar-series--person`, `.radar-series--compare`,
-`.category-panel`, `.category-nav`, `.level-nav`, `.kpi` and `.app-footer`.
+`.link-notice`, `.category-panel`, `.category-nav`, `.level-nav`, `.kpi` and `.app-footer`.
 
 ## The state in the URL
 
-The person is stored as JSON in the `state` query parameter, which the app keeps up to date while you make changes:
+The person is stored in the URL fragment (the part after `#`) as readable parameters, which the app keeps up to date
+while you make changes. The fragment is never sent to the server, so the person's data does not reach access logs.
 
-| field     | description                                                                                       |
-|-----------|---------------------------------------------------------------------------------------------------|
-| name      | the person's name                                                                                 |
-| levels    | the level the person has reached in each category, by category key, e.g. `{ "comm": 2, "back": 1 }` |
-| roleKey   | optional: the person's current role                                                               |
-| tags      | optional: a list of tags the person is interested in                                              |
-| compareTo | optional: a role key to compare with                                                              |
+| parameter        | description                                                                              |
+|------------------|------------------------------------------------------------------------------------------|
+| `name`           | the person's name; omitted when empty                                                    |
+| `role`           | optional: the key of the person's current role                                           |
+| `compare`        | optional: the key of the role to compare with                                            |
+| `tag`            | optional: a tag the person is interested in; repeated once per tag                       |
+| `<category key>` | the level reached in that category, e.g. `comm=2`; one per category, always written last |
 
 ```
-/?state={"name":"John Connor","levels":{"comm":2,"pm":1,"des":1,"ops":1,"front":1,"back":1},"roleKey":"aswe","tags":["tech"],"compareTo":"front"}
+/#name=John+Connor&role=aswe&compare=front&tag=tech&comm=2&pm=1&des=1&ops=1&front=1&back=1
 ```
+
+You can edit the link by hand: changing the fragment in the address bar updates the page without reloading.
 
 Unknown categories and roles are ignored and levels are clamped, so old links keep working when the configuration
-changes. Without a `state` parameter the app starts with an example based on a random role.
+changes. When a link had data that could not be used, or is not valid at all, the app still opens, with the valid data
+or with an example, and a dismissible notice names what was ignored. Without a fragment the app starts with an example
+based on a random role.
+
+Links created by earlier versions (`/?state={"name":"John Connor","levels":{…},"roleKey":"aswe",…}`) keep opening;
+the app rewrites them in the new format after the first change.
 
 ## Scripts
 
@@ -189,6 +200,13 @@ npm install
 ```
 
 ## Upgrading
+
+### A fork with a category key `name`, `role`, `compare`, `tag` or `state`
+
+The share link now keeps the state in the URL fragment (see [The state in the URL](#the-state-in-the-url)) and those
+five keys are reserved for its fields. After pulling the update, the app lists any category that uses one of them as a
+configuration error: rename its `key` in `config/categories.yml` (and in `config/roles.yml`). Links that used the old
+key stop matching that category, and the notice says so.
 
 ### A fork with a custom theme
 
