@@ -20,7 +20,7 @@ not contradict an accepted decision.
   `location.search`, `location.hash` or `history` directly.
 - `App` owns the `Person` and the selected Category. Components get data and callbacks as props and keep only UI
   state of their own (e.g. scroll position effects). No context, store, reducer or router.
-- `src/` must work with any valid configuration: never hard-code Category or Role keys (`comm`, `front`…) or rely on
+- `src/` must work with any valid configuration: never hard-code Category or Role keys (`comm`, `build`…) or rely on
   the content of `config.example/`. Adopters customise their own `config/` folder only; `config.example/` is upstream's.
 
 ## Dependencies

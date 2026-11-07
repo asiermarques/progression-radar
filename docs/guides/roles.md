@@ -14,9 +14,15 @@ Each entry of `roles.yml` has these fields:
 ```yaml
 # config/roles.yml (or config.example/roles.yml)
 - key: assoc
-  name: Associate
-  levels: { build: 1, ai: 1, data: 1, cloud: 1, trust: 1, agentic: 1, deliv: 1, biz: 1, comm: 1 }
+  name: Associate (L1)
+  levels: { build: 1, ai: 1, data: 1, cloud: 1, trust: 1, agentic: 1, deliv: 1, biz: 1, comm: 1, people: 1 }
 ```
+
+The sample ladder in `config.example/roles.yml` has four technical families (Product Maker, AI Platform, Data Platform
+and Cloud Platform), each with three steps: the role, Senior and Lead. The career step (L1 to L5) is part of each
+name, for example `Senior Product Maker (L3)`, so that roles of different families can be compared. Lead is the
+technical leadership of an area, without managing people; managing people is the Product Engineering Manager, followed
+by the Product Engineering Director. Replace them with the roles of your own ladder.
 
 See also: [Categories](categories.md) for the category keys a role can mention, and [Configuration](configuration.md) for
 where the file goes.

@@ -1,7 +1,7 @@
 ---
 key: agentic
 name: AI-Native Work
-description: Works with AI assistants and agents as part of the team, with good judgement on what to delegate and how to verify it
+description: Works with AI assistants and agents as part of the team to do their own work and the team's, not to build AI into the product, with good judgement on what to delegate and how to verify it
 ---
 
 ## Level 1
@@ -10,9 +10,9 @@ description: Works with AI assistants and agents as part of the team, with good 
 
 **Example behaviours:**
 
-* Uses assistants to write, research, summarise and code, and checks what they produce
-* Knows which tools and data are approved, and never shares confidential information outside them
-* Takes ownership of the result: "the AI did it" is never an excuse
+- Uses assistants to write, research, summarise and code, and checks what they produce
+- Knows which tools and data are approved, and never shares confidential information outside them
+- Takes ownership of the result: "the AI did it" is never an excuse
 
 ## Level 2
 
@@ -20,9 +20,9 @@ description: Works with AI assistants and agents as part of the team, with good 
 
 **Example behaviours:**
 
-* Writes clear specs and context so that an agent can complete a task, such as a feature, a migration or an analysis
-* Reviews the result critically, with tests, data or an expert, before trusting it
-* Knows when a task is faster or safer to do by hand
+- Writes clear specs and context so that an agent can complete a task, such as a migration, an analysis, a report or a document
+- Reviews the result critically, with tests, data or an expert, before trusting it
+- Knows when a task is faster or safer to do by hand
 
 ## Level 3
 
@@ -30,9 +30,9 @@ description: Works with AI assistants and agents as part of the team, with good 
 
 **Example behaviours:**
 
-* Automates repetitive work of the team (reviews, triage, reports, documentation) with agents and clear approval points
-* Shares prompts, instructions and tools with the team, and keeps them up to date
-* Measures whether a workflow actually saves time or improves quality
+- Automates repetitive work of the team (reviews, triage, reports, documentation) with agents and clear approval points
+- Shares prompts, instructions and tools with the team, and keeps them up to date
+- Measures whether a workflow actually saves time or improves quality
 
 ## Level 4
 
@@ -40,9 +40,9 @@ description: Works with AI assistants and agents as part of the team, with good 
 
 **Example behaviours:**
 
-* Redesigns processes, roles and rituals around what agents now do well
-* Teaches others to work with agents and helps them build the judgement to verify results
-* Spots the risks of over-reliance, such as loss of skills or unreviewed output, and addresses them
+- Redesigns processes, workflows and rituals around what agents now do well
+- Teaches others to work with agents and helps them build the judgement to verify results
+- Spots the risks of over-reliance, such as loss of skills or unreviewed output, and addresses them
 
 ## Level 5
 
@@ -50,6 +50,6 @@ description: Works with AI assistants and agents as part of the team, with good 
 
 **Example behaviours:**
 
-* Sets how the company adopts AI tools and agents: policies, budgets, platforms and metrics
-* Rethinks the shape of teams and the career ladder for a world of people working with agents
-* Is recognised outside the company for their AI-native practices
+- Sets how the company adopts AI tools and agents for its own work: policies, budgets, tools and metrics
+- Decides which work the company hands to agents and which stays in human hands, and revisits it as models improve
+- Is recognised outside the company for their AI-native practices

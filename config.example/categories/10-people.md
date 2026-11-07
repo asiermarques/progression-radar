@@ -10,8 +10,8 @@ description: Helps people grow, builds healthy teams and designs organisations w
 
 **Example behaviours:**
 
-* Acts on the feedback they receive and shares what they learn
-* Helps new teammates with onboarding and answers their questions
+- Asks their manager and teammates for feedback regularly, acts on it and shares what they learn
+- Helps new teammates with onboarding and answers their questions
 
 ## Level 2
 
@@ -19,8 +19,9 @@ description: Helps people grow, builds healthy teams and designs organisations w
 
 **Example behaviours:**
 
-* Mentors junior colleagues and interns, with patience and clear explanations
-* Pairs with others, without taking over the keyboard, a document or the agent session
+- Mentors junior colleagues and interns, with patience and clear explanations
+- Gives specific, kind and actionable feedback
+- Pairs with others, without taking over the keyboard, a document or the agent session
 
 ## Level 3
 
@@ -28,9 +29,9 @@ description: Helps people grow, builds healthy teams and designs organisations w
 
 **Example behaviours:**
 
-* Runs regular one-to-ones, sets goals with people and helps them reach them
-* Takes part in hiring: interviews, assessment and making the process fair
-* Notices problems in the health of the team early and acts on them
+- Runs regular one-to-ones, sets goals with people and helps them reach them
+- Takes part in hiring: interviews, assessment and making the process fair
+- Notices problems in the health of the team early and acts on them
 
 ## Level 4
 
@@ -38,9 +39,16 @@ description: Helps people grow, builds healthy teams and designs organisations w
 
 **Example behaviours:**
 
-* Hires and develops a team with the right mix of skills, including the skills to work with AI
-* Designs the shape of teams and the split of work between people and agents
-* Grows leaders who can take over their responsibilities
+- Hires and develops a team with the right mix of skills, including the skills to work with AI
+- Designs the shape of teams and the split of work between people and agents
+- Grows leaders who can take over their responsibilities
+
+### Builds a fair and safe team
+
+**Example behaviours:**
+
+- Makes hiring, feedback and promotion decisions fair and explainable
+- Creates an environment where people can disagree, fail and learn safely
 
 ## Level 5
 
@@ -48,6 +56,6 @@ description: Helps people grow, builds healthy teams and designs organisations w
 
 **Example behaviours:**
 
-* Designs the organisation, its career paths and its culture
-* Attracts and keeps talent, and is a reference for leaders across the company
-* Leads the organisation through change, such as growth, restructuring or a new way of working with AI
+- Designs the organisation, its career paths and its culture, including what a career looks like when agents do much of the work
+- Attracts and keeps talent, and is a reference for leaders across the company
+- Leads the organisation through change, such as growth, restructuring or a new way of working with AI
