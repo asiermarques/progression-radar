@@ -30,7 +30,8 @@ compiled into the bundle at build time and the user's data lives in the URL.
 ## Layout
 
 ```
-package.json            declares the `progression-radar` binary (`scripts/cli.mjs`) and `preferUnplugged` for Yarn Plug'n'Play
+package.json            declares the `progression-radar` binary (`scripts/cli.mjs`), `preferUnplugged` for Yarn Plug'n'Play and the published `files`
+.github/workflows/       `ci.yml` (tests, build and the Adopter repository fixture) and `release.yml` (publishes to npm on a `vX.Y.Z` tag)
 config.example/          upstream's sample configuration and the defaults (adopters do not edit it)
   categories/              one Markdown category file per category, grouped by level
   roles.yml                roles and the levels they require
@@ -252,7 +253,28 @@ CI (GitHub Actions) runs the tests and the production build on every push and pu
 (`adopter-repository`) runs `scripts/adopter-fixture.mjs` with npm, pnpm and Yarn (Plug'n'Play and `node-modules`):
 it packs the radar, installs the tarball in a fixture Adopter repository with a minimal `config/` and a snapshot, runs
 `check`, `build` and `snapshot:link`, starts the dev server to see that it reloads on a change in `config/` and does not
-serve `snapshots/`, and fails if anything was written inside the installed radar.
+serve `snapshots/`, and fails if anything was written inside the installed radar. Because it installs the packed
+tarball, it also proves that `files` in `package.json` ships everything the commands need.
+
+## Releases
+
+The radar is published to npm as `progression-radar`
+([ADR 0005](adr/0005-radar-as-a-dependency-of-an-adopter-repository.md)). The package ships sources, not a bundle,
+because the Configuration is compiled in at build time: `files` lists `index.html`, `vite.config.ts`, `src/`,
+`scripts/`, `config.example/`, `public/` and `.claude/skills/`, without the tests, the CI fixture and
+`config-migrate.mjs`, which is for forks only. There are no install scripts.
+
+To release, set `version` in `package.json` (see the versioning rule in `CLAUDE.md`), merge it to `master`, then push
+a tag with the same version:
+
+```sh
+git tag v1.0.0 && git push origin v1.0.0
+```
+
+`.github/workflows/release.yml` runs the CI jobs, checks that the tag matches `version` and runs `npm publish` with
+npm trusted publishing: npmjs.com trusts that workflow file through OIDC (configured once in the package settings),
+so no token is stored and the provenance is generated automatically. After the first 1.x release the 0.x versions,
+the old component library, are deprecated by hand with `npm deprecate progression-radar@"<1.0.0" "<message>"`.
 
 ## Extending
 

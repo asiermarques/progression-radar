@@ -1,13 +1,33 @@
 {
   "name": "progression-radar",
   "version": "1.0.0",
-  "private": true,
   "description": "A simple visualisation tool for career and learning paths.",
   "license": "MIT",
+  "homepage": "https://github.com/asiermarques/progression-radar#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/asiermarques/progression-radar.git"
+  },
+  "bugs": {
+    "url": "https://github.com/asiermarques/progression-radar/issues"
+  },
   "type": "module",
   "engines": {
     "node": ">=22.12"
   },
+  "files": [
+    "index.html",
+    "vite.config.ts",
+    "src/",
+    "!src/**/*.test.*",
+    "scripts/",
+    "!scripts/**/*.test.*",
+    "!scripts/adopter-fixture.mjs",
+    "!scripts/config-migrate.mjs",
+    "config.example/",
+    "public/",
+    ".claude/skills/"
+  ],
   "scripts": {
     "dev": "node scripts/cli.mjs dev",
     "build": "tsc --noEmit && node scripts/cli.mjs build",

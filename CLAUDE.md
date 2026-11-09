@@ -24,7 +24,8 @@ No backend: content comes from `config.example/` and the adopter's `config/` fol
   same change, by semver on the public contract (the commands and npm script names, the Configuration files, the
   Share link format and the snapshot format; `src/` is not part of it): **major** when it breaks the contract (and
   `docs/guides/upgrading.md` says what to do), **minor** for new behaviour that keeps it, **patch** for fixes. Say
-  which bump a change needs, and why, when you finish it.
+  which bump a change needs, and why, when you finish it. Publishing is pushing a `vX.Y.Z` tag that matches `version`
+  (see "Releases" in `docs/ARCHITECTURE.md`); never run `npm publish` by hand.
 - Do not reference user stories, requisite ids or issue numbers (`US-001`, `#25`, `FR-003`…) in code, comments, tests,
   `docs/`, the README or commit messages. Describe the behaviour itself; only the ADRs (`docs/adr/`) may be cited.
   Those references belong to `.workflow/` and the issue tracker.

@@ -1,0 +1,39 @@
+name: Release
+
+# Publishes the radar to npm when a vX.Y.Z tag is pushed (docs/adr/0005), after the same checks as CI. It uses npm
+# trusted publishing: npm trusts this workflow file through OIDC, so no token is stored, and the provenance of the
+# package is generated automatically. The trusted publisher is configured on npmjs.com for release.yml.
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          registry-url: https://registry.npmjs.org
+      # Trusted publishing needs npm 11.5.1 or newer.
+      - run: npm install --global npm@latest
+      - name: Check that the tag is the version in package.json
+        run: |
+          version="v$(node -p "require('./package.json').version")"
+          if [ "$version" != "$GITHUB_REF_NAME" ]; then
+            echo "The tag $GITHUB_REF_NAME does not match package.json ($version)." >&2
+            exit 1
+          fi
+      - run: npm ci
+      - run: npm publish --access public

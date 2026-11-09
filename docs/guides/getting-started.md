@@ -16,10 +16,6 @@ You need [Node.js](https://nodejs.org) 22.12 or newer (Node 24 LTS is recommende
 
 ## Install it as a dependency (recommended)
 
-> **Before 1.0 is on npm.** The name `progression-radar` on npm still points to the old 0.x library, which has none of
-> these commands. Until 1.0 is published, install from GitHub instead of the registry:
-> `npm install github:asiermarques/progression-radar`. Everything else below is the same.
-
 ```sh
 mkdir my-ladder && cd my-ladder
 git init

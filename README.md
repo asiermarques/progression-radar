@@ -56,9 +56,6 @@ You need [Node.js](https://nodejs.org) 22.12 or newer (Node 24 LTS is recommende
 Install the radar as a dependency of your own repository. That repository holds only your ladder (`config/`), your
 snapshots and a `package.json`; you never merge upstream, and upgrading is changing a version.
 
-> **Before 1.0 is on npm**, `progression-radar` on npm is the old 0.x library: replace `npm install progression-radar`
-> below with `npm install github:asiermarques/progression-radar`.
-
 ```sh
 mkdir my-ladder && cd my-ladder
 git init && npm init -y
