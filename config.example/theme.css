@@ -24,6 +24,9 @@
   /* --color-surface: #ebe3d3; */
   /* --color-grid: #d3c8b5;        radar rings and axes */
   /* --color-band: #f4efe5;        band behind the person and the radar (a mix of background and surface by default) */
+  /* --color-heat: #1c1915;        report: heat map of the levels without a role (the text colour by default) */
+  /* --color-below: #c0361c;       report: levels below the compared role, the gap */
+  /* --color-above: #2f7a4a;       report: levels that meet or pass the compared role */
   /* --font-family: system-ui, sans-serif;   body text */
   /* --font-display: Georgia, serif;         title, names and numbers */
   /* --font-size: 15px; */

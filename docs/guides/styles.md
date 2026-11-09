@@ -30,9 +30,11 @@ The default fonts are bundled with the app (Latin characters only). To use other
 with `@font-face` or `@import` and set `--font-family` and `--font-display`.
 
 The [report](snapshots.md#reports) of the snapshots uses the same variables and your `theme.css`, so it follows your
-colours and the radar classes below. It loads no font file (it blocks every request), so its text uses the fonts
-named in `--font-family` and `--font-display` only when they are installed on the computer that opens it; list a
-system fallback after yours.
+colours and the radar classes below. Three variables are only for it: `--color-heat` (the ink of its heat map for levels
+with no role to compare, the text colour by default), `--color-below` (the red of the levels below the compared role,
+the gap) and `--color-above` (the green of the levels that meet or pass it); set them in both palettes like the other colours. It embeds the default fonts and
+loads no other font file (it blocks every request), so other fonts named in `--font-family` and `--font-display` are
+used only when they are installed on the computer that opens it; list a system fallback after yours.
 
 You can also target these stable class names: `.app-header`, `.app-title`, `.app-logo`, `.share-button`,
 `.person-panel`, `.person-seal`, `.progress-summary`, `.radar`, `.radar-series--person`, `.radar-series--compare`,

@@ -87,8 +87,8 @@ as they are, and adds no dependency.
 
 - One HTML file with its CSS inline and the radar as inline SVG, no `<script>`. Collapsible sections use `<details>`.
   It prints well, like the app.
-- A `Content-Security-Policy` `<meta>` (`default-src 'none'; style-src 'unsafe-inline'; img-src data:`) so it makes no
-  request even when opened from an e-mail. System fonts, or fonts embedded in the file; never a third-party request.
+- A `Content-Security-Policy` `<meta>` (`default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:`,
+  the last one for the embedded fonts) so it makes no request even when opened from an e-mail. System fonts, or fonts embedded in the file; never a third-party request.
 - Its CSS is a small stylesheet of its own that uses the same custom properties as `src/styles.css`, followed by the
   resolved `theme.css`, so it carries the adopter's branding.
 - Written to `reports/` in the working directory (or the path in `--out`). Never inside the **Snapshots folder**,
@@ -100,8 +100,9 @@ as they are, and adds no dependency.
 
 ### The skill
 
-- The `progression-radar-snapshots` skill drives `snapshot:report` like the other commands and relays the path and the
-  problems. It does not read, summarise or interpret the report: that would be assessing a **Person**.
+- A project skill drives `snapshot:report` like the other commands and relays the path and the problems. It does not
+  read, summarise or interpret the report: that would be assessing a **Person**. (Since 1.2.0 it is a skill of its own,
+  `progression-radar-report`, which also opens the file in the browser without reading it.)
 
 ### Consequences
 

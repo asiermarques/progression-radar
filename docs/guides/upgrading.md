@@ -58,8 +58,10 @@ when the folder already holds your categories, or remove the folder and convert.
 
 ## Skills after upgrading
 
-If you copied the snapshots skill for Claude into your repository (see
-[Asking Claude](snapshots.md#asking-claude)), copy it again after upgrading so it matches the commands it runs.
+If you copied the skills for Claude into your repository (see [Asking Claude](snapshots.md#asking-claude)), copy them
+again after upgrading so they match the commands they run. Since 1.2.0 the report has its own skill,
+`progression-radar-report`, and `progression-radar-snapshots` no longer makes reports: copy both
+(`progression-radar-*`).
 
 ## From a fork to an adopter repository
 

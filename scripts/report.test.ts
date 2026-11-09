@@ -46,10 +46,33 @@ describe("buildReport", () => {
 
   it("lists every Category as a cell, not recorded when the row has no level for it", () => {
     expect(report.persons[0].entries[0].cells).toEqual([
-      { key: "comm", name: "comm", level: 2, above: false },
-      { key: "pm", name: "pm", level: 1, above: false },
-      { key: "back", name: "back", level: undefined, above: false },
+      { key: "comm", name: "comm", level: 2, above: false, max: 4, progress: 50, target: undefined },
+      { key: "pm", name: "pm", level: 1, above: false, max: 2, progress: 50, target: undefined },
+      { key: "back", name: "back", level: undefined, above: false, max: 2, progress: undefined, target: undefined },
     ]);
+  });
+
+  it("lists the Snapshots the rows come from, in order", () => {
+    expect(report.snapshots).toEqual(["2026-11-07", "2027-02-10"]);
+  });
+
+  it("names the Role of the latest row of each Person when it is in the Configuration", () => {
+    const [ana] = build([
+      row("2026-11-07.csv", "ana", { roleKey: "ghost", levels: { comm: 1 } }),
+      row("2027-02-10.csv", "ana", { roleKey: "aswe", levels: { comm: 2 } }),
+    ]).persons;
+    expect(ana.role).toBe("Associate");
+    expect(build([row("2026-11-07.csv", "ana", { roleKey: "ghost" })]).persons[0].role).toBeUndefined();
+  });
+
+  it("gives the change of each Category from its earliest to its latest recorded level", () => {
+    const [ana] = build([
+      row("2026-11-07.csv", "ana", { levels: { comm: 1 } }),
+      row("2026-12-01.csv", "ana", { levels: { comm: 3, pm: 2 } }),
+      row("2027-02-10.csv", "ana", { levels: { pm: 1, back: 1 } }),
+    ]).persons;
+    // comm is not recorded in the last row: its latest level is the one of December.
+    expect(ana.changes).toEqual([2, -1, undefined]);
   });
 
   it("computes the Overall progress over the recorded Categories and says how many they are", () => {
@@ -83,6 +106,13 @@ describe("buildReport", () => {
       const [first, second] = build(rows).persons[0].entries;
       expect(first.gap).toEqual({ role: "Associate", met: 2, total: 2, levelsToGo: 0 });
       expect(second.gap).toBeUndefined();
+    });
+
+    it("gives each recorded cell the level the role of its Role gap requires", () => {
+      const [first, second] = build(rows).persons[0].entries;
+      expect(first.cells.map((cell) => cell.target)).toEqual([2, 1, 0]);
+      expect(second.cells.map((cell) => cell.target)).toEqual([undefined, undefined, undefined]);
+      expect(build(rows, "pem").persons[0].entries[1].cells.map((cell) => cell.target)).toEqual([4, 2, 2]);
     });
 
     it("compares every row with the given role instead, over the recorded Categories only", () => {
@@ -151,6 +181,12 @@ describe("buildReport", () => {
       expect(asier.entry).toMatchObject({ recorded: 2, total: 3, overall: Math.round((75 + 50) / 2) });
       expect(asier.entry.gap).toEqual({ role: "Principal", met: 0, total: 2, levelsToGo: 1 + 1 });
       expect(build(rows).team[0].entry.gap).toMatchObject({ role: "Associate" });
+    });
+
+    it("averages the Progress of each Category over the Persons who recorded it at their latest row", () => {
+      // comm: Ana 1/4 = 25%, Asier 3/4 = 75%. pm: only Ana, 1/2. back: only Asier, 1/2.
+      expect(build(rows).teamAverage).toEqual([50, 50, 50]);
+      expect(build([row("2026-11-09.csv", "ana", { levels: { comm: 1 } })]).teamAverage).toEqual([25, undefined, undefined]);
     });
 
     it("takes the row of the snapshot that sorts last when two have the same date", () => {

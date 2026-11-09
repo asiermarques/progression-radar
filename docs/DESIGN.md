@@ -45,6 +45,9 @@ Defined in `:root` in `src/styles.css`, with a dark palette in `@media (prefers-
 | `--color-surface`    | `#ebe3d3` | `#211e18` | slightly darker paper for controls and the radar rings      |
 | `--color-grid`       | `#d3c8b5` | `#3a352c` | radar rings and axes                                        |
 | `--color-band`       | mix of background and surface (50% light, 70% surface dark) | | the washi band behind the person and the radar |
+| `--color-heat`       | `--color-text` | (follows it) | the Report only: the ink of the heat map where there is no role |
+| `--color-below`      | `#c0361c` | `#ef6a4c` | the Report only: levels below the compared role, the gap    |
+| `--color-above`      | `#2f7a4a` | `#7fc495` | the Report only: levels above the compared role             |
 
 `--color-band` is derived with `color-mix`, so a theme that only changes `--color-background` and `--color-surface`
 gets a matching band. Inside the band (`.overview`) `--color-background` is set to `--color-band`: whatever shows the
@@ -60,8 +63,12 @@ Colour has meaning here; keep it consistent:
   the ✓ next to met categories and "meets …" status text. Never use indigo for anything that is not about the
   compared role.
 - **Ink (`--color-text`) is structure and selection**: rules, the inverted active category, the share button hover.
-- **Muted** is for labels and supporting text. There are no green/red success/error colours; errors use the accent
+- **Muted** is for labels and supporting text. The app has no green/red success/error colours; errors use the accent
   as a left border (`.error-message`).
+- **The Report is the one exception**: it judges levels against a role, so red (`--color-below`) is the gap to the
+  role and green (`--color-above`) is what meets or passes it, always with a `−n` / `✓` / `+n` mark as well. To keep
+  red meaning only the gap there, the Report draws progress in ink (the overall figures, the levels without a role)
+  and the radar of a person's dates in ink and muted; vermilion stays on the seal. See "Report" below.
 
 `--color-primary` and `--color-person` share a value by default but are separate tokens: adopters may split them.
 Use `--color-person` for data about the person, `--color-primary` for UI accent.
@@ -239,6 +246,25 @@ screen-reader text of its buttons scrolls with the row on narrow screens instead
   hairline between them. A paragraph
   that is only a bold phrase ("**Example behaviours:**") is styled as a small-caps label, and list markers are vermilion.
 
+### Report (`npm run snapshot:report`)
+
+A static page made from the snapshots (`scripts/report-html.tsx`), with its own small stylesheet after the custom
+properties and the radar section of `styles.css` and the theme. Same paper, type and rules as the app:
+
+- **Masthead** on the washi band: the "Progression report" eyebrow with the vermilion diamond, the site title, and a
+  row of small-caps facts (persons, snapshots, period, compared role, date).
+- **Team overview as a heat map**: persons by categories, the category names set vertically (as in Japanese print).
+  Each cell is the level in serif on a background that says where it stands against the role of the row, mixed
+  into the paper in three steps: green from meeting it (`✓`) to two or more levels above (`+1`, `+2`…), red from one
+  to three or more levels below (`−1`, `−2`, `−3`), with the mark in the corner. Without a role the cell is a
+  sumi-ink wash of its progress (`--color-heat`, five steps), and it is hatched when not recorded. Then the overall
+  progress with a sparkline of the person's snapshots and the role gap; a last row with the team average, in ink.
+- **Each person**: a hairline, the seal, name and facts, the latest figures (overall in ink, on target in indigo,
+  levels to go in red, above the role in green), the table of every snapshot on the same scales with a "Change"
+  column, and the radar (last date in ink, first muted and dashed).
+- It embeds the default fonts, prints with its colours (`print-color-adjust: exact`), and its only motion is the
+  staggered `rise` of the sections and rows, off with `prefers-reduced-motion`.
+
 ### Footer — **`.app-footer`**, **`.app-footer-title`**, **`.app-footer-text`**
 
 A colophon that mirrors the header, above a single hairline: the site title in the display font on the left, after a
@@ -359,7 +385,8 @@ Then run `npm test -- --run` and `npm run build`. If the default look changes vi
 
 ### Avoid
 
-- New colours, gradients or hex values outside `:root`; success-green / error-red palettes.
+- New colours, gradients or hex values outside `:root`; success-green / error-red palettes (except the Report's role
+  marks, above).
 - Cards, drop shadows, large radii, pills: the look is flat paper and rules.
 - Sans-serif numbers or proportional figures in data.
 - UI kits, CSS frameworks, CSS-in-JS, icon fonts or chart libraries. Icons are tiny inline SVGs with

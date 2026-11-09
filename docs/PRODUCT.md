@@ -60,11 +60,12 @@ Live demo: https://progression-radar.netlify.app
   category files with `npm run config:convert-categories`, keeping every category key.
 - Records people in dated CSV snapshots on the user's machine (`npm run snapshot:record`), turns a recorded row back
   into a share link (`npm run snapshot:link`) and checks the snapshots against the current configuration
-  (`npm run snapshot:check`), including files edited in a spreadsheet. A project skill lets Claude Code drive these
+  (`npm run snapshot:check`), including files edited in a spreadsheet. Project skills let Claude Code drive these
   commands from a request in natural language. The app itself does not read snapshots.
 - Writes a **Report** from the snapshots (`npm run snapshot:report`): one HTML file with no JavaScript, in `reports/`,
-  with a team overview of everyone at their latest row and, per person, a table of the levels, the overall progress and
-  the role gap at each snapshot date (against a role given with `--compare`, or each row's own compared role) and a
+  with a team overview of everyone at their latest row as a heat map (green where a level meets or passes the role,
+  red for the gap, darker the bigger it is) and, per person, a table of the levels, their change, the overall progress and the role gap at each
+  snapshot date (against a role given with `--compare`, or each row's own compared role) and a
   radar of their first and last snapshot. It can be narrowed to some snapshots, one person or a period. "Not recorded"
   categories are never counted as level 0. See [ADR 0007](adr/0007-static-html-reports-from-snapshots.md).
 

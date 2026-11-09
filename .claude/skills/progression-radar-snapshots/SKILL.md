@@ -1,13 +1,14 @@
 ---
 name: progression-radar-snapshots
-description: Record a Person of the radar in a dated CSV snapshot from their Share link, print the Share link of a recorded Person, check the snapshots against the current Configuration, or generate the HTML Report of how the Persons evolved across snapshots. Use when the manager asks to record, save, add, open, get the link of, check or validate snapshots, or to generate, make or write a report, for example "record Ana's link in today's snapshot", "give me the link of Luis in the November snapshot", "check the snapshots" or "make the report of Asier since February against pem".
+description: Record a Person of the radar in a dated CSV snapshot from their Share link, print the Share link of a recorded Person, or check the snapshots against the current Configuration. Use when the manager asks to record, save, add, open the link of, get the link of, check or validate snapshots, for example "record Ana's link in today's snapshot", "give me the link of Luis in the November snapshot" or "check the snapshots". For the HTML Report of the snapshots, use the progression-radar-report skill.
 ---
 
 # Progression Radar snapshots
 
 A **Snapshot** is a dated CSV file (`snapshots/2026-11-07.csv`, or the folder in `PROGRESSION_RADAR_SNAPSHOTS_DIR`) with
-one row per **Person**. Four npm scripts record, open, check and report on them. This skill only **drives those scripts**; the
+one row per **Person**. Three npm scripts record, open and check them. This skill only **drives those scripts**; the
 format and the rules are in `docs/guides/snapshots.md` and `docs/adr/0004-local-csv-snapshots-outside-the-app.md`.
+The **Report** made from the snapshots has its own skill, `progression-radar-report`.
 
 ## Rules
 
@@ -15,8 +16,6 @@ format and the rules are in `docs/guides/snapshots.md` and `docs/adr/0004-local-
   snapshots folder) yourself, and never compute levels, **Progress** or the **Role gap** yourself. If a snapshot needs a
   fix, say what to change and where, and let the manager do it by hand.
 - **Do not assess a Person or propose Reached levels.** Record what the manager gives you, nothing else.
-- **Never read, summarise or interpret a Report.** It is a file for the manager to open. If they ask how a **Person** is
-  doing, point to the file and do not open it.
 - **Ask, do not guess.** If the **Share link**, the `id` or the snapshot is missing, ask. The default snapshot is today's
   date (`YYYY-MM-DD.csv`): say so when you use it.
 - **Personal data.** Names and levels are personal data and, by using this skill, they enter your context. Do not copy
@@ -64,36 +63,3 @@ Relay every error and warning with its file and line, and the final summary. Err
 is (duplicated `id`, wrong number of fields, a level that is not a number…); warnings are data that no longer fits the
 current **Configuration** and is kept as it is. Explain what each means and what the manager could change by hand;
 never edit the file.
-
-## Generate a Report
-
-```sh
-npm run snapshot:report -- [<snapshot.csv>...] [--id <id>] [--from <YYYY-MM-DD>] [--to <YYYY-MM-DD>] [--compare <role>] [--out <path>]
-```
-
-Writes one HTML file (`reports/<today>.html` unless `--out` says otherwise) with a **Team overview** and, for each
-**Person**, how their **Reached levels**, **Overall progress** and **Role gap** changed across **Snapshots**. Map the
-request to the arguments and run it; with no arguments it covers every snapshot and every **Person**.
-
-| The manager says…                              | Pass                                                       |
-| ---------------------------------------------- | ---------------------------------------------------------- |
-| "the report of Asier" (the `id`)               | `--id asier`                                               |
-| "since February", "between March and May"      | `--from <YYYY-MM-DD>` / `--to <YYYY-MM-DD>` (both days included) |
-| "only the November and February snapshots"     | the file names, e.g. `2026-11-09.csv 2027-02-10.csv`       |
-| "against pem" / "compared with the senior role" | `--compare <role key>`                                     |
-| "save it as…"                                  | `--out <path>` (not inside the snapshots folder or `dist/`) |
-
-1. **Ask, do not guess.**
-   - A **role** must be the key of a role of the **Configuration**. If the manager names one that is not clearly a key
-     ("the senior role", "pem" when there are several similar), read `config/roles.yml` (or `config.example/roles.yml`)
-     to list the candidates and ask which one is meant. If `--compare` is unknown the script lists the roles: relay that
-     and ask.
-   - A **Person** by name when you need the `id`: look it up in the snapshots (read only), show what you found and ask
-     if it is ambiguous. A date such as "since February" with no year: ask the year.
-   - Without `--compare`, each row is compared with its own **Compared role** and a row with none shows no **Role gap**:
-     say so when the manager asked about a role gap and did not name a role.
-2. Run the script. **Relay the path it printed** and every warning, with file and line. If it fails (an error in a
-   snapshot, no row for the filters), relay the error as it is and what the manager could change by hand; do not edit
-   the snapshot and do not retry with other filters on your own.
-3. Say that the **Report** holds personal data, that `reports/` is git-ignored, and that it can be opened in any browser
-   (offline). **Do not open, read or summarise it.**

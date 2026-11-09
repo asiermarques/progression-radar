@@ -178,8 +178,8 @@ describe("snapshot:report", () => {
     expect(err).toEqual([]);
     const html = report();
     expect(html).toContain("Ana García");
-    expect(html).toContain('<th scope="col">2026-11-09</th>');
-    expect(html).toContain('<th scope="col">2027-02-10</th>');
+    expect(html).toContain('<th scope="col" class="report-num">2026-11-09</th>');
+    expect(html).toContain('<th scope="col" class="report-num">2027-02-10</th>');
     for (const category of config.categories) expect(html).toContain(category.name.replace(/&/g, "&amp;"));
   });
 
@@ -203,6 +203,17 @@ describe("snapshot:report", () => {
     expect(html.indexOf("--color-person:")).toBeLessThan(html.indexOf(theme.slice(0, 40).replace(/</g, "")));
   });
 
+  it("embeds the fonts the app loads, so it looks the same and still makes no request", () => {
+    record("2026-11-09.csv");
+    run("report");
+    const html = report();
+    expect(html).toContain("font-family: 'Shippori Mincho'");
+    expect(html).toContain("font-family: 'Zen Kaku Gothic New'");
+    expect(html).toMatch(/src: url\(data:font\/woff2;base64,[A-Za-z0-9+/=]{1000,}\) format\('woff2'\);/);
+    expect(html).not.toMatch(/url\(\.\/files|\.woff\)/);
+    expect(html).toContain("font-src data:");
+  });
+
   it("reads the theme.css of the Config folder before the example one", () => {
     mkdirSync(join(root, "config"));
     writeFileSync(join(root, "config", "theme.css"), ":root { --color-person: hotpink; }");
@@ -218,7 +229,7 @@ describe("snapshot:report", () => {
     record("2027-02-10.csv", higher(2));
     run("report");
     const html = report();
-    expect(html.match(/<svg/g)).toHaveLength(1);
+    expect(html.match(/<svg[^>]*role="img"/g)).toHaveLength(1);
     expect(html).toContain("radar-series radar-series--person");
     expect(html).toContain("radar-series radar-series--compare");
     expect(html).not.toMatch(/<script/i);
@@ -295,7 +306,8 @@ describe("snapshot:report", () => {
       }
       out = [];
     });
-    const columns = (html: string) => [...html.matchAll(/<th scope="col">(\d{4}-\d{2}-\d{2})<\/th>/g)].map((match) => match[1]);
+    const columns = (html: string) =>
+      [...html.matchAll(/<th scope="col" class="report-num">(\d{4}-\d{2}-\d{2})<\/th>/g)].map((match) => match[1]);
 
     it("to one Person", () => {
       expect(run("report", "--id", "asier")).toBe(0);
@@ -379,15 +391,15 @@ describe("snapshot:report", () => {
       record("2027-02-10.csv", person("Asier", 2), "asier");
       expect(run("report")).toBe(0);
       const html = team(report());
-      expect(html).toMatch(/<th scope="row">Ana<\/th><td>2026-11-09<\/td>/);
-      expect(html).toMatch(/<th scope="row">Asier<\/th><td>2027-02-10<\/td>/);
+      expect(html).toContain('<a href="#person-ana-garcia">Ana</a><small>2026-11-09');
+      expect(html).toContain('<a href="#person-asier">Asier</a><small>2027-02-10');
     });
 
     it("uses the snapshot that sorts last when two have the same date", () => {
       record("2027-02-10.csv", person("Asier", 1), "asier");
       record("2027-02-10-q1-review.csv", person("Asier", 2), "asier");
       run("report");
-      expect(team(report())).toContain("<td>2027-02-10-q1-review</td>");
+      expect(team(report())).toContain("<small>2027-02-10-q1-review");
     });
 
     it("has the Role gap of --compare and not recorded cells, and follows the filters", () => {

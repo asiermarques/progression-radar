@@ -1,6 +1,7 @@
 // The snapshot commands behind `npm run snapshot:record`, `snapshot:link`, `snapshot:check` and `snapshot:report`: argument
 // parsing, output and exit codes. The rules are in snapshots.ts; this file only talks to the person who runs them.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
@@ -160,6 +161,26 @@ function appStyles(): string {
   return [stylesBetween(styles, undefined, "/* Base */"), stylesBetween(styles, "/* Radar chart */", "/* Categories */")].join("\n");
 }
 
+/**
+ * The font faces the app loads, read from the Fontsource imports of src/main.tsx, with their woff2 files embedded as
+ * data: URLs: the Report makes no request, and still looks like the app on a computer without the fonts.
+ */
+function embeddedFonts(): string {
+  const main = readFileSync(fileURLToPath(new URL("../src/main.tsx", import.meta.url)), "utf8");
+  const require = createRequire(import.meta.url);
+  return [...main.matchAll(/import\s+"(@fontsource\/[^"]+\.css)"/g)]
+    .map(([, specifier]) => {
+      const path = require.resolve(specifier);
+      return readFileSync(path, "utf8")
+        .replace(/,\s*url\([^)]*\.woff\)\s*format\('woff'\)/g, "")
+        .replace(/url\(\.\/files\/([\w.-]+\.woff2)\)/g, (_, file: string) => {
+          const data = readFileSync(join(dirname(path), "files", file)).toString("base64");
+          return `url(data:font/woff2;base64,${data})`;
+        });
+    })
+    .join("\n");
+}
+
 /** The theme.css of the Config folder, else the example one: the same file the app is built with. */
 function themeCss(context: Context): string {
   const path = resolveConfigSources(context.root, context.env[CONFIG_DIR_VARIABLE] || undefined, context.packageRoot ?? context.root)
@@ -222,7 +243,8 @@ function report(context: Context, { setting, files, id, from, to, compare, out }
 
   const html = renderReport(buildReport({ config, rows, problems, generatedOn, compare }), {
     title: `${config.site.title} · Progression report`,
-    css: `${appStyles()}\n${themeCss(context)}`,
+    heading: config.site.title,
+    css: `${embeddedFonts()}\n${appStyles()}\n${themeCss(context)}`,
   });
   mkdirSync(dirname(target.path), { recursive: true });
   writeFileSync(target.path, html);

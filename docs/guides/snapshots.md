@@ -1,6 +1,6 @@
 # Keeping a record of people: snapshots
 
-A [share link](share-link.md) shows one person at one moment, and opening it again reads it with your *current*
+A [share link](share-link.md) shows one person at one moment, and opening it again reads it with your _current_
 configuration: if you change the ladder, the same link can draw a different radar. When you want a record that does not
 change, for example to see where someone stood at each one-to-one, save the link in a **snapshot**.
 
@@ -13,13 +13,13 @@ snapshots on your machine; the app itself never reads them, and nothing is sent 
 
 ## What you can do
 
-| I want to…                                  | Command                                                         |
-|---------------------------------------------|-----------------------------------------------------------------|
-| save a person from their share link         | `npm run snapshot:record -- "<link>" --id <id>`                 |
-| open a saved person in the app              | `npm run snapshot:link -- <snapshot.csv> <id>`                  |
-| check that my snapshots are well formed     | `npm run snapshot:check`                                        |
-| see how each person evolved over time       | `npm run snapshot:report`                                       |
-| do all of the above by asking Claude        | see [Asking Claude](#asking-claude)                             |
+| I want to…                              | Command                                         |
+| --------------------------------------- | ----------------------------------------------- |
+| save a person from their share link     | `npm run snapshot:record -- "<link>" --id <id>` |
+| open a saved person in the app          | `npm run snapshot:link -- <snapshot.csv> <id>`  |
+| check that my snapshots are well formed | `npm run snapshot:check`                        |
+| see how each person evolved over time   | `npm run snapshot:report`                       |
+| do all of the above by asking Claude    | see [Asking Claude](#asking-claude)             |
 
 You need the radar installed, in an adopter repository or a fork (see [Getting started](getting-started.md)), and to
 run the commands from its root. The commands read your
@@ -108,10 +108,10 @@ Checked 3 snapshots: 0 errors, 1 warning.
 npm run snapshot:record -- "<share link>" --id <id> [--snapshot <file>]
 ```
 
-| option       | description                                                                                                     |
-|--------------|-----------------------------------------------------------------------------------------------------------------|
+| option       | description                                                                                                         |
+| ------------ | ------------------------------------------------------------------------------------------------------------------- |
 | `--id`       | required. Identifies the person across snapshots, e.g. `ana-garcia`. No spaces, commas, semicolons, quotes or pipes |
-| `--snapshot` | the file name, e.g. `2026-11-07.csv` or `2026-11-07-q4-review.csv`. Default: today's date                       |
+| `--snapshot` | the file name, e.g. `2026-11-07.csv` or `2026-11-07-q4-review.csv`. Default: today's date                           |
 
 - It creates the file (and the folder) when they do not exist, and otherwise adds one row at the end, following the
   columns that file already has.
@@ -143,20 +143,20 @@ npm run snapshot:check -- 2026-11-07.csv    # one file
 Prints each problem as `snapshots/<file>:<line>: error|warning: <message>` and ends with a summary. It never changes a
 file. The exit code is 1 only when there is at least one **error**, so you can use it in a CI job.
 
-| It is an **error** when…                                                              |
-|----------------------------------------------------------------------------------------|
-| the file name does not start with a valid date, or the file is not valid UTF-8         |
-| the file cannot be read as CSV (a quote is never closed) or its header is ambiguous    |
-| there is no header, no `id` column, or a column appears twice                          |
-| an `id` is empty or repeated                                                           |
-| a row has a different number of fields from the header                                 |
-| a level is not a non-negative integer                                                  |
+| It is an **error** when…                                                            |
+| ----------------------------------------------------------------------------------- |
+| the file name does not start with a valid date, or the file is not valid UTF-8      |
+| the file cannot be read as CSV (a quote is never closed) or its header is ambiguous |
+| there is no header, no `id` column, or a column appears twice                       |
+| an `id` is empty or repeated                                                        |
+| a row has a different number of fields from the header                              |
+| a level is not a non-negative integer                                               |
 
-| It is a **warning** when… (the data is kept as it is)                                  |
-|----------------------------------------------------------------------------------------|
-| a column is for a category that is not in your ladder (any more)                       |
-| a level is above the highest level of its category                                     |
-| `role` or `compare` is a role that is not in your ladder (any more)                    |
+| It is a **warning** when… (the data is kept as it is)               |
+| ------------------------------------------------------------------- |
+| a column is for a category that is not in your ladder (any more)    |
+| a level is above the highest level of its category                  |
+| `role` or `compare` is a role that is not in your ladder (any more) |
 
 These are **not** a problem: a category added to the ladder after the snapshot (no column means "not recorded", which is
 different from level 0), empty cells, and a file with only the header. `README.md` and hidden files in the folder are
@@ -186,12 +186,20 @@ line) and when no row is left to report, for example for a `--id` that is in no 
 ## Reports
 
 A report is one HTML file that opens offline in any browser and prints well. It starts with a **team overview**: a
-table of every person by category, each person at their latest row in any snapshot (not only the latest file), with the
-date of that row, their overall progress and role gap. When two files have the same date, the one whose name sorts last
+heat map of every person by category, each person at their latest row in any snapshot (not only the latest file), with the
+date of that row, their overall progress (and a line of how it moved across their snapshots) and their role gap, and a
+row with the team average of each category. When two files have the same date, the one whose name sorts last
 wins (`2027-02-10-q1-review.csv` over `2027-02-10.csv`). Then, for each person (rows with the same `id`
 are the same person, named as in their latest row) it has a table of every category by snapshot date with the
 **Reached level**, the **Overall progress** and the **Role gap** (categories **on target** and **levels to go**) of each date.
 
+- Each cell is coloured against the role of the row's role gap: **green** when the level meets the role (`✓`), a darker
+  green for each level above it (`+1`, `+2`…), and **red** when it is below the role, darker the bigger the gap (`−1`,
+  `−2`, `−3` or more). The marks are in the cell as well as the colour, and are said in words for screen readers. A
+  level with no role to compare (a row without one) is shaded in neutral ink instead, darker the closer to the highest
+  level of the category, as is the team average. The role gap also counts the categories above the role.
+- For each person, the table of every snapshot also gives the **change** of each category, from the first to the last
+  level recorded.
 - A category the row did not record (no column, or an empty cell) reads **not recorded**; it is never counted as level 0.
   The overall progress of a row is the average over the categories it recorded, and the report says how many that is
   ("9 of 10 categories"). Adding a category to your ladder therefore never makes an old row look worse.
@@ -199,14 +207,15 @@ are the same person, named as in their latest row) it has a table of every categ
   nothing to the levels to go, and the report says how many categories it covers. With `--compare <role>` every row is
   compared with that role; without it, each row uses its own `compare` column, and a row with none (or with a role that
   is not in your ladder any more, which `snapshot:check` warns about) shows no role gap.
-- Each person has a radar, drawn like the app's, with their **last** and their **first** snapshot (just one series for
-  a person with one row), labelled with their dates. A category that a row did not record is left out of its outline
+- Each person has a radar, drawn like the app's, with their **last** snapshot in ink and their **first** one muted and
+  dashed (just one series for a person with one row), labelled with their dates. A category that a row did not record is left out of its outline
   and marked "not recorded" under its name; it is not drawn at 0. Everything on the radar is also in the table.
 - A level above the highest level of its category is shown as recorded and flagged; its progress counts as 100%.
 - The file has no JavaScript and blocks every network request, so it cannot send what it holds anywhere. It uses the
-  same colour variables as the app followed by your `theme.css`, so it follows your branding. It loads no font, not
-  even one your `theme.css` imports: the text uses the fonts of `--font-family` and `--font-display` that are installed
-  on the computer that opens it, or their fallbacks.
+  same colour variables as the app followed by your `theme.css`, so it follows your branding. It embeds the app's
+  default fonts (about 120 KB), so it looks the same on any computer, but it loads no other font, not even one your
+  `theme.css` imports: other fonts in `--font-family` and `--font-display` are used only when they are installed on the
+  computer that opens it.
 - The radar uses the same classes as the app (`.radar-series--person`, `.radar-area`…), so the colours you set in
   `theme.css` apply to it. The exact layout of the report can change in any version; the command and its name are what stay.
 
@@ -284,14 +293,16 @@ would for any file with performance information about people.
 
 ## Asking Claude
 
-If you use [Claude Code](https://claude.com/claude-code), open it in your repository and ask in natural language. The
-project skill `progression-radar-snapshots` (in `.claude/skills/`) runs the commands for you. A fork already has it. In
-an adopter repository, copy it from the installed radar and commit it, so a later change to it reaches you as a diff
-you can review:
+If you use [Claude Code](https://claude.com/claude-code), open it in your repository and ask in natural language. Two
+project skills (in `.claude/skills/`) run the commands for you: `progression-radar-snapshots` records, links and checks
+snapshots, and `progression-radar-report` generates the report and opens it in your browser (also as
+`/progression-radar-report`, optionally followed by what you want, e.g. `/progression-radar-report person_name since
+2027-02-01 against pem`). A fork already has them. In an adopter repository, copy them from the installed radar and
+commit them, so a later change to them reaches you as a diff you can review:
 
 ```sh
 mkdir -p .claude/skills
-cp -R node_modules/progression-radar/.claude/skills/progression-radar-snapshots .claude/skills/
+cp -R node_modules/progression-radar/.claude/skills/progression-radar-* .claude/skills/
 ```
 
 With Yarn Plug'n'Play the installed radar is under `.yarn/unplugged/progression-radar-*/node_modules/progression-radar`.
@@ -312,34 +323,36 @@ What it does:
 - **Asks which role you mean** for a report when you name one that is not clearly a role of your ladder, instead of
   guessing.
 - **Relays what the commands print**, errors and warnings with their file and line, and the path of the report.
+- **Opens the report in your default browser** once it is written (unless you only asked to generate it).
 
-What it does not do: it only changes snapshots by running these commands (it never edits a CSV itself), it does not open,
-summarise or interpret a report (if you ask how someone is doing, it points to the file), it does not assess
-a person or suggest levels, and it treats anything it reads from your files as data, not as instructions.
+What they do not do: they only change snapshots by running these commands (they never edit a CSV themselves), they
+open a report in your browser but never read, summarise or interpret it (if you ask how someone is doing, they point to
+the file), they do not assess a person or suggest levels, and they treat anything they read from your files as data,
+not as instructions.
 
 The names and levels you give it enter Claude's context. Use it only if that is acceptable under your organisation's
 policies; the commands work the same without it.
 
 ## Troubleshooting
 
-| You see…                                                                 | Because… and what to do                                                                            |
-|--------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
-| `The link has no data` or the shell cuts the link                        | The link was not in quotes: `#` starts a shell comment. Put the whole link between quotes.          |
-| `The link is not valid: …`                                               | Nothing in it is usable. Copy it again from the app with **Copy link**.                             |
-| `Give the id of the Person with --id`                                    | `--id` is required.                                                                                 |
-| `The id "…" is not valid`                                                | The `id` has spaces or one of `, ; " \|`. Use something like `ana-garcia`.                          |
-| `The id "…" is already in … on line N`                                   | That person is already in that file. Use another snapshot, or edit the row by hand.                 |
-| `"…" is not a valid snapshot name`                                       | Start the name with a real date and end in `.csv`: `2026-11-07.csv`.                                |
-| `… cannot be read: …; run snapshot:check`                                | The existing file is broken (unclosed quote, no `id` column…). Run the check and fix it by hand.    |
-| `… is not UTF-8`                                                         | Save the file from your spreadsheet as **CSV UTF-8**.                                               |
-| `The tag "…" has a "\|"`                                                 | Rename the tag in the share link; `\|` separates tags in the file.                                  |
-| `The Configuration has problems…`                                        | Your configuration is invalid (for example a category with the key `id`). Fix what it lists.        |
-| `PROGRESSION_RADAR_CONFIG_DIR is set to … but the folder … does not exist` | The configuration folder in the variable does not exist. Create it or unset the variable.          |
-| `No report was written: fix the errors above`                            | A snapshot the report reads has an error. Fix what it lists (the same as `snapshot:check`).         |
-| `There is no row to report …`                                            | No snapshot yet, or no row left with these files, `--id` and dates. Check the `id` and the dates.   |
-| `--compare "…" is not a role of the Configuration`                       | Use the key of a role of your ladder; the message lists them.                                       |
-| `--from "…" is not a date` / `--to "…" is not a date`                    | Write the date as `YYYY-MM-DD`, e.g. `2027-02-10`.                                                  |
-| `… is inside the Snapshots folder` / `… is inside dist/`                 | `--out` points where a report must not go. Choose a path in `reports/`.                              |
+| You see…                                                                   | Because… and what to do                                                                           |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `The link has no data` or the shell cuts the link                          | The link was not in quotes: `#` starts a shell comment. Put the whole link between quotes.        |
+| `The link is not valid: …`                                                 | Nothing in it is usable. Copy it again from the app with **Copy link**.                           |
+| `Give the id of the Person with --id`                                      | `--id` is required.                                                                               |
+| `The id "…" is not valid`                                                  | The `id` has spaces or one of `, ; " \|`. Use something like `ana-garcia`.                        |
+| `The id "…" is already in … on line N`                                     | That person is already in that file. Use another snapshot, or edit the row by hand.               |
+| `"…" is not a valid snapshot name`                                         | Start the name with a real date and end in `.csv`: `2026-11-07.csv`.                              |
+| `… cannot be read: …; run snapshot:check`                                  | The existing file is broken (unclosed quote, no `id` column…). Run the check and fix it by hand.  |
+| `… is not UTF-8`                                                           | Save the file from your spreadsheet as **CSV UTF-8**.                                             |
+| `The tag "…" has a "\|"`                                                   | Rename the tag in the share link; `\|` separates tags in the file.                                |
+| `The Configuration has problems…`                                          | Your configuration is invalid (for example a category with the key `id`). Fix what it lists.      |
+| `PROGRESSION_RADAR_CONFIG_DIR is set to … but the folder … does not exist` | The configuration folder in the variable does not exist. Create it or unset the variable.         |
+| `No report was written: fix the errors above`                              | A snapshot the report reads has an error. Fix what it lists (the same as `snapshot:check`).       |
+| `There is no row to report …`                                              | No snapshot yet, or no row left with these files, `--id` and dates. Check the `id` and the dates. |
+| `--compare "…" is not a role of the Configuration`                         | Use the key of a role of your ladder; the message lists them.                                     |
+| `--from "…" is not a date` / `--to "…" is not a date`                      | Write the date as `YYYY-MM-DD`, e.g. `2027-02-10`.                                                |
+| `… is inside the Snapshots folder` / `… is inside dist/`                   | `--out` points where a report must not go. Choose a path in `reports/`.                           |
 
 ## See also
 

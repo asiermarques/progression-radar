@@ -25,6 +25,11 @@
   --color-grid: #d3c8b5;
   /* The washi band behind the person and the radar. Derived, so it follows any re-brand. */
   --color-band: color-mix(in oklab, var(--color-background), var(--color-surface));
+  /* The heat map of the Report (`npm run snapshot:report`): denser the closer to the highest level. Ink by default. */
+  --color-heat: var(--color-text);
+  /* The Report against the compared role: levels below it (the gap) and levels that meet or pass it. */
+  --color-below: #c0361c;
+  --color-above: #2f7a4a;
 
   --font-family: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
   --font-display: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", Georgia, serif;
@@ -50,6 +55,8 @@
     --color-background: #16140f;
     --color-surface: #211e18;
     --color-grid: #3a352c;
+    --color-below: #ef6a4c;
+    --color-above: #7fc495;
     --color-band: color-mix(in oklab, var(--color-background), var(--color-surface) 70%);
     --texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 .95 0 0 0 0 .85 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     --seal-blend: normal;

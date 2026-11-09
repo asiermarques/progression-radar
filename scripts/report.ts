@@ -1,6 +1,14 @@
 // The data of a Report: what each Person recorded in each Snapshot. Pure: no files and no HTML. The rules (progress,
 // recorded Categories) are those of src/model.ts. See docs/adr/0007.
-import { findRole, maxLevel, percentage, recordedOverallPercentage, recordedRoleGap, type Config } from "../src/model.ts";
+import {
+  findRole,
+  maxLevel,
+  percentage,
+  recordedOverallPercentage,
+  recordedRoleGap,
+  requiredLevel,
+  type Config,
+} from "../src/model.ts";
 import type { Problem, SnapshotRow } from "./snapshots.ts";
 
 export interface Cell {
@@ -10,6 +18,12 @@ export interface Cell {
   level: number | undefined;
   /** The level is above the Highest level of the Category. */
   above: boolean;
+  /** The Highest level of the Category. */
+  max: number;
+  /** Progress of the level (0-100, capped at the Highest level); undefined when not recorded. */
+  progress: number | undefined;
+  /** The level the role of the Role gap requires; undefined when the row has no role to compare. */
+  target: number | undefined;
 }
 
 export interface Entry {
@@ -36,9 +50,16 @@ export interface RadarSnapshot {
 export interface PersonHistory {
   id: string;
   name: string;
+  /** The name of the Role of their latest row, when it is a role of the Configuration. */
+  role: string | undefined;
   entries: Entry[];
   /** The last row first and the first row second; just the one row for a Person with a single row. */
   radar: RadarSnapshot[];
+  /**
+   * Per Category, the latest recorded level minus the earliest recorded one; undefined when fewer than two rows
+   * record it.
+   */
+  changes: (number | undefined)[];
 }
 
 /** A Person at their latest row in any Snapshot. */
@@ -56,9 +77,13 @@ export interface Report {
   /** The name of the role every Role gap is against; undefined when each row uses its own Compared role. */
   compare: string | undefined;
   categories: { key: string; name: string }[];
+  /** The Snapshots the rows come from, in order. */
+  snapshots: string[];
   persons: PersonHistory[];
   /** Every Person at their latest row, in order of first appearance. */
   team: TeamMember[];
+  /** Per Category, the average Progress of the Team overview over the Persons who recorded it; undefined if none. */
+  teamAverage: (number | undefined)[];
   problems: Problem[];
 }
 
@@ -81,7 +106,16 @@ function entryOf(row: SnapshotRow, config: Config, compare: string | undefined):
     snapshot: row.file.replace(/\.csv$/, ""),
     cells: config.categories.map((category) => {
       const level = Object.hasOwn(levels, category.key) ? levels[category.key] : undefined;
-      return { key: category.key, name: category.name, level, above: level !== undefined && level > maxLevel(category) };
+      const max = maxLevel(category);
+      return {
+        key: category.key,
+        name: category.name,
+        level,
+        above: level !== undefined && level > max,
+        max,
+        progress: level === undefined ? undefined : percentage(category, level),
+        target: role && gap ? requiredLevel(role, category) : undefined,
+      };
     }),
     recorded: overall?.recorded ?? 0,
     total: config.categories.length,
@@ -99,6 +133,17 @@ function radarOf(row: SnapshotRow, config: Config): RadarSnapshot {
   };
 }
 
+/** Per Category, the latest recorded level minus the earliest recorded one. */
+function changesOf(entries: Entry[], count: number): (number | undefined)[] {
+  return Array.from({ length: count }, (_, index) => {
+    const levels = entries.map((entry) => entry.cells[index].level).filter((level) => level !== undefined);
+    return levels.length < 2 ? undefined : levels[levels.length - 1] - levels[0];
+  });
+}
+
+const average = (values: number[]) =>
+  values.length === 0 ? undefined : Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+
 export function buildReport({ config, rows, problems, generatedOn, compare }: BuildOptions): Report {
   const byPerson = new Map<string, { name: string; entries: Entry[]; first: SnapshotRow; last: SnapshotRow }>();
   for (const row of rows) {
@@ -108,17 +153,29 @@ export function buildReport({ config, rows, problems, generatedOn, compare }: Bu
     person.entries.push(entryOf(row, config, compare));
     byPerson.set(row.id, person);
   }
+  const team = [...byPerson].map(([id, { name, entries }]) => ({
+    id,
+    name,
+    snapshot: entries[entries.length - 1].snapshot,
+    entry: entries[entries.length - 1],
+  }));
   return {
     generatedOn,
     compare: findRole(config.roles, compare)?.name,
     categories: config.categories.map(({ key, name }) => ({ key, name })),
+    snapshots: [...new Set(rows.map((row) => row.file.replace(/\.csv$/, "")))],
     persons: [...byPerson].map(([id, { name, entries, first, last }]) => ({
       id,
       name,
+      role: findRole(config.roles, last.person.roleKey)?.name,
       entries,
       radar: [radarOf(last, config), ...(first === last ? [] : [radarOf(first, config)])],
+      changes: changesOf(entries, config.categories.length),
     })),
-    team: [...byPerson].map(([id, { name, entries }]) => ({ id, name, snapshot: entries[entries.length - 1].snapshot, entry: entries[entries.length - 1] })),
+    team,
+    teamAverage: config.categories.map((_, index) =>
+      average(team.map((member) => member.entry.cells[index].progress).filter((progress) => progress !== undefined)),
+    ),
     problems,
   };
 }

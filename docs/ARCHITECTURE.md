@@ -59,7 +59,7 @@ scripts/
   csv.ts                   hand-written CSV reader and writer (quoting, `,` or `;`, line breaks)
 snapshots/               the user's snapshots (personal data); git-ignored except README.md. Another folder: PROGRESSION_RADAR_SNAPSHOTS_DIR
 reports/                 the Reports `snapshot:report` writes (personal data); git-ignored, never served by the dev server
-.claude/skills/          the project skill that drives the snapshot scripts
+.claude/skills/          the project skills that drive the snapshot scripts (snapshots) and the Report (report)
 src/
   main.tsx                 entry point: loads config and theme, reads the URL, renders App or an error screen
   App.tsx                  owns the state, syncs it to the URL, composes the page
@@ -124,13 +124,16 @@ Configuration as a parameter, so tests give it their own.
   `report-html.tsx` with `renderToStaticMarkup`, so every value from a CSV is escaped by construction. Snapshots are
   ordered by file name without `.csv`, so `2027-02-10-q1.csv` comes after `2027-02-10.csv`. "Not recorded" is not level
   0: `recordedOverallPercentage()` in `src/model.ts` averages over the Categories a row has a level for, and the app's
-  `overallPercentage()` is unchanged. The CSS is the custom properties at the top of `src/styles.css` (up to its
-  `/* Base */` comment) and its `/* Radar chart */` section, followed by the resolved `theme.css`. The radar is
+  `overallPercentage()` is unchanged. The CSS is the app's font faces (the Fontsource imports of `src/main.tsx`, with
+  their woff2 files embedded as `data:` URLs, which the CSP allows with `font-src data:`), the custom properties at the
+  top of `src/styles.css` (up to its `/* Base */` comment) and its `/* Radar chart */` section, followed by the resolved
+  `theme.css` and the Report's own stylesheet. The radar is
   `RadarChart.tsx` rendered on the server (`renderToStaticMarkup`): it must not use browser APIs, and its optional
   `recorded` flags leave a Category that was not recorded out of the outline instead of drawing it at 0. The Report
   goes to `reports/` (or `--out`), never to the Snapshots folder or `dist/`, which the dev server does not serve (see
   above).
-- The project skill in `.claude/skills/` only runs these scripts; the rules stay in the code.
+- The project skills in `.claude/skills/` only run these scripts (`progression-radar-report` also opens the Report it
+  wrote in the browser, without reading it); the rules stay in the code.
 
 ## Data flow
 
