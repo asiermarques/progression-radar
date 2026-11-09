@@ -4,8 +4,9 @@
 //
 //   node scripts/adopter-fixture.mjs npm|pnpm|yarn-pnp|yarn-node-modules
 //
-// It fails when a command fails, when dist/ is not in the fixture, when the dev server does not reload on a change to
-// config/ or serves snapshots/, or when anything is written inside the installed radar. Used by CI (docs/ARCHITECTURE.md, "Testing").
+// It fails when a command fails, when dist/ is not in the fixture, when the Report is not in the fixture's reports/, when
+// the dev server does not reload on a change to config/ or serves snapshots/ or reports/, or when anything is written
+// inside the installed radar. Used by CI (docs/ARCHITECTURE.md, "Testing").
 import { execFileSync, spawn } from "node:child_process";
 import { appendFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -55,7 +56,7 @@ try {
   const tarball = join(work, JSON.parse(run("npm", ["pack", "--json", "--ignore-scripts", "--pack-destination", work], { cwd: radar }))[0].filename);
 
   const scripts = Object.fromEntries(
-    [["dev"], ["build"], ["preview"], ["check"], ["snapshot:record", "snapshot record"], ["snapshot:link", "snapshot link"], ["snapshot:check", "snapshot check"], ["config:convert-categories", "config convert-categories"]].map(
+    [["dev"], ["build"], ["preview"], ["check"], ["snapshot:record", "snapshot record"], ["snapshot:link", "snapshot link"], ["snapshot:check", "snapshot check"], ["snapshot:report", "snapshot report"], ["config:convert-categories", "config convert-categories"]].map(
       ([name, command = name]) => [name, `progression-radar ${command}`],
     ),
   );
@@ -98,7 +99,17 @@ try {
   const link = script("snapshot:link", "2026-11-07.csv", "ana-garcia").trim();
   if (!link.includes("name=Ana") || !link.includes("build=2")) fail(`unexpected Share link: ${link}`);
 
-  step("dev server reloads on config/ changes and does not serve snapshots/");
+  step("snapshot:report");
+  const reported = script("snapshot:report").trim().split("\n").at(-1);
+  if (!/^reports\/\d{4}-\d{2}-\d{2}\.html$/.test(reported)) fail(`snapshot:report did not print the path of the Report: ${reported}`);
+  const reportFile = join(fixture, reported);
+  if (!existsSync(reportFile)) fail(`${reported} is not in the fixture`);
+  const reportHtml = readFileSync(reportFile, "utf8");
+  if (!reportHtml.includes("Ana García") || /<script/i.test(reportHtml) || !reportHtml.includes("default-src 'none'")) {
+    fail("the Report does not have the Person of the snapshot, or has a script, or has no Content-Security-Policy");
+  }
+
+  step("dev server reloads on config/ changes and does not serve snapshots/ or reports/");
   const port = 4300 + MANAGERS.indexOf(manager);
   const dev = spawn(bin, yarn ? ["dev", "--port", String(port)] : ["run", "dev", ...(manager === "npm" ? ["--"] : []), "--port", String(port)], { cwd: fixture, stdio: ["ignore", "inherit", "inherit"], detached: true });
   const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -126,6 +137,10 @@ try {
     for (const path of [`/@fs${join(fixture, "snapshots", "2026-11-07.csv")}`, "/snapshots/2026-11-07.csv"]) {
       const body = await fetch(url + path).then((response) => response.text());
       if (body.includes("ana-garcia")) fail(`the dev server served ${path}`);
+    }
+    for (const path of [`/@fs${reportFile}`, `/${reported}`]) {
+      const body = await fetch(url + path).then((response) => response.text());
+      if (body.includes("Ana García")) fail(`the dev server served ${path}`);
     }
     socket.close();
   } finally {

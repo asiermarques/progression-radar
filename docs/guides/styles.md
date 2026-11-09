@@ -29,6 +29,11 @@ apply to both palettes, so:
 The default fonts are bundled with the app (Latin characters only). To use other fonts, load them in `theme.css`
 with `@font-face` or `@import` and set `--font-family` and `--font-display`.
 
+The [report](snapshots.md#reports) of the snapshots uses the same variables and your `theme.css`, so it follows your
+colours and the radar classes below. It loads no font file (it blocks every request), so its text uses the fonts
+named in `--font-family` and `--font-display` only when they are installed on the computer that opens it; list a
+system fallback after yours.
+
 You can also target these stable class names: `.app-header`, `.app-title`, `.app-logo`, `.share-button`,
 `.person-panel`, `.person-seal`, `.progress-summary`, `.radar`, `.radar-series--person`, `.radar-series--compare`,
 `.link-notice`, `.category-panel`, `.category-nav`, `.level-nav`, `.expectation`, `.app-footer`, `.app-footer-title`

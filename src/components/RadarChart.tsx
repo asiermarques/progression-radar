@@ -4,6 +4,8 @@ import { useId, type CSSProperties } from "react";
 export interface RadarSeries {
   name: string;
   values: number[]; // one percentage (0-100) per axis
+  /** Whether each axis has a value. An axis that is not recorded has no point and the shape skips it; default: all do. */
+  recorded?: boolean[];
   className: string; // e.g. "radar-series--person"
 }
 
@@ -32,13 +34,19 @@ function point(axis: number, total: number, value: number): [number, number] {
   return [Math.cos(angle) * distance, Math.sin(angle) * distance];
 }
 
-const shape = (values: number[]) =>
-  values
-    .map((value, axis) => {
-      const [x, y] = point(axis, values.length, value);
-      return `${axis === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
-    })
-    .join("") + "Z";
+const isRecorded = (s: RadarSeries, axis: number) => s.recorded?.[axis] !== false;
+
+/** The outline through the axes that have a value; an empty string when none has. */
+const shape = (s: RadarSeries) => {
+  const commands = s.values
+    .map((value, axis) => (isRecorded(s, axis) ? { value, axis } : undefined))
+    .filter((item) => item !== undefined)
+    .map(({ value, axis }, index) => {
+      const [x, y] = point(axis, s.values.length, value);
+      return `${index === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+    });
+  return commands.length === 0 ? "" : commands.join("") + "Z";
+};
 
 /** Splits a label into lines of roughly LABEL_LINE_LENGTH characters. */
 function wrap(label: string): string[] {
@@ -61,7 +69,10 @@ export default function RadarChart({ axes, series, notes, selected, onSelect }: 
         viewBox="-370 -300 740 600"
         role="img"
         aria-label={series
-          .map((s) => `${s.name}: ${axes.map((axis, i) => `${axis} ${s.values[i]}%`).join(", ")}`)
+          .map(
+            (s) =>
+              `${s.name}: ${axes.map((axis, i) => (isRecorded(s, i) ? `${axis} ${s.values[i]}%` : `${axis} not recorded`)).join(", ")}`,
+          )
           .join(". ")}
       >
         <defs>
@@ -107,14 +118,15 @@ export default function RadarChart({ axes, series, notes, selected, onSelect }: 
           .map((s, index) => ({ s, index }))
           .reverse()
           .map(({ s, index }) => {
-            const d = shape(s.values);
+            const d = shape(s);
             // The `d` style lets browsers that support it animate the shape between states.
             const animated = { d: `path("${d}")` } as CSSProperties;
             return (
               <g key={s.className} className={`radar-series ${s.className}`}>
-                <path className="radar-area" d={d} style={animated} />
-                <path className="radar-texture" d={d} style={animated} fill={`url(#${uid}-hatch-${index})`} />
+                {d && <path className="radar-area" d={d} style={animated} />}
+                {d && <path className="radar-texture" d={d} style={animated} fill={`url(#${uid}-hatch-${index})`} />}
                 {s.values.map((value, axis) => {
+                  if (!isRecorded(s, axis)) return null;
                   const [x, y] = point(axis, total, value);
                   return (
                     <circle

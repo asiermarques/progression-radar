@@ -105,6 +105,27 @@ export function roleGap(categories: Category[], levels: Levels, role: Role): Rol
   return { met, total: categories.length, levelsToGo };
 }
 
+/** The categories that have a level in `levels`: the others are "not recorded", which is not level 0. */
+export function recordedCategories(categories: Category[], levels: Levels): Category[] {
+  return categories.filter((category) => Object.hasOwn(levels, category.key));
+}
+
+/** Overall progress over the recorded categories only, and how many they are; undefined when none is recorded. */
+export function recordedOverallPercentage(
+  categories: Category[],
+  levels: Levels,
+): { percentage: number; recorded: number } | undefined {
+  const recorded = recordedCategories(categories, levels);
+  if (recorded.length === 0) return undefined;
+  return { percentage: overallPercentage(recorded, levels), recorded: recorded.length };
+}
+
+/** The role gap over the recorded categories only; undefined when none is recorded. */
+export function recordedRoleGap(categories: Category[], levels: Levels, role: Role): RoleGap | undefined {
+  const recorded = recordedCategories(categories, levels);
+  return recorded.length === 0 ? undefined : roleGap(recorded, levels, role);
+}
+
 /** Up to two initials for the person's seal, e.g. "Ada Lovelace" -> "AL". */
 export function initials(name: string): string {
   const words = name.trim().split(/\s+/).filter(Boolean);

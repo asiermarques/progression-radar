@@ -5,6 +5,9 @@
  * The default look is inspired by Japanese print: a white sheet with a band of
  * washi paper behind the radar, sumi ink, a vermilion seal for the person and
  * indigo for the compared role.
+ *
+ * The Report that `npm run snapshot:report` writes takes two parts of this file as they are: everything before the
+ * `Base` section (the custom properties) and the `Radar chart` section. Keep those two comment titles.
  */
 
 :root {

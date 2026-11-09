@@ -6,6 +6,8 @@ import {
   maxLevel,
   overallPercentage,
   percentage,
+  recordedOverallPercentage,
+  recordedRoleGap,
   roleGap,
   type Category,
 } from "./model";
@@ -61,5 +63,61 @@ describe("model", () => {
     expect(initials("ada")).toBe("A");
     expect(initials("成長")).toBe("成");
     expect(initials("")).toBe("");
+  });
+});
+
+describe("overall progress over the recorded categories", () => {
+  const cat = (key: string, max: number): Category => ({
+    key,
+    name: key,
+    description: "",
+    expectations: [{ summary: "s", description: "", level: max }],
+  });
+  const a = cat("a", 4);
+  const b = cat("b", 2);
+  const c = cat("c", 2);
+
+  it("averages the progress of the categories that have a level, and counts them", () => {
+    expect(recordedOverallPercentage([a, b, c], { a: 2, b: 2 })).toEqual({ percentage: 75, recorded: 2 });
+  });
+
+  it("does not count a category with no level as level 0, but does count an explicit 0", () => {
+    expect(recordedOverallPercentage([a, b], { a: 4 })?.percentage).toBe(100);
+    expect(recordedOverallPercentage([a, b], { a: 4, b: 0 })?.percentage).toBe(50);
+  });
+
+  it("has no overall progress when nothing is recorded", () => {
+    expect(recordedOverallPercentage([a, b], {})).toBeUndefined();
+  });
+
+  it("keeps overallPercentage() as the app uses it: a missing level is 0", () => {
+    expect(overallPercentage([a, b], { a: 4 })).toBe(50);
+  });
+});
+
+describe("role gap over the recorded categories", () => {
+  const cat = (key: string, max: number): Category => ({
+    key,
+    name: key,
+    description: "",
+    expectations: [{ summary: "s", description: "", level: max }],
+  });
+  const [a, b, c] = [cat("a", 4), cat("b", 2), cat("c", 2)];
+  const role = { key: "r", name: "R", levels: { a: 2, b: 2, c: 2 } };
+
+  it("counts only the recorded categories, so one that is not recorded adds nothing to the levels to go", () => {
+    expect(recordedRoleGap([a, b, c], { a: 1, b: 2 }, role)).toEqual({ met: 1, total: 2, levelsToGo: 1 });
+  });
+
+  it("counts an explicit 0 as level 0", () => {
+    expect(recordedRoleGap([a, b, c], { a: 0, b: 2 }, role)).toEqual({ met: 1, total: 2, levelsToGo: 2 });
+  });
+
+  it("has no role gap when nothing is recorded", () => {
+    expect(recordedRoleGap([a, b, c], {}, role)).toBeUndefined();
+  });
+
+  it("keeps roleGap() as the app uses it: a missing level is 0", () => {
+    expect(roleGap([a, b, c], { a: 1, b: 2 }, role)).toEqual({ met: 1, total: 3, levelsToGo: 3 });
   });
 });

@@ -38,7 +38,8 @@ Live demo: [https://progression-radar.netlify.app](https://progression-radar.net
 **Keep a record over time**
 
 - Save people in dated CSV snapshots, open them again as they were, and check them against your current ladder, from
-  the command line or by asking Claude. See [Snapshots](docs/guides/snapshots.md).
+  the command line or by asking Claude, and turn them into an HTML report of how each person evolved
+  (`npm run snapshot:report`). See [Snapshots](docs/guides/snapshots.md).
 
 **Publish and maintain it**
 

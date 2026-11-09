@@ -45,16 +45,20 @@ scripts/
   config-sources.ts        decides which folder each configuration file is read from (used by vite.config.ts)
   category-markdown.ts     reads one Markdown category file into the raw shape of one category
   cli.mjs                  the `progression-radar` binary: `dev`, `build`, `preview`, `check`, `snapshot …` and `config convert-categories`
-  init.ts                  `init`: copies config.example/ to config/ and adds the npm scripts, never overwriting
+  init.ts                  `init`: copies config.example/ to config/, adds the npm scripts and `reports/` to the .gitignore, never overwriting
   check-command.ts         `check` (Configuration, then snapshots) and the validation that `build` runs first
   adopter-fixture.mjs      CI and local proof: packs the radar, installs it in a fixture Adopter repository with npm, pnpm or Yarn
   config-migrate.mjs       `npm run config:migrate`: moves a fork's edits out of config.example/ and converts a moved categories.yml
   convert-categories.ts    converts a categories.yml, no longer read by the app, into Markdown category files, validating it with parseConfig(); the only code that reads one
   load-converter.mjs       loads convert-categories.ts through Vite, for `config convert-categories` and `config:migrate`
-  snapshot-commands.ts     arguments, output and exit codes of the three snapshot commands
-  snapshots.ts             records a Person in a CSV snapshot, turns a row into a Share link and checks snapshots
+  snapshot-commands.ts     arguments, output and exit codes of the snapshot commands, and the writing of the Report
+  snapshots.ts             records a Person in a CSV snapshot, turns a row into a Share link, checks snapshots and reads their rows
+  report.ts                the data of a Report (pure): what each Person recorded in each Snapshot
+  report-html.tsx          renders a Report as one self-contained HTML page with React on the server (no script, CSP `<meta>`)
+  personal-folders.ts      tells the dev server which URLs point into the Snapshots folder and `reports/`, which it never serves
   csv.ts                   hand-written CSV reader and writer (quoting, `,` or `;`, line breaks)
 snapshots/               the user's snapshots (personal data); git-ignored except README.md. Another folder: PROGRESSION_RADAR_SNAPSHOTS_DIR
+reports/                 the Reports `snapshot:report` writes (personal data); git-ignored, never served by the dev server
 .claude/skills/          the project skill that drives the snapshot scripts
 src/
   main.tsx                 entry point: loads config and theme, reads the URL, renders App or an error screen
@@ -92,12 +96,14 @@ Vite (`runnerImport`), never through Node's type stripping, which does not work 
 by the `build` subcommand: Upstream's `build` script runs it first.
 
 The dev server serves the radar, the Config folder and `config.example/` only (`server.fs.allow`), so the Snapshots
-folder and the rest of an Adopter repository are never served (ADR 0004).
+folder, `reports/` and the rest of an Adopter repository are never served (ADR 0004, ADR 0007). In a fork the working
+directory is Vite's root, which `fs.allow` does not cover, so a middleware in `vite.config.ts` also answers 404 to any
+URL (including `/@fs/`) into the Snapshots folder or `reports/` (`scripts/personal-folders.ts`).
 
 ## Snapshots outside the browser
 
 Snapshots are plain CSV files that the app never reads ([ADR 0004](adr/0004-local-csv-snapshots-outside-the-app.md)).
-Three commands (`snapshot record|link|check`) work on them, and they reuse the app's code instead of copying its rules: the Share link is read
+Four commands (`snapshot record|link|check|report`) work on them, and they reuse the app's code instead of copying its rules: the Share link is read
 with `parseState()` and written with `toUrl()` from `urlState.ts`, and the Configuration is `loadConfig()`, so
 Normalisation, the Highest level and the problems of an invalid Configuration are the ones the app has. `cli.mjs`
 gets that configuration the way the build does: it loads `snapshot-commands.ts` (and `check-command.ts`) with Vite's
@@ -113,6 +119,17 @@ Configuration as a parameter, so tests give it their own.
 - `snapshot:link` writes the link with `toUrl()` and appends the columns the Configuration no longer has, so the app's
   notice lists them. `snapshot:record` and `snapshot:link` refuse a file they cannot read and point to
   `snapshot:check`, which reports every problem with file and line.
+- `snapshot:report` ([ADR 0007](adr/0007-static-html-reports-from-snapshots.md)) reads the rows with the check's own
+  code (`readSnapshotRows()`: any error means no rows), builds the data of the Report in `report.ts` and renders it in
+  `report-html.tsx` with `renderToStaticMarkup`, so every value from a CSV is escaped by construction. Snapshots are
+  ordered by file name without `.csv`, so `2027-02-10-q1.csv` comes after `2027-02-10.csv`. "Not recorded" is not level
+  0: `recordedOverallPercentage()` in `src/model.ts` averages over the Categories a row has a level for, and the app's
+  `overallPercentage()` is unchanged. The CSS is the custom properties at the top of `src/styles.css` (up to its
+  `/* Base */` comment) and its `/* Radar chart */` section, followed by the resolved `theme.css`. The radar is
+  `RadarChart.tsx` rendered on the server (`renderToStaticMarkup`): it must not use browser APIs, and its optional
+  `recorded` flags leave a Category that was not recorded out of the outline instead of drawing it at 0. The Report
+  goes to `reports/` (or `--out`), never to the Snapshots folder or `dist/`, which the dev server does not serve (see
+  above).
 - The project skill in `.claude/skills/` only runs these scripts; the rules stay in the code.
 
 ## Data flow
@@ -228,7 +245,9 @@ numbers of levels and still be comparable on the same chart.
 
 ## Testing
 
-- `model.test.ts`: level and percentage calculations.
+- `model.test.ts`: level and percentage calculations, and the ones over the recorded Categories only.
+- `components/RadarChart.test.tsx`: the radar rendered on the server, as the Report does, and axes that are not
+  recorded.
 - `config.test.ts`: validation rules, the resolved configuration and `config.example/` on its own.
 - `scripts/config-sources.test.ts` and `scripts/config-migrate.test.ts`: which folder each file comes from, a
   `categories.yml` reported instead of read, the build log, and the migration command (with the conversion of a moved
@@ -238,13 +257,16 @@ numbers of levels and still be comparable on the same chart.
   input.
 - `scripts/csv.test.ts`: quoting, separators, line numbers and unreadable files.
 - `scripts/snapshots.test.ts`: recording (new and existing snapshots, refused ids and names, spreadsheet files), the
-  Share link of a row and every error and warning of the check, on temporary folders.
-- `scripts/init.test.ts`: `init` on temporary folders (copy, no overwrite, scripts, errors).
+  Share link of a row, every error and warning of the check and the rows read for a Report (order, filters), on
+  temporary folders.
+- `scripts/init.test.ts`: `init` on temporary folders (copy, no overwrite, scripts, the `.gitignore`, errors).
 - `scripts/check-command.test.ts` and `scripts/cli.test.ts`: `init`, `check`, the failing `build` (every problem listed, no
   `dist/` written, a `categories.yml` in the config folder), `--help`, unknown commands and the folder each command reads and writes, running the real binary from
   an empty folder.
-- `scripts/snapshot-commands.test.ts`: the output and exit codes of the three commands against the resolved
-  configuration.
+- `scripts/snapshot-commands.test.ts`: the output and exit codes of the snapshot commands against the resolved
+  configuration, including the Report file written.
+- `scripts/report.test.ts` and `scripts/report-html.test.tsx`: the data and the HTML of a Report (escaping, no script,
+  Content-Security-Policy, "not recorded"). `scripts/personal-folders.test.ts`: the URLs the dev server refuses.
 - `App.test.tsx`: rendering and the main interactions (level selection, compare role, debounced URL sync that survives
   a failing history API, summary, selecting a category from the radar, copying the link, editing the link by hand and
   the link notice).
@@ -252,8 +274,9 @@ numbers of levels and still be comparable on the same chart.
 CI (GitHub Actions) runs the tests and the production build on every push and pull request. A second job
 (`adopter-repository`) runs `scripts/adopter-fixture.mjs` with npm, pnpm and Yarn (Plug'n'Play and `node-modules`):
 it packs the radar, installs the tarball in a fixture Adopter repository with a minimal `config/` and a snapshot, runs
-`check`, `build` and `snapshot:link`, starts the dev server to see that it reloads on a change in `config/` and does not
-serve `snapshots/`, and fails if anything was written inside the installed radar. Because it installs the packed
+`check`, `build`, `snapshot:link` and `snapshot:report` (whose Report must land in the fixture's `reports/`), starts
+the dev server to see that it reloads on a change in `config/` and does not serve `snapshots/` or `reports/`, and fails
+if anything was written inside the installed radar. Because it installs the packed
 tarball, it also proves that `files` in `package.json` ships everything the commands need.
 
 ## Releases

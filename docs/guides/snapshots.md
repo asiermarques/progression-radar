@@ -4,7 +4,7 @@ A [share link](share-link.md) shows one person at one moment, and opening it aga
 configuration: if you change the ladder, the same link can draw a different radar. When you want a record that does not
 change, for example to see where someone stood at each one-to-one, save the link in a **snapshot**.
 
-A snapshot is a dated CSV file with one row per person. You can open it in any spreadsheet. Three commands work with
+A snapshot is a dated CSV file with one row per person. You can open it in any spreadsheet. Four commands work with
 snapshots on your machine; the app itself never reads them, and nothing is sent anywhere.
 
 > Snapshots hold personal data (names and levels). They stay on your machine, or wherever you decide to put them: in a
@@ -18,6 +18,7 @@ snapshots on your machine; the app itself never reads them, and nothing is sent 
 | save a person from their share link         | `npm run snapshot:record -- "<link>" --id <id>`                 |
 | open a saved person in the app              | `npm run snapshot:link -- <snapshot.csv> <id>`                  |
 | check that my snapshots are well formed     | `npm run snapshot:check`                                        |
+| see how each person evolved over time       | `npm run snapshot:report`                                       |
 | do all of the above by asking Claude        | see [Asking Claude](#asking-claude)                             |
 
 You need the radar installed, in an adopter repository or a fork (see [Getting started](getting-started.md)), and to
@@ -161,6 +162,59 @@ These are **not** a problem: a category added to the ladder after the snapshot (
 different from level 0), empty cells, and a file with only the header. `README.md` and hidden files in the folder are
 ignored; any other file that is not `.csv` gets a warning.
 
+### `snapshot:report`
+
+```sh
+npm run snapshot:report                                       # every snapshot, every person
+npm run snapshot:report -- --id asier                         # one person
+npm run snapshot:report -- 2026-11-09.csv 2027-05-12.csv      # these snapshots only
+npm run snapshot:report -- --from 2027-02-10 --to 2027-05-12 # a period, both days included
+npm run snapshot:report -- --compare pem                      # every role gap against the role with the key "pem"
+npm run snapshot:report -- --id asier --out reports/asier.html
+```
+
+Reads the snapshots in the snapshots folder, with your current ladder, and writes **`reports/<today>.html`** (a second
+run on the same day replaces it), or the path in `--out` (its folders are created). It prints the path and the warnings, never names or levels. The
+filters combine; `--from` and `--to` are `YYYY-MM-DD` and compare with the date at the start of the file names.
+`--out` cannot be inside the snapshots folder or `dist/`. See [Reports](#reports).
+
+`--compare` must be the key of a role of your ladder, otherwise the command fails and lists the roles.
+
+It stops, with no file written, when a snapshot it reads has an **error** (the same ones `snapshot:check` lists, with file and
+line) and when no row is left to report, for example for a `--id` that is in no snapshot. Warnings are printed and also listed at the end of the report.
+
+## Reports
+
+A report is one HTML file that opens offline in any browser and prints well. It starts with a **team overview**: a
+table of every person by category, each person at their latest row in any snapshot (not only the latest file), with the
+date of that row, their overall progress and role gap. When two files have the same date, the one whose name sorts last
+wins (`2027-02-10-q1-review.csv` over `2027-02-10.csv`). Then, for each person (rows with the same `id`
+are the same person, named as in their latest row) it has a table of every category by snapshot date with the
+**Reached level**, the **Overall progress** and the **Role gap** (categories **on target** and **levels to go**) of each date.
+
+- A category the row did not record (no column, or an empty cell) reads **not recorded**; it is never counted as level 0.
+  The overall progress of a row is the average over the categories it recorded, and the report says how many that is
+  ("9 of 10 categories"). Adding a category to your ladder therefore never makes an old row look worse.
+- The role gap of a row is computed over the categories it recorded only, so a category that was not recorded adds
+  nothing to the levels to go, and the report says how many categories it covers. With `--compare <role>` every row is
+  compared with that role; without it, each row uses its own `compare` column, and a row with none (or with a role that
+  is not in your ladder any more, which `snapshot:check` warns about) shows no role gap.
+- Each person has a radar, drawn like the app's, with their **last** and their **first** snapshot (just one series for
+  a person with one row), labelled with their dates. A category that a row did not record is left out of its outline
+  and marked "not recorded" under its name; it is not drawn at 0. Everything on the radar is also in the table.
+- A level above the highest level of its category is shown as recorded and flagged; its progress counts as 100%.
+- The file has no JavaScript and blocks every network request, so it cannot send what it holds anywhere. It uses the
+  same colour variables as the app followed by your `theme.css`, so it follows your branding. It loads no font, not
+  even one your `theme.css` imports: the text uses the fonts of `--font-family` and `--font-display` that are installed
+  on the computer that opens it, or their fallbacks.
+- The radar uses the same classes as the app (`.radar-series--person`, `.radar-area`…), so the colours you set in
+  `theme.css` apply to it. The exact layout of the report can change in any version; the command and its name are what stay.
+
+A report gathers more personal data than one share link, and it can be forwarded like any file. It is written to
+`reports/`, never inside the snapshots folder or `dist/`, and the dev server does not serve it. The radar's own
+`.gitignore` ignores `reports/`, and `npx progression-radar init` adds it to the `.gitignore` of your adopter repository
+(see [Upgrading](upgrading.md#reports-110) if you created it before). Keep it out of git.
+
 ## What is in the file
 
 ```csv
@@ -246,6 +300,7 @@ Copy it again after [upgrading](upgrading.md#an-adopter-repository). Then ask, f
 - "Record Ana's link in today's snapshot" (and paste the link)
 - "Give me the link of Luis in the November snapshot"
 - "Check the snapshots"
+- "Generate the report of the team", or "make the report of Asier since February against pem"
 
 What it does:
 
@@ -254,9 +309,12 @@ What it does:
 - **Confirms an `id` that already exists** in an earlier snapshot: it shows the name recorded there and asks whether it is
   the same person, and points out an `id` that looks like an existing one (`ana-garcia` and `ana-garcía`), because a typo
   would split one person in two.
-- **Relays what the commands print**, errors and warnings with their file and line.
+- **Asks which role you mean** for a report when you name one that is not clearly a role of your ladder, instead of
+  guessing.
+- **Relays what the commands print**, errors and warnings with their file and line, and the path of the report.
 
-What it does not do: it only changes snapshots by running these commands (it never edits a CSV itself), it does not assess
+What it does not do: it only changes snapshots by running these commands (it never edits a CSV itself), it does not open,
+summarise or interpret a report (if you ask how someone is doing, it points to the file), it does not assess
 a person or suggest levels, and it treats anything it reads from your files as data, not as instructions.
 
 The names and levels you give it enter Claude's context. Use it only if that is acceptable under your organisation's
@@ -277,9 +335,15 @@ policies; the commands work the same without it.
 | `The tag "…" has a "\|"`                                                 | Rename the tag in the share link; `\|` separates tags in the file.                                  |
 | `The Configuration has problems…`                                        | Your configuration is invalid (for example a category with the key `id`). Fix what it lists.        |
 | `PROGRESSION_RADAR_CONFIG_DIR is set to … but the folder … does not exist` | The configuration folder in the variable does not exist. Create it or unset the variable.          |
+| `No report was written: fix the errors above`                            | A snapshot the report reads has an error. Fix what it lists (the same as `snapshot:check`).         |
+| `There is no row to report …`                                            | No snapshot yet, or no row left with these files, `--id` and dates. Check the `id` and the dates.   |
+| `--compare "…" is not a role of the Configuration`                       | Use the key of a role of your ladder; the message lists them.                                       |
+| `--from "…" is not a date` / `--to "…" is not a date`                    | Write the date as `YYYY-MM-DD`, e.g. `2027-02-10`.                                                  |
+| `… is inside the Snapshots folder` / `… is inside dist/`                 | `--out` points where a report must not go. Choose a path in `reports/`.                              |
 
 ## See also
 
 - [The share link](share-link.md): the parameters a row converts to and from.
 - [Configuration](configuration.md) and [Categories](categories.md): what snapshots are checked against.
 - [ADR 0004](../adr/0004-local-csv-snapshots-outside-the-app.md): why snapshots are CSV files driven by scripts.
+- [ADR 0007](../adr/0007-static-html-reports-from-snapshots.md): why reports are static files made by a command.

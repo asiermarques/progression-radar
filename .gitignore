@@ -15,3 +15,6 @@ config/*
 # Recorded snapshots hold personal data (see snapshots/README.md)
 snapshots/*
 !snapshots/README.md
+
+# Reports gather the personal data of the snapshots (see docs/guides/snapshots.md)
+reports/

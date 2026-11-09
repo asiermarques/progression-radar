@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -18,6 +18,7 @@ const run = (...argv: string[]) =>
     env: {},
     io: { out: (line) => out.push(line), err: (line) => err.push(line) },
     today: new Date(2026, 10, 7),
+    packageRoot: process.cwd(),
   });
 const file = (name: string) => readFileSync(join(root, "snapshots", name), "utf8");
 
@@ -160,6 +161,290 @@ describe("snapshot:check", () => {
   it("fails with a message for a file that does not exist", () => {
     expect(run("check", "2020-01-01.csv")).toBe(1);
     expect(err.join("\n")).toContain("snapshots/2020-01-01.csv");
+  });
+});
+
+describe("snapshot:report", () => {
+  const report = (name = "2026-11-07.html") => readFileSync(join(root, "reports", name), "utf8");
+  const record = (snapshot: string, link = ANA_LINK, id = "ana-garcia") => run("record", link, "--id", id, "--snapshot", snapshot);
+  const higher = (n: number) => `http://localhost:5173/#name=Ana+Garc%C3%ADa&${keys.map((key) => `${key}=${n}`).join("&")}`;
+
+  it("writes reports/<today>.html with the Persons' evolution and prints only its path", () => {
+    record("2026-11-09.csv", higher(1));
+    record("2027-02-10.csv", higher(2));
+    out = [];
+    expect(run("report")).toBe(0);
+    expect(out).toEqual(["reports/2026-11-07.html"]);
+    expect(err).toEqual([]);
+    const html = report();
+    expect(html).toContain("Ana García");
+    expect(html).toContain('<th scope="col">2026-11-09</th>');
+    expect(html).toContain('<th scope="col">2027-02-10</th>');
+    for (const category of config.categories) expect(html).toContain(category.name.replace(/&/g, "&amp;"));
+  });
+
+  it("replaces the report of the same day when it is generated again", () => {
+    record("2026-11-09.csv");
+    run("report");
+    writeFileSync(join(root, "reports", "2026-11-07.html"), "old");
+    expect(run("report")).toBe(0);
+    expect(report()).toContain("<!doctype html>");
+  });
+
+  it("has the custom properties of the app and then the resolved theme.css, and no script", () => {
+    record("2026-11-09.csv");
+    run("report");
+    const html = report();
+    expect(html).toContain("--color-person:");
+    expect(html).toContain("prefers-color-scheme: dark");
+    expect(html).not.toMatch(/<script/i);
+    expect(html).toContain("default-src 'none'");
+    const theme = readFileSync(join(process.cwd(), "config.example", "theme.css"), "utf8");
+    expect(html.indexOf("--color-person:")).toBeLessThan(html.indexOf(theme.slice(0, 40).replace(/</g, "")));
+  });
+
+  it("reads the theme.css of the Config folder before the example one", () => {
+    mkdirSync(join(root, "config"));
+    writeFileSync(join(root, "config", "theme.css"), ":root { --color-person: hotpink; }");
+    record("2026-11-09.csv");
+    run("report");
+    expect(report()).toContain("--color-person: hotpink;");
+  });
+
+  it("draws the radar of each Person as inline SVG, styled with the app's radar rules and then the theme", () => {
+    mkdirSync(join(root, "config"));
+    writeFileSync(join(root, "config", "theme.css"), ":root { --color-person: hotpink; }");
+    record("2026-11-09.csv", higher(1));
+    record("2027-02-10.csv", higher(2));
+    run("report");
+    const html = report();
+    expect(html.match(/<svg/g)).toHaveLength(1);
+    expect(html).toContain("radar-series radar-series--person");
+    expect(html).toContain("radar-series radar-series--compare");
+    expect(html).not.toMatch(/<script/i);
+    expect(html.indexOf(".radar-area {")).toBeGreaterThan(-1);
+    expect(html.indexOf(".radar-area {")).toBeLessThan(html.indexOf("--color-person: hotpink;"));
+    expect(html).not.toContain(".category-panel");
+  });
+
+  it("shows a Category the Snapshot has no column for as not recorded, not as level 0", () => {
+    mkdirSync(join(root, "snapshots"));
+    writeFileSync(join(root, "snapshots", "2026-11-09.csv"), `id,name,${keys[0]}\nana,Ana,2\n`);
+    expect(run("report")).toBe(0);
+    const html = report();
+    expect(html).toContain("not recorded");
+    expect(html).toContain(`1 of ${keys.length} categories`);
+  });
+
+  it("escapes the name of a Person", () => {
+    mkdirSync(join(root, "snapshots"));
+    writeFileSync(join(root, "snapshots", "2026-11-09.csv"), `id,name,${keys[0]}\nana,<script>alert(1)</script>,2\n`);
+    expect(run("report")).toBe(0);
+    expect(report()).not.toMatch(/<script/i);
+    expect(report()).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
+  });
+
+  it("prints the warnings and lists them in the report", () => {
+    mkdirSync(join(root, "snapshots"));
+    writeFileSync(join(root, "snapshots", "2026-11-09.csv"), `id,name,gone\nana,Ana,1\n`);
+    expect(run("report")).toBe(0);
+    expect(out).toEqual(["reports/2026-11-07.html"]);
+    expect(err.join("\n")).toContain("snapshots/2026-11-09.csv:1: warning: column \"gone\"");
+    expect(report()).toContain("snapshots/2026-11-09.csv:1");
+  });
+
+  it("fails with the errors, file and line, and writes no file", () => {
+    mkdirSync(join(root, "snapshots"));
+    writeFileSync(join(root, "snapshots", "2026-11-09.csv"), "id,name\nana,Ana\nana,Ana\n");
+    expect(run("report")).toBe(1);
+    expect(out).toEqual([]);
+    expect(err.join("\n")).toContain('snapshots/2026-11-09.csv:3: error: duplicated id "ana"');
+    expect(existsSync(join(root, "reports"))).toBe(false);
+  });
+
+  it("explains that there is no row to report, and writes no file, for an empty or missing Snapshots folder", () => {
+    expect(run("report")).toBe(1);
+    expect(err.join("\n")).toContain("no row to report in snapshots/");
+    mkdirSync(join(root, "snapshots"));
+    writeFileSync(join(root, "snapshots", "2026-11-09.csv"), "id,name\n");
+    err = [];
+    expect(run("report")).toBe(1);
+    expect(err.join("\n")).toContain("no row to report");
+    expect(existsSync(join(root, "reports"))).toBe(false);
+  });
+
+  it("fails for an invalid Configuration, like the other commands", () => {
+    const code = runSnapshotCommand(["report"], {
+      root,
+      env: {},
+      io: { out: (line) => out.push(line), err: (line) => err.push(line) },
+      loadConfig: () => {
+        throw new ConfigError(["config/roles.yml: broken"]);
+      },
+    });
+    expect(code).toBe(1);
+    expect(err.join("\n")).toContain("config/roles.yml: broken");
+  });
+
+  describe("narrowing and the output path", () => {
+    const person = (name: string) => `http://localhost:5173/#name=${name}&${keys.map((key) => `${key}=1`).join("&")}`;
+    beforeEach(() => {
+      for (const snapshot of ["2026-11-09.csv", "2027-02-10.csv", "2027-05-12.csv"]) {
+        record(snapshot, person("Asier"), "asier");
+        record(snapshot, person("Ana"), "ana-garcia");
+      }
+      out = [];
+    });
+    const columns = (html: string) => [...html.matchAll(/<th scope="col">(\d{4}-\d{2}-\d{2})<\/th>/g)].map((match) => match[1]);
+
+    it("to one Person", () => {
+      expect(run("report", "--id", "asier")).toBe(0);
+      const html = report();
+      expect(html).toContain("<h3>Asier</h3>");
+      expect(html).not.toContain("<h3>Ana</h3>");
+    });
+
+    it("to a period, both ends included", () => {
+      expect(run("report", "--from", "2027-02-10", "--to", "2027-05-12")).toBe(0);
+      expect([...new Set(columns(report()))]).toEqual(["2027-02-10", "2027-05-12"]);
+    });
+
+    it("to the snapshots given", () => {
+      expect(run("report", "2026-11-09.csv", "2027-05-12.csv")).toBe(0);
+      expect([...new Set(columns(report()))]).toEqual(["2026-11-09", "2027-05-12"]);
+    });
+
+    it("writes to --out and prints that path", () => {
+      expect(run("report", "--id", "asier", "--out", "reports/asier.html")).toBe(0);
+      expect(out).toEqual(["reports/asier.html"]);
+      expect(report("asier.html")).toContain("<h3>Asier</h3>");
+      expect(existsSync(join(root, "reports", "2026-11-07.html"))).toBe(false);
+    });
+
+    it("creates the folder of --out", () => {
+      expect(run("report", "--out", "out/q1/report.html")).toBe(0);
+      expect(readFileSync(join(root, "out", "q1", "report.html"), "utf8")).toContain("<!doctype html>");
+    });
+
+    it("refuses --out inside the Snapshots folder or dist/, and writes nothing", () => {
+      for (const path of ["snapshots/report.html", "snapshots/sub/../report.html", "dist/report.html", "./dist/a/b.html"]) {
+        err = [];
+        expect(run("report", "--out", path)).toBe(1);
+        expect(err.join("\n")).toMatch(/Snapshots folder|dist\//);
+      }
+      expect(existsSync(join(root, "snapshots", "report.html"))).toBe(false);
+      expect(existsSync(join(root, "dist"))).toBe(false);
+    });
+
+    it("refuses --out inside a Snapshots folder set with PROGRESSION_RADAR_SNAPSHOTS_DIR", () => {
+      const code = runSnapshotCommand(["report", "--out", "elsewhere/x.html"], {
+        root,
+        env: { PROGRESSION_RADAR_SNAPSHOTS_DIR: "elsewhere" },
+        io: { out: (line) => out.push(line), err: (line) => err.push(line) },
+      });
+      expect(code).toBe(1);
+      expect(err.join("\n")).toContain("Snapshots folder");
+    });
+
+    it("explains that no row matches, and writes no file, for an unknown Person id or an empty period", () => {
+      for (const args of [["--id", "nobody"], ["--from", "2030-01-01"], ["--id", "asier", "--to", "2020-01-01"]]) {
+        err = [];
+        expect(run("report", ...args)).toBe(1);
+        expect(err.join("\n")).toContain("no row to report");
+      }
+      expect(existsSync(join(root, "reports"))).toBe(false);
+    });
+
+    it("fails for a snapshot that does not exist or a date that is not one", () => {
+      expect(run("report", "2020-01-01.csv")).toBe(1);
+      expect(err.join("\n")).toContain("snapshots/2020-01-01.csv does not exist");
+      err = [];
+      expect(run("report", "--from", "tomorrow")).toBe(1);
+      expect(err.join("\n")).toContain("--from");
+    });
+
+    it("lists the options in the usage", () => {
+      expect(run("report", "--snapshot", "x.csv")).toBe(1);
+      expect(err.join("\n")).toContain("--out");
+    });
+  });
+
+  describe("team overview", () => {
+    const person = (name: string, level: number) => `http://localhost:5173/#name=${name}&${keys.map((key) => `${key}=${level}`).join("&")}`;
+    const team = (html: string) => html.slice(html.indexOf('aria-labelledby="team-overview"'), html.indexOf('aria-labelledby="evolution"'));
+
+    it("shows each Person at their latest row in any Snapshot, with its date", () => {
+      record("2026-11-09.csv", person("Ana", 1), "ana-garcia");
+      record("2026-11-09.csv", person("Asier", 1), "asier");
+      record("2027-02-10.csv", person("Asier", 2), "asier");
+      expect(run("report")).toBe(0);
+      const html = team(report());
+      expect(html).toMatch(/<th scope="row">Ana<\/th><td>2026-11-09<\/td>/);
+      expect(html).toMatch(/<th scope="row">Asier<\/th><td>2027-02-10<\/td>/);
+    });
+
+    it("uses the snapshot that sorts last when two have the same date", () => {
+      record("2027-02-10.csv", person("Asier", 1), "asier");
+      record("2027-02-10-q1-review.csv", person("Asier", 2), "asier");
+      run("report");
+      expect(team(report())).toContain("<td>2027-02-10-q1-review</td>");
+    });
+
+    it("has the Role gap of --compare and not recorded cells, and follows the filters", () => {
+      mkdirSync(join(root, "snapshots"));
+      writeFileSync(join(root, "snapshots", "2026-11-09.csv"), `id,name,${keys[0]}\nana,Ana,1\nasier,Asier,2\n`);
+      expect(run("report", "--compare", config.roles[0].key, "--id", "asier")).toBe(0);
+      const html = team(report());
+      expect(html).toContain("not recorded");
+      expect(html).toContain(`Role gap against ${config.roles[0].name.replace(/&/g, "&amp;")}`);
+      expect(html).toContain(`covers 1 of ${keys.length} categories`);
+      expect(html).not.toContain(">Ana<");
+    });
+  });
+
+  describe("role gap", () => {
+    const [first, second] = config.roles;
+    const withCompare = (compare: string) => `${higher(1)}&compare=${compare}`;
+
+    it("shows the Role gap of each row against its own Compared role, and none for a row without one", () => {
+      mkdirSync(join(root, "snapshots"));
+      writeFileSync(join(root, "snapshots", "2026-11-09.csv"), `id,name,compare,${keys[0]}\nana,Ana,${first.key},1\nluis,Luis,,1\n`);
+      expect(run("report")).toBe(0);
+      const html = report();
+      expect(html).toContain(first.name.replace(/&/g, "&amp;"));
+      // Luis, in the Team overview and in his own table
+      expect(html.match(/no role to compare/g)).toHaveLength(2);
+      expect(html).not.toContain("Role gap against");
+    });
+
+    it("uses the role of --compare for every row, whatever its own", () => {
+      record("2026-11-09.csv", withCompare(first.key));
+      expect(run("report", "--compare", second.key)).toBe(0);
+      const html = report();
+      expect(html).toContain(`Role gap against ${second.name.replace(/&/g, "&amp;")}`);
+      expect(html).not.toContain("no role to compare");
+    });
+
+    it("fails naming the unknown role, listing the roles, and writes no file", () => {
+      record("2026-11-09.csv");
+      expect(run("report", "--compare", "nope")).toBe(1);
+      expect(err.join("\n")).toContain('"nope"');
+      expect(err.join("\n")).toContain(first.key);
+      expect(existsSync(join(root, "reports"))).toBe(false);
+    });
+
+    it("warns about a Compared role of a row that is not a role any more, and shows no Role gap for it", () => {
+      mkdirSync(join(root, "snapshots"));
+      writeFileSync(join(root, "snapshots", "2026-11-09.csv"), `id,name,compare,${keys[0]}\nana,Ana,ghost,1\n`);
+      expect(run("report")).toBe(0);
+      expect(err.join("\n")).toContain('snapshots/2026-11-09.csv:2: warning: compare "ghost" is not a role');
+      expect(report()).toContain("no role to compare");
+    });
+
+    it("asks for the role after --compare", () => {
+      expect(run("report", "--compare")).toBe(1);
+      expect(err.join("\n")).toContain("--compare");
+    });
   });
 });
 

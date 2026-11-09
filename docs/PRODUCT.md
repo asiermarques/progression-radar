@@ -62,6 +62,11 @@ Live demo: https://progression-radar.netlify.app
   into a share link (`npm run snapshot:link`) and checks the snapshots against the current configuration
   (`npm run snapshot:check`), including files edited in a spreadsheet. A project skill lets Claude Code drive these
   commands from a request in natural language. The app itself does not read snapshots.
+- Writes a **Report** from the snapshots (`npm run snapshot:report`): one HTML file with no JavaScript, in `reports/`,
+  with a team overview of everyone at their latest row and, per person, a table of the levels, the overall progress and
+  the role gap at each snapshot date (against a role given with `--compare`, or each row's own compared role) and a
+  radar of their first and last snapshot. It can be narrowed to some snapshots, one person or a period. "Not recorded"
+  categories are never counted as level 0. See [ADR 0007](adr/0007-static-html-reports-from-snapshots.md).
 
 ## Product decisions
 
@@ -102,4 +107,4 @@ Live demo: https://progression-radar.netlify.app
 - Being a component library: nothing in `src/` is imported or overridden by other projects (removed in 1.0). The radar
   is used as a tool dependency of an Adopter repository, or as a fork.
 - Comparing several people at once in the app: a link holds one person, and the app does not open snapshots. Reports
-  over snapshots, such as how a category evolves, are outside the app.
+  over snapshots are made by a command outside the app (`npm run snapshot:report`).

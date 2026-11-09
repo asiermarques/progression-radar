@@ -1,6 +1,7 @@
 // `progression-radar init`: prepares an empty Adopter repository. It copies the whole Sample configuration to
-// config/ and adds the npm scripts of a fork to the package.json. It never overwrites anything that exists.
-import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+// config/, adds the npm scripts of a fork to the package.json and keeps `reports/` out of git in the .gitignore. It never
+// overwrites anything that exists.
+import { appendFileSync, copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { DEFAULT_CONFIG_FOLDER, EXAMPLE_FOLDER } from "./config-sources.ts";
 
@@ -20,6 +21,7 @@ export const SCRIPTS: Record<string, string> = {
   "snapshot:record": "progression-radar snapshot record",
   "snapshot:link": "progression-radar snapshot link",
   "snapshot:check": "progression-radar snapshot check",
+  "snapshot:report": "progression-radar snapshot report",
   "config:convert-categories": "progression-radar config convert-categories",
 };
 
@@ -45,6 +47,25 @@ function copyMissing(from: string, to: string, root: string, copied: string[], k
   }
 }
 
+/** The folder the Reports are written to: they hold personal data, so `init` keeps it out of git. */
+const REPORTS_IGNORE = "reports/";
+const IGNORES_REPORTS = /^\/?reports(\/(\*\*)?)?$/;
+
+/** Creates the .gitignore with `reports/`, or appends the line when no line ignores it. Other lines are not touched. */
+function ignoreReports(cwd: string, log: (line: string) => void): void {
+  const path = join(cwd, ".gitignore");
+  if (!existsSync(path)) {
+    writeFileSync(path, `${REPORTS_IGNORE}\n`);
+    log(`Created .gitignore with ${REPORTS_IGNORE}: the Reports hold personal data and must not be committed`);
+    return;
+  }
+  const text = readFileSync(path, "utf8");
+  if (text.split(/\r?\n/).some((line) => IGNORES_REPORTS.test(line.trim()))) return;
+  const eol = text.includes("\r\n") ? "\r\n" : "\n";
+  appendFileSync(path, `${text === "" || /\n$/.test(text) ? "" : eol}${REPORTS_IGNORE}${eol}`);
+  log(`Added ${REPORTS_IGNORE} to .gitignore: the Reports hold personal data and must not be committed`);
+}
+
 export function initAdopterRepository({ cwd, packageRoot, log = console.log }: InitOptions): void {
   const packagePath = join(cwd, "package.json");
   if (!existsSync(packagePath)) {
@@ -54,6 +75,8 @@ export function initAdopterRepository({ cwd, packageRoot, log = console.log }: I
   if (existsSync(configPath) && !statSync(configPath).isDirectory()) {
     throw new InitError(`${DEFAULT_CONFIG_FOLDER} exists and is not a folder.`);
   }
+  const gitignorePath = join(cwd, ".gitignore");
+  if (existsSync(gitignorePath) && !statSync(gitignorePath).isFile()) throw new InitError(".gitignore exists and is not a file.");
 
   const copied: string[] = [];
   const kept: string[] = [];
@@ -69,4 +92,6 @@ export function initAdopterRepository({ cwd, packageRoot, log = console.log }: I
     writeFileSync(packagePath, `${JSON.stringify(manifest, null, 2)}\n`);
     log(`Added to package.json scripts: ${added.join(", ")}`);
   }
+
+  ignoreReports(cwd, log);
 }

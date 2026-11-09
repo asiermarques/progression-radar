@@ -68,7 +68,8 @@ export function isSnapshotName(name: string): boolean {
 
 const NOT_A_SNAPSHOT_NAME = `it must start with a date and end in .csv, e.g. ${EXAMPLE_NAME} or 2026-11-07-q4-review.csv`;
 
-const isoDate = (date: Date) =>
+/** The local date as `YYYY-MM-DD`. */
+export const isoDate = (date: Date) =>
   [date.getFullYear(), date.getMonth() + 1, date.getDate()].map((part, i) => String(part).padStart(i === 0 ? 4 : 2, "0")).join("-");
 
 /** The name of a snapshot to read or write, with the same check in every command. */
@@ -447,4 +448,118 @@ function checkFile(path: string, name: string, file: string, config: Config): Pr
     });
   }
   return problems;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Reading rows for a Report
+
+/** One row of a snapshot, read with the current Configuration. */
+export interface SnapshotRow {
+  /** The file name, e.g. "2026-11-07.csv". */
+  file: string;
+  /** The snapshot as named in messages, e.g. "snapshots/2026-11-07.csv". */
+  label: string;
+  /** The leading `YYYY-MM-DD` of the file name. */
+  date: string;
+  line: number;
+  id: string;
+  /** Only the Categories with a value in the row have a level: the others are not recorded. */
+  person: Person;
+}
+
+export interface ReadRowsOptions {
+  root: string;
+  setting?: string;
+  config: Config;
+  /** File names in the snapshots folder; default: every file in it. */
+  files?: string[];
+  /** Keep only the rows of this Person id. */
+  id?: string;
+  /** `YYYY-MM-DD`: keep only the snapshots dated from this day, included. */
+  from?: string;
+  /** `YYYY-MM-DD`: keep only the snapshots dated up to this day, included. */
+  to?: string;
+}
+
+export interface ReadRowsResult {
+  /** In snapshot order, then line order. Empty when a snapshot has an error. */
+  rows: SnapshotRow[];
+  problems: Problem[];
+  /** Snapshot files read. */
+  checked: number;
+}
+
+/** Snapshots are ordered by file name without `.csv`, so that 2027-02-10-q1.csv comes after 2027-02-10.csv. */
+const stem = (name: string) => name.replace(/\.csv$/, "");
+const bySnapshot = (a: string, b: string) => (stem(a) < stem(b) ? -1 : stem(a) > stem(b) ? 1 : 0);
+
+function requireDate(value: string | undefined, option: string): string | undefined {
+  if (value === undefined) return undefined;
+  if (value.length !== 10 || !isSnapshotName(`${value}.csv`)) {
+    throw new SnapshotError(`${option} ${JSON.stringify(value)} is not a date: use YYYY-MM-DD, e.g. 2026-11-07`);
+  }
+  return value;
+}
+
+/**
+ * Checks the selected snapshots (every one of the folder by default) and reads their rows as Persons. With any error no row is returned: the problems
+ * say what to fix. It never changes a file.
+ */
+export function readSnapshotRows(options: ReadRowsOptions): ReadRowsResult {
+  const { config } = options;
+  const from = requireDate(options.from, "--from");
+  const to = requireDate(options.to, "--to");
+  const folder = resolveSnapshotsFolder(options.root, options.setting);
+
+  let names: string[];
+  if (options.files !== undefined && options.files.length > 0) {
+    names = [...new Set(options.files.map((name) => requireFileName(name, false)))];
+    for (const name of names) {
+      if (!existsSync(join(folder.path, name)) || !statSync(join(folder.path, name)).isFile()) {
+        throw new SnapshotError(`${folder.label}/${name} does not exist`);
+      }
+    }
+  } else if (!existsSync(folder.path)) {
+    return { rows: [], problems: [], checked: 0 };
+  } else {
+    names = readdirSync(folder.path, { withFileTypes: true })
+      .filter((entry) => entry.isFile() && !entry.name.startsWith(".") && entry.name !== "README.md")
+      .map((entry) => entry.name);
+  }
+  names = names.sort(bySnapshot).filter((name) => {
+    if (!isSnapshotName(name)) return true; // kept, so that the check reports it
+    const date = name.slice(0, 10);
+    return (from === undefined || date >= from) && (to === undefined || date <= to);
+  });
+
+  const problems: Problem[] = [];
+  const parsed: { name: string; snapshot: SnapshotFile }[] = [];
+  let checked = 0;
+  for (const name of names) {
+    const label = `${folder.label}/${name}`;
+    if (!name.endsWith(".csv")) {
+      problems.push({ severity: "warning", file: label, message: "is not a snapshot: only .csv files are read" });
+      continue;
+    }
+    checked++;
+    const found = checkFile(join(folder.path, name), name, label, config);
+    problems.push(...found);
+    if (!found.some((problem) => problem.severity === "error")) {
+      parsed.push({ name, snapshot: parseSnapshot(decode(readFileSync(join(folder.path, name)))) });
+    }
+  }
+  if (problems.some((problem) => problem.severity === "error")) return { rows: [], problems, checked };
+
+  const rows: SnapshotRow[] = [];
+  for (const { name, snapshot } of parsed) {
+    const idColumn = snapshot.columns.indexOf("id");
+    for (const row of snapshot.rows) {
+      if (options.id !== undefined && row.fields[idColumn] !== options.id) continue;
+      const cells = Object.fromEntries(snapshot.columns.map((column, index) => [column, row.fields[index]]));
+      const person = personOf(cells, config);
+      // The check has refused every level that is not a number.
+      if (person) rows.push({ file: name, label: `${folder.label}/${name}`, date: name.slice(0, 10), line: row.line, id: row.fields[idColumn], person });
+    }
+  }
+  return { rows, problems, checked };
 }

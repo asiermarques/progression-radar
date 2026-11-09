@@ -20,6 +20,15 @@ working, and a major version lists what to change in its release notes and in th
 contract, because an adopter repository never imports it. Dependabot or Renovate can open the update for you, and the
 CI (`npm ci && npm run check && npm run build`, see [Deployment](deployment.md)) tells you whether it builds.
 
+### Reports (1.1.0)
+
+`snapshot:report` is new: it writes an HTML [report](snapshots.md#reports) of your snapshots in `reports/`. An
+adopter repository created with an earlier version has neither the script nor the `.gitignore` line. Run
+`npx progression-radar init` again (it only adds what is missing and never overwrites), or do it by hand:
+
+- add `"snapshot:report": "progression-radar snapshot report"` to the `scripts` of your `package.json`, and
+- add `reports/` to your `.gitignore`, because a report gathers more personal data than a share link.
+
 Some notes below also apply to you when they are about your configuration rather than about merging: a
 `categories.yml` that is no longer read, renamed or reserved category keys, the class names of a custom theme or a
 build that now fails on configuration problems.

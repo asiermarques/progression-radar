@@ -1,6 +1,6 @@
 {
   "name": "progression-radar",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "A simple visualisation tool for career and learning paths.",
   "license": "MIT",
   "homepage": "https://github.com/asiermarques/progression-radar#readme",
@@ -39,6 +39,7 @@
     "snapshot:record": "node scripts/cli.mjs snapshot record",
     "snapshot:link": "node scripts/cli.mjs snapshot link",
     "snapshot:check": "node scripts/cli.mjs snapshot check",
+    "snapshot:report": "node scripts/cli.mjs snapshot report",
     "check": "node scripts/cli.mjs check"
   },
   "dependencies": {

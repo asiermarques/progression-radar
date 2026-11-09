@@ -164,4 +164,23 @@ describe("progression-radar snapshot", () => {
     expect(code).toBe(0);
     expect(out).toContain("No snapshots to check in snapshots/.");
   });
+
+  it("writes the Report in reports/ of the folder it runs in, with that folder's theme.css and snapshots", () => {
+    write("config/theme.css", ":root { --color-person: hotpink; }");
+    write("snapshots/2026-11-09.csv", "id,name\nana,Ana\n");
+    const { code, out } = run(["snapshot", "report"]);
+    expect(code).toBe(0);
+    const path = out.trim();
+    expect(path).toMatch(/^reports\/\d{4}-\d{2}-\d{2}\.html$/);
+    const html = readFileSync(join(cwd, path), "utf8");
+    expect(html).toContain("--color-person: hotpink;");
+    expect(html).toContain("<h3>Ana</h3>");
+  });
+
+  it("fails without writing when there is no row to report", () => {
+    const { code, err } = run(["snapshot", "report"]);
+    expect(code).toBe(1);
+    expect(err).toContain("no row to report");
+    expect(existsSync(join(cwd, "reports"))).toBe(false);
+  });
 });

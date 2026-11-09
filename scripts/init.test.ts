@@ -53,7 +53,18 @@ describe("init", () => {
   });
 
   it("declares the scripts of a fork, each calling progression-radar", () => {
-    expect(Object.keys(SCRIPTS)).toEqual(["dev", "build", "preview", "check", "snapshot:record", "snapshot:link", "snapshot:check", "config:convert-categories"]);
+    expect(Object.keys(SCRIPTS)).toEqual([
+      "dev",
+      "build",
+      "preview",
+      "check",
+      "snapshot:record",
+      "snapshot:link",
+      "snapshot:check",
+      "snapshot:report",
+      "config:convert-categories",
+    ]);
+    expect(SCRIPTS["snapshot:report"]).toBe("progression-radar snapshot report");
     expect(SCRIPTS["snapshot:record"]).toBe("progression-radar snapshot record");
   });
 
@@ -73,5 +84,53 @@ describe("init", () => {
   it("fails when config/ is not a folder", () => {
     put(cwd, "config", "file");
     expect(init).toThrow(InitError);
+  });
+});
+
+describe("init and .gitignore", () => {
+  const gitignore = () => readFileSync(join(cwd, ".gitignore"), "utf8");
+
+  it("creates .gitignore with reports/ when there is none, and says so", () => {
+    init();
+    expect(gitignore()).toBe("reports/\n");
+    expect(lines.join("\n")).toContain("reports/");
+    expect(lines.join("\n")).toContain(".gitignore");
+  });
+
+  it("appends reports/ to an existing .gitignore, keeping every other line as it was", () => {
+    writeFileSync(join(cwd, ".gitignore"), "node_modules\ndist\n");
+    init();
+    expect(gitignore()).toBe("node_modules\ndist\nreports/\n");
+  });
+
+  it("adds the line break a .gitignore without a final one needs, and keeps its line breaks", () => {
+    writeFileSync(join(cwd, ".gitignore"), "node_modules");
+    init();
+    expect(gitignore()).toBe("node_modules\nreports/\n");
+    writeFileSync(join(cwd, ".gitignore"), "node_modules\r\ndist\r\n");
+    init();
+    expect(gitignore()).toBe("node_modules\r\ndist\r\nreports/\r\n");
+  });
+
+  it("does not change a .gitignore that already ignores reports/, written any usual way", () => {
+    for (const content of ["reports/\n", "node_modules\n/reports\n", "reports\n", "/reports/\n", "reports/**\n"]) {
+      writeFileSync(join(cwd, ".gitignore"), content);
+      lines = [];
+      init();
+      expect(gitignore()).toBe(content);
+      expect(lines.join("\n")).not.toContain(".gitignore");
+    }
+  });
+
+  it("is not fooled by a commented line or by a negation", () => {
+    writeFileSync(join(cwd, ".gitignore"), "# reports/\n");
+    init();
+    expect(gitignore()).toBe("# reports/\nreports/\n");
+  });
+
+  it("fails, writing nothing, when .gitignore is not a file", () => {
+    mkdirSync(join(cwd, ".gitignore"));
+    expect(init).toThrow(InitError);
+    expect(existsSync(join(cwd, "config"))).toBe(false);
   });
 });

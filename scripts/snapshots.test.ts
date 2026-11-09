@@ -9,6 +9,7 @@ import { parseState, toUrl } from "../src/urlState";
 import {
   SnapshotError,
   checkSnapshots,
+  readSnapshotRows,
   recordPerson,
   resolveSnapshotsFolder,
   snapshotLink,
@@ -430,5 +431,109 @@ describe("checkSnapshots", () => {
     const before = readdirSync(snapshots());
     check();
     expect(readdirSync(snapshots())).toEqual(before);
+  });
+});
+
+describe("readSnapshotRows", () => {
+  const rows = () => readSnapshotRows({ root, config });
+
+  it("reads every snapshot in order of file name without .csv, with the Person of each row", () => {
+    record({ snapshot: "2027-02-10.csv" });
+    record({ snapshot: "2027-02-10-q1-review.csv" });
+    record({ snapshot: "2026-11-07.csv" });
+    record({ snapshot: "2026-11-07.csv", id: "luis", link: linkOf({ name: "Luis", levels: { comm: 1 } }) });
+    const result = rows();
+    expect(result.problems).toEqual([]);
+    expect(result.checked).toBe(3);
+    expect(result.rows.map((row) => `${row.file} ${row.id}`)).toEqual([
+      "2026-11-07.csv ana-garcia",
+      "2026-11-07.csv luis",
+      "2027-02-10.csv ana-garcia",
+      "2027-02-10-q1-review.csv ana-garcia",
+    ]);
+    expect(result.rows[0]).toMatchObject({ label: "snapshots/2026-11-07.csv", date: "2026-11-07", line: 2 });
+    expect(result.rows[0].person).toEqual({
+      name: "Ana García",
+      roleKey: "aswe",
+      compareTo: "front",
+      tags: ["tech", "design"],
+      levels: { comm: 2, pm: 1, back: 0 },
+    });
+  });
+
+  it("leaves a Category with no column or an empty cell out of the levels, but keeps an explicit 0", () => {
+    put("2026-11-07.csv", "id,name,comm,pm\nana,Ana,0,\n");
+    expect(rows().rows[0].person.levels).toEqual({ comm: 0 });
+  });
+
+  it("reads files saved by a spreadsheet", () => {
+    put("2026-11-07.csv", "\ufeffid;name;comm\r\nana;Ana;3\r\n");
+    expect(rows().rows[0].person.levels).toEqual({ comm: 3 });
+  });
+
+  it("returns the problems and no rows when a snapshot has an error", () => {
+    record({ snapshot: "2026-01-10.csv" });
+    put("2026-02-10.csv", "id,comm\nana,1\nana,2\n");
+    const result = rows();
+    expect(result.rows).toEqual([]);
+    expect(result.problems.map((problem) => `${problem.severity} ${problem.file}:${problem.line}`)).toEqual([
+      "error snapshots/2026-02-10.csv:3",
+    ]);
+  });
+
+  it("returns the warnings together with the rows", () => {
+    put("2026-11-07.csv", "id,name,compare,comm\nana,Ana,ghost,5\n");
+    const result = rows();
+    expect(result.rows).toHaveLength(1);
+    expect(result.problems.map((problem) => problem.severity)).toEqual(["warning", "warning"]);
+  });
+
+  it("is empty with no snapshots folder", () => {
+    expect(rows()).toEqual({ rows: [], problems: [], checked: 0 });
+  });
+
+  describe("narrowed", () => {
+    const narrowed = (options: Partial<Parameters<typeof readSnapshotRows>[0]>) => readSnapshotRows({ root, config, ...options });
+    const ids = (result: ReturnType<typeof readSnapshotRows>) => result.rows.map((row) => `${row.date} ${row.id}`);
+    beforeEach(() => {
+      for (const snapshot of ["2026-01-10.csv", "2026-02-10.csv", "2026-03-10.csv"]) {
+        record({ snapshot });
+        record({ snapshot, id: "luis" });
+      }
+    });
+
+    it("to the given files, in snapshot order", () => {
+      expect(ids(narrowed({ files: ["2026-03-10.csv", "2026-01-10.csv"], id: "luis" }))).toEqual(["2026-01-10 luis", "2026-03-10 luis"]);
+    });
+
+    it("to one Person id", () => {
+      expect(ids(narrowed({ id: "luis" }))).toEqual(["2026-01-10 luis", "2026-02-10 luis", "2026-03-10 luis"]);
+      expect(narrowed({ id: "nobody" }).rows).toEqual([]);
+    });
+
+    it("to a period, with both ends included", () => {
+      expect(ids(narrowed({ from: "2026-02-10", to: "2026-03-10", id: "ana-garcia" }))).toEqual(["2026-02-10 ana-garcia", "2026-03-10 ana-garcia"]);
+      expect(ids(narrowed({ to: "2026-01-10", id: "luis" }))).toEqual(["2026-01-10 luis"]);
+      expect(ids(narrowed({ from: "2026-03-10", id: "luis" }))).toEqual(["2026-03-10 luis"]);
+      expect(narrowed({ from: "2026-04-01" }).rows).toEqual([]);
+    });
+
+    it("combining the filters", () => {
+      expect(ids(narrowed({ files: ["2026-01-10.csv", "2026-03-10.csv"], from: "2026-02-01", id: "luis" }))).toEqual(["2026-03-10 luis"]);
+    });
+
+    it("without reading the errors of a snapshot that is left out", () => {
+      put("2026-04-10.csv", "id,comm\nana,1\nana,2\n");
+      expect(narrowed({ files: ["2026-01-10.csv"] }).problems).toEqual([]);
+      expect(narrowed({ to: "2026-03-31" }).problems).toEqual([]);
+      expect(narrowed({}).problems).toHaveLength(1);
+    });
+
+    it("refusing a file that does not exist, a path and a date that is not one", () => {
+      expect(() => narrowed({ files: ["2020-01-01.csv"] })).toThrow(/snapshots\/2020-01-01\.csv does not exist/);
+      expect(() => narrowed({ files: ["../x.csv"] })).toThrow(SnapshotError);
+      expect(() => narrowed({ from: "yesterday" })).toThrow(/--from "yesterday" is not a date/);
+      expect(() => narrowed({ to: "2026-13-01" })).toThrow(/--to/);
+    });
   });
 });

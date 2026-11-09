@@ -214,6 +214,9 @@ surface fill / dashed paper. All colours come from CSS through `--series-color`,
 - Clicking a label selects the category. It is a **pointer shortcut only**: the SVG is a single `role="img"` with a
   full text description, and the same action is available from the category nav.
 - The legend is the `<figcaption>`, with swatches matching each series.
+- A series can mark axes as not recorded (the Report, for snapshot rows without that Category): the outline skips
+  them and they get no point, never a point at 0; the text description says "not recorded".
+- The chart is also rendered on the server for the Report (`renderToStaticMarkup`), so it uses no browser API.
 
 ### Category nav — **`.category-nav`**
 

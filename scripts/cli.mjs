@@ -2,7 +2,7 @@
 // The `progression-radar` command: one entry point for a fork and for an Adopter repository (docs/adr/0005).
 //
 //   progression-radar dev|build|preview|check|init
-//   progression-radar snapshot record|link|check
+//   progression-radar snapshot record|link|check|report
 //   progression-radar config convert-categories
 //
 // It runs from the directory it is called in: that directory holds the Config folder, the Snapshots folder and dist/.
@@ -25,8 +25,8 @@ Commands:
   build                                                  Build the static site to dist/
   preview [--host [host]] [--port <port>] [--open [path]]  Serve dist/
   check                                                  Check the Configuration and the Snapshots
-  init                                                   Copy the Sample configuration to config/ and add the npm scripts
-  snapshot record|link|check [...]                       Record, link to or check Snapshots
+  init                                                   Copy the Sample configuration to config/, add the npm scripts and reports/ to .gitignore
+  snapshot record|link|check|report [...]                Record, link to or check Snapshots, or write a Report
   config convert-categories                              Convert categories.yml to a categories/ folder`;
 
 const fail = (message) => {
@@ -80,6 +80,7 @@ async function importScript(name, { resolveConfiguration = true } = {}) {
 
 const commandContext = () => ({
   root: workingDir,
+  packageRoot,
   env: process.env,
   io: { out: (line) => console.log(line), err: (line) => console.error(line) },
 });
