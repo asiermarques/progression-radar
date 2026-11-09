@@ -41,12 +41,36 @@ Live demo: [https://progression-radar.netlify.app](https://progression-radar.net
 
 **Publish and maintain it**
 
-- Deploy it as static files anywhere (a Netlify configuration is included): [Deployment](docs/guides/deployment.md).
-- Keep a fork up to date with upstream and migrate when something changes: [Upgrading](docs/guides/upgrading.md).
+- Install it as a dependency of a repository that holds only your configuration and snapshots, and upgrade by changing
+  a version: [Getting started](docs/guides/getting-started.md).
+- Deploy it as static files anywhere, with a check that stops a CI from publishing an invalid configuration:
+  [Deployment](docs/guides/deployment.md).
+- Upgrade, move a fork to a dependency, or keep a fork up to date: [Upgrading](docs/guides/upgrading.md).
 
 ## Quick start
 
-You need [Node.js](https://nodejs.org) 22.12 or newer (Node 24 LTS is recommended, see `.nvmrc`).
+You need [Node.js](https://nodejs.org) 22.12 or newer (Node 24 LTS is recommended).
+
+### Use it for your organisation (recommended)
+
+Install the radar as a dependency of your own repository. That repository holds only your ladder (`config/`), your
+snapshots and a `package.json`; you never merge upstream, and upgrading is changing a version.
+
+> **Before 1.0 is on npm**, `progression-radar` on npm is the old 0.x library: replace `npm install progression-radar`
+> below with `npm install github:asiermarques/progression-radar`.
+
+```sh
+mkdir my-ladder && cd my-ladder
+git init && npm init -y
+npm install progression-radar
+npx progression-radar init    # copies the sample ladder to config/ and adds the npm scripts
+npm run dev
+```
+
+Edit the files in `config/` and the page reloads. `npm run build` writes the static site to `dist/`. It works with
+npm, pnpm and Yarn. Step by step, with the layout, `.gitignore` and CI: [Getting started](docs/guides/getting-started.md).
+
+### Try it, or fork it to change the code
 
 ```sh
 git clone git@github.com:asiermarques/progression-radar.git
@@ -55,21 +79,24 @@ npm install
 npm run dev
 ```
 
-A fresh clone runs with a sample ladder, with no setup. More in [Getting started](docs/guides/getting-started.md).
+A fresh clone runs with a sample ladder, with no setup. Fork it only if you need to change `src/`: see
+[Getting started](docs/guides/getting-started.md#try-it-or-fork-it-to-change-the-code).
 
 ## Documentation
 
 ### Guides
 
-- [Getting started](docs/guides/getting-started.md): install, run and the list of npm scripts.
+- [Getting started](docs/guides/getting-started.md): install it as a dependency (recommended) or fork it, and the
+  list of npm scripts.
 - [Configuration](docs/guides/configuration.md): the config folder, the sample as fallback, `site.yml` and validation.
 - [Categories](docs/guides/categories.md): category files, `categories.yml` and reserved keys.
 - [Roles](docs/guides/roles.md): `roles.yml`.
 - [Styles](docs/guides/styles.md): `theme.css`, colours, fonts and class names.
 - [The share link](docs/guides/share-link.md): the URL format and how old or partly outdated links are read.
 - [Snapshots](docs/guides/snapshots.md): record, reopen and check people over time.
-- [Deployment](docs/guides/deployment.md): static hosting and keeping your fork up to date.
-- [Upgrading](docs/guides/upgrading.md): what to do after an update, by what your fork customised.
+- [Deployment](docs/guides/deployment.md): static hosting, Netlify and the CI check.
+- [Upgrading](docs/guides/upgrading.md): upgrading the dependency, moving a fork to a dependency, and what a fork does
+  after an update.
 
 ### About the project
 

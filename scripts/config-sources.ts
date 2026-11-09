@@ -34,6 +34,8 @@ export interface ConfigSources {
   configLabel: string;
   /** Absolute path of the configuration folder, for the build log only. */
   configPath: string;
+  /** Absolute path of config.example/ in the package root, for the dev server to watch. */
+  examplePath: string;
   /** Each file with its absolute path and the label shown in problems, e.g. "config/roles.yml". */
   files: Record<ConfigFile, { path: string; label: string }>;
   categories: CategoriesSource;
@@ -112,13 +114,15 @@ function configFolder(root: string, setting: string | undefined) {
 }
 
 /**
- * Resolves the configuration of a project.
+ * Resolves the configuration. The config folder (and the value of `setting`) resolves from `workingDir`, the
+ * directory a command runs in; config.example/ resolves from `packageRoot`, where the radar is installed. In a fork
+ * or a clone both are the same folder (see docs/adr/0005).
  * `setting` is the value of PROGRESSION_RADAR_CONFIG_DIR: when it is set the folder must exist, otherwise the
  * default `config` folder may be missing or empty. Throws when the folder is wrong.
  */
-export function resolveConfigSources(root: string, setting: string | undefined): ConfigSources {
-  const config = configFolder(root, setting);
-  const examplePath = join(root, EXAMPLE_FOLDER);
+export function resolveConfigSources(workingDir: string, setting: string | undefined, packageRoot = workingDir): ConfigSources {
+  const config = configFolder(workingDir, setting);
+  const examplePath = join(packageRoot, EXAMPLE_FOLDER);
 
   const present = new Set(listFiles(config.path));
   const files = Object.fromEntries(
@@ -155,6 +159,7 @@ export function resolveConfigSources(root: string, setting: string | undefined):
   return {
     configLabel: config.label,
     configPath: config.path,
+    examplePath,
     files,
     categories,
     images,

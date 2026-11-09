@@ -100,6 +100,13 @@ The rules:
     `git checkout upstream/master -- config.example`.
   - Netlify (`netlify.toml`) needs no change: the demo builds from the per-file fallback.
 
+## Update
+
+[ADR 0005](0005-radar-as-a-dependency-of-an-adopter-repository.md) extends this decision, it does not supersede it:
+the per-file fallback is unchanged. The **Config folder** (and `PROGRESSION_RADAR_CONFIG_DIR`) now resolves from the
+directory a command runs in and `config.example/` from the installed radar. In a fork or a clone both are the same
+folder.
+
 ## Links
 
 - `docs/PRODUCT.md`: "Customisation by forking" and "Configuration mistakes are shown, not hidden".

@@ -6,8 +6,11 @@ compiled into the bundle at build time and the user's data lives in the URL.
 ## Goals
 
 - **Minimal.** Few dependencies, few files, no abstractions that the app does not need yet.
-- **Customisable by forking.** Adopters change files in their own config folder only (`config/`, git-ignored upstream,
-  overrides the sample in `config.example/` file by file); `src/` stays untouched so upstream updates merge cleanly.
+- **Customisable without touching `src/`.** Adopters change files in their own config folder only (`config/`,
+  git-ignored upstream, overrides the sample in `config.example/` file by file). The recommended way is an
+  **Adopter repository** that holds only that folder, the snapshots and a `package.json`, and depends on the radar
+  ([ADR 0005](adr/0005-radar-as-a-dependency-of-an-adopter-repository.md)); a fork is for changing `src/`. One code
+  path serves both.
 - **Deployable anywhere.** `npm run build` produces plain static files with relative paths.
 
 ## Stack
@@ -27,6 +30,7 @@ compiled into the bundle at build time and the user's data lives in the URL.
 ## Layout
 
 ```
+package.json            declares the `progression-radar` binary (`scripts/cli.mjs`) and `preferUnplugged` for Yarn Plug'n'Play
 config.example/          upstream's sample configuration and the defaults (adopters do not edit it)
   categories/              one Markdown category file per category, grouped by level (an adopter may use categories.yml instead)
   roles.yml                roles and the levels they require
@@ -39,10 +43,12 @@ docs/                    PRODUCT, ARCHITECTURE, DESIGN, the glossary, the ADRs a
 scripts/
   config-sources.ts        decides which folder each configuration file is read from (used by vite.config.ts)
   category-markdown.ts     reads one Markdown category file into the raw shape of a categories.yml entry
+  cli.mjs                  the `progression-radar` binary: `dev`, `build`, `preview`, `check`, `snapshot …` and `config convert-categories`
+  init.ts                  `init`: copies config.example/ to config/ and adds the npm scripts, never overwriting
+  check-command.ts         `check` (Configuration, then snapshots) and the validation that `build` runs first
+  adopter-fixture.mjs      CI and local proof: packs the radar, installs it in a fixture Adopter repository with npm, pnpm or Yarn
   config-migrate.mjs       `npm run config:migrate`: moves a fork's edits out of config.example/
-  config-convert-categories.mjs  `npm run config:convert-categories`: runs convert-categories.ts (Vite loads the TS)
   convert-categories.ts    converts categories.yml into Markdown category files, validating it with parseConfig()
-  snapshot.mjs             `npm run snapshot:record|link|check`: loads snapshot-commands.ts through Vite with the project's config plugins
   snapshot-commands.ts     arguments, output and exit codes of the three snapshot commands
   snapshots.ts             records a Person in a CSV snapshot, turns a row into a Share link and checks snapshots
   csv.ts                   hand-written CSV reader and writer (quoting, `,` or `;`, line breaks)
@@ -66,15 +72,36 @@ src/
 vite.config.ts           Vite + Vitest config, with a tiny YAML plugin and the plugin that resolves the configuration
 ```
 
+## Two roots: the radar and the directory it runs in
+
+Every command has two roots. The **package root** is the radar itself (`index.html`, `src/`, `public/`,
+`config.example/`, `vite.config.ts`): Vite's `root`, in a fork the repository and installed as a dependency
+`node_modules/progression-radar`. The **working directory** is where the command runs: it holds the Config folder
+(`config/` or `PROGRESSION_RADAR_CONFIG_DIR`), the Snapshots folder (`snapshots/` or `PROGRESSION_RADAR_SNAPSHOTS_DIR`)
+and `dist/`. Relative values of both variables resolve from the working directory. In a fork both roots are the same
+folder, so nothing changes there.
+
+`scripts/cli.mjs` is the only entry point: Upstream's own npm scripts call it, and an Adopter repository declares the
+same script names calling the `progression-radar` binary. It drives Vite through its JavaScript API (`createServer`,
+`build`, `preview`) with the radar's `vite.config.ts` loaded by Vite's runner (no temporary file is written next to
+it), `build.outDir` in the working directory with `emptyOutDir: true` (it is outside `root`) and `cacheDir` in the
+working directory (a package installed by pnpm can sit in a read-only store). Every TypeScript file is loaded through
+Vite (`runnerImport`), never through Node's type stripping, which does not work inside `node_modules`. `tsc` is not run
+by the `build` subcommand: Upstream's `build` script runs it first.
+
+The dev server serves the radar, the Config folder and `config.example/` only (`server.fs.allow`), so the Snapshots
+folder and the rest of an Adopter repository are never served (ADR 0004).
+
 ## Snapshots outside the browser
 
 Snapshots are plain CSV files that the app never reads ([ADR 0004](adr/0004-local-csv-snapshots-outside-the-app.md)).
-Three npm scripts work on them, and they reuse the app's code instead of copying its rules: the Share link is read
+Three commands (`snapshot record|link|check`) work on them, and they reuse the app's code instead of copying its rules: the Share link is read
 with `parseState()` and written with `toUrl()` from `urlState.ts`, and the Configuration is `loadConfig()`, so
-Normalisation, the Highest level and the problems of an invalid Configuration are the ones the app has. `snapshot.mjs`
-gets that configuration the way the build does: it loads `snapshot-commands.ts` with Vite's `runnerImport` and the
-`yaml` and `progression-radar-config` plugins taken from `vite.config.ts` (Vite's `runnerImport` ignores the config
-file), so the virtual configuration module resolves from `config/` and `config.example/` with no build step. The
+Normalisation, the Highest level and the problems of an invalid Configuration are the ones the app has. `cli.mjs`
+gets that configuration the way the build does: it loads `snapshot-commands.ts` (and `check-command.ts`) with Vite's
+`runnerImport` and the `yaml` and `progression-radar-config` plugins taken from `vite.config.ts` (Vite's
+`runnerImport` ignores the config file), so the virtual configuration module resolves from `config/` and
+`config.example/` with no build step. The
 parts that are pure (`csv.ts`, rows to and from a Person) are apart from file access, and `snapshots.ts` takes the
 Configuration as a parameter, so tests give it their own.
 
@@ -101,16 +128,19 @@ URL #name=…&comm=2 ──▶ urlState.ts: parseState() ──▶ Person ──
 1. **Build time.** `vite.config.ts` contains a small plugin that turns any `.yml` import into the parsed object (YAML
    syntax errors fail the dev server and the build) and another one that resolves the configuration: each of
    the categories (as `categories.yml` or a `categories/` folder, never both), `roles.yml`, `site.yml` and `theme.css`
-   is taken from the config folder if it is there and from `config.example/` otherwise, and images are looked up in the same order so `site.yml` can reference a logo by file
+   is taken from the config folder (of the directory the command runs in) if it is there and from `config.example/`
+   (of the radar) otherwise, and images are looked up in the same order so `site.yml` can reference a logo by file
    name. The result reaches the app through two virtual modules (`virtual:progression-radar-config` and
    `virtual:progression-radar-theme`), so no path is written in `src/` and the build stays static. The config folder
    is `config/` or the path in `PROGRESSION_RADAR_CONFIG_DIR`, which must exist when it is set; the variable is not
    `VITE_`-prefixed and absolute paths never reach the bundle (messages call the folder `PROGRESSION_RADAR_CONFIG_DIR`).
    The build log lists where each file came from (and whether the categories are a file or a folder) and warns about
    files the app does not use. In dev, editing a file reloads the page, and so does adding or removing one in either
-   folder or in their `categories/` folder.
+   folder or in their `categories/` folder. Before it builds, `progression-radar build` loads the Configuration with
+   `loadConfig()` and, when it is invalid, prints every problem and exits with an error without writing `dist/`; the
+   dev server keeps showing the problems on the page.
    Each Markdown category file is imported through `?category`: a transform (`scripts/category-markdown.ts`) parses
-   it with `mdast-util-from-markdown`, a build-time dev dependency that never reaches the bundle, into the same raw
+   it with `mdast-util-from-markdown`, a build-time dependency that never reaches the bundle, into the same raw
    shape as one entry of `categories.yml` plus the mistakes it found (`file:line: message`). The virtual module hands
    both to the app, so `src/` does not know which form the categories came from. See
    [ADR 0003](adr/0003-markdown-category-files-alongside-yaml.md).
@@ -147,12 +177,16 @@ The raw configuration is typed as `unknown`. `parseConfig()` is the only place t
 checks required fields, positive integer levels, duplicated keys, roles referencing unknown categories and missing
 logo files, and lists the mistakes found while reading the category files with its own. Every problem names the file and folder it comes from (`config/roles.yml: role "r" …`,
 `config.example/categories.yml entry #2 …` or `config/categories/03-data.md: …`), because the same file can come from either place. A test loads the
-resolved configuration and, separately, `config.example/` on its own, so CI catches mistakes in an adopter's
-configuration and in the sample, even when the sample is overridden.
+resolved configuration and, separately, `config.example/` on its own, so CI catches mistakes in the sample, even when
+it is overridden. For an adopter, `progression-radar build` fails on an invalid Configuration and
+`progression-radar check` reports it (and then checks the snapshots), so a CI that runs `npm run check && npm run build`
+never deploys a site that only shows the error screen.
 
 ### Customisation without being a library
-Earlier versions were published as an npm package with a Babel `lib/` build so other projects could depend on it and
-override pieces. That has been removed. Customisation is now limited to what adopters actually need:
+Earlier versions were published as an npm package with a Babel `lib/` build so other projects could import its
+components and override pieces. That has been removed. What is supported instead is a **tool dependency**: an Adopter
+repository imports nothing from `src/`, overrides no code and runs the radar's commands against its own folders.
+`src/` is not a public API. Customisation is limited to what adopters actually need:
 
 - **Content**: the categories (`categories/` or `categories.yml`) and `roles.yml`.
 - **Branding**: `site.yml` (title, logo, footer) and `theme.css`.
@@ -196,13 +230,21 @@ numbers of levels and still be comparable on the same chart.
 - `scripts/csv.test.ts`: quoting, separators, line numbers and unreadable files.
 - `scripts/snapshots.test.ts`: recording (new and existing snapshots, refused ids and names, spreadsheet files), the
   Share link of a row and every error and warning of the check, on temporary folders.
+- `scripts/init.test.ts`: `init` on temporary folders (copy, no overwrite, scripts, errors).
+- `scripts/check-command.test.ts` and `scripts/cli.test.ts`: `init`, `check`, the failing `build` (every problem listed, no
+  `dist/` written), `--help`, unknown commands and the folder each command reads and writes, running the real binary from
+  an empty folder.
 - `scripts/snapshot-commands.test.ts`: the output and exit codes of the three commands against the resolved
   configuration.
 - `App.test.tsx`: rendering and the main interactions (level selection, compare role, debounced URL sync that survives
   a failing history API, summary, selecting a category from the radar, copying the link, editing the link by hand and
   the link notice).
 
-CI (GitHub Actions) runs the tests and the production build on every push and pull request.
+CI (GitHub Actions) runs the tests and the production build on every push and pull request. A second job
+(`adopter-repository`) runs `scripts/adopter-fixture.mjs` with npm, pnpm and Yarn (Plug'n'Play and `node-modules`):
+it packs the radar, installs the tarball in a fixture Adopter repository with a minimal `config/` and a snapshot, runs
+`check`, `build` and `snapshot:link`, starts the dev server to see that it reloads on a change in `config/` and does not
+serve `snapshots/`, and fails if anything was written inside the installed radar.
 
 ## Extending
 

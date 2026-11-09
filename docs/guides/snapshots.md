@@ -7,8 +7,9 @@ change, for example to see where someone stood at each one-to-one, save the link
 A snapshot is a dated CSV file with one row per person. You can open it in any spreadsheet. Three commands work with
 snapshots on your machine; the app itself never reads them, and nothing is sent anywhere.
 
-> Snapshots hold personal data (names and levels). They are git-ignored upstream and stay on your machine, or wherever
-> you decide to put them. See [Where snapshots live](#where-snapshots-live).
+> Snapshots hold personal data (names and levels). They stay on your machine, or wherever you decide to put them: in a
+> fork they are git-ignored, and in an adopter repository you choose whether to commit them. See
+> [Where snapshots live](#where-snapshots-live).
 
 ## What you can do
 
@@ -19,7 +20,8 @@ snapshots on your machine; the app itself never reads them, and nothing is sent 
 | check that my snapshots are well formed     | `npm run snapshot:check`                                        |
 | do all of the above by asking Claude        | see [Asking Claude](#asking-claude)                             |
 
-You need the project installed (`npm install`, see [Getting started](getting-started.md)). The commands read your
+You need the radar installed, in an adopter repository or a fork (see [Getting started](getting-started.md)), and to
+run the commands from its root. The commands read your
 configuration the same way the app does, so they use your [config folder](configuration.md) and fall back to the sample.
 
 ## A walkthrough: monthly one-to-ones
@@ -130,6 +132,8 @@ ladder no longer has is kept in the link, so the app's notice lists it, and the 
 
 ### `snapshot:check`
 
+`npm run check` runs the same check after validating the configuration, and is what a CI should run.
+
 ```sh
 npm run snapshot:check                      # every file in the snapshots folder
 npm run snapshot:check -- 2026-11-07.csv    # one file
@@ -209,11 +213,13 @@ Warnings are information, not a to-do list: you can leave them as long as you wa
 
 ## Where snapshots live
 
-By default in `snapshots/` at the project root, which is git-ignored (only `snapshots/README.md` is tracked), so a
-snapshot never ends up in a commit by accident.
+By default in `snapshots/`, in the folder the commands run in: the root of your fork or of your
+[adopter repository](getting-started.md#install-it-as-a-dependency-recommended). In a fork it is git-ignored (only
+`snapshots/README.md` is tracked), so a snapshot never ends up in a commit by accident; in an adopter repository,
+which holds only your data, you decide what is committed.
 
 To keep them elsewhere, for example in a separate private repository that only holds your data, set
-`PROGRESSION_RADAR_SNAPSHOTS_DIR` to a path relative to the project root, outside it, or absolute:
+`PROGRESSION_RADAR_SNAPSHOTS_DIR` to a path relative to that folder, outside it, or absolute:
 
 ```sh
 PROGRESSION_RADAR_SNAPSHOTS_DIR=../ladder-data/snapshots npm run snapshot:record -- "<link>" --id ana-garcia
@@ -224,8 +230,18 @@ would for any file with performance information about people.
 
 ## Asking Claude
 
-If you use [Claude Code](https://claude.com/claude-code), open it in this repository and ask in natural language. The
-project skill `progression-radar-snapshots` (in `.claude/skills/`) runs the commands for you:
+If you use [Claude Code](https://claude.com/claude-code), open it in your repository and ask in natural language. The
+project skill `progression-radar-snapshots` (in `.claude/skills/`) runs the commands for you. A fork already has it. In
+an adopter repository, copy it from the installed radar and commit it, so a later change to it reaches you as a diff
+you can review:
+
+```sh
+mkdir -p .claude/skills
+cp -R node_modules/progression-radar/.claude/skills/progression-radar-snapshots .claude/skills/
+```
+
+With Yarn Plug'n'Play the installed radar is under `.yarn/unplugged/progression-radar-*/node_modules/progression-radar`.
+Copy it again after [upgrading](upgrading.md#an-adopter-repository). Then ask, for example:
 
 - "Record Ana's link in today's snapshot" (and paste the link)
 - "Give me the link of Luis in the November snapshot"

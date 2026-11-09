@@ -19,6 +19,41 @@ beforeEach(() => {
 
 afterEach(() => rmSync(root, { recursive: true, force: true }));
 
+describe("resolveConfigSources with two roots", () => {
+  let adopter: string;
+  beforeEach(() => {
+    adopter = mkdtempSync(join(tmpdir(), "radar-adopter-"));
+  });
+  afterEach(() => rmSync(adopter, { recursive: true, force: true }));
+
+  it("reads the config folder from the working directory and the example from the package root", () => {
+    mkdirSync(join(adopter, "config"));
+    writeFileSync(join(adopter, "config", "roles.yml"), "");
+    const { files, folders } = resolveConfigSources(adopter, undefined, root);
+    expect(files["roles.yml"]).toEqual({ path: join(adopter, "config", "roles.yml"), label: "config/roles.yml" });
+    expect(files["site.yml"]).toEqual({ path: join(root, "config.example", "site.yml"), label: "config.example/site.yml" });
+    expect(folders).toEqual(["config/", "config.example/"]);
+  });
+
+  it("builds the sample configuration when the working directory has no config folder", () => {
+    const sources = resolveConfigSources(adopter, undefined, root);
+    expect(sources.files["roles.yml"].path).toBe(join(root, "config.example", "roles.yml"));
+    expect(sources.categories.label).toBe("config.example/categories.yml");
+  });
+
+  it("resolves a relative PROGRESSION_RADAR_CONFIG_DIR from the working directory", () => {
+    mkdirSync(join(adopter, "ladder"));
+    writeFileSync(join(adopter, "ladder", "site.yml"), "");
+    const sources = resolveConfigSources(adopter, "ladder", root);
+    expect(sources.configLabel).toBe("ladder");
+    expect(sources.files["site.yml"].label).toBe("ladder/site.yml");
+  });
+
+  it("exposes the example folder so the dev server can watch it", () => {
+    expect(resolveConfigSources(adopter, undefined, root).examplePath).toBe(join(root, "config.example"));
+  });
+});
+
 describe("resolveConfigSources", () => {
   it("reads every file from the example when config/ holds only a README", () => {
     put("config", "README.md");

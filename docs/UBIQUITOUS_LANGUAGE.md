@@ -66,7 +66,8 @@ same concept, use the one in **bold** and avoid the aliases.
 
 | Term                        | Definition                                                                                                         | Aliases to avoid                          |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------ | ----------------------------------------- |
-| **Adopter**                 | An organisation or team that forks or clones the project and deploys it with its own **Ladder**.                   | Customer, client, tenant, user            |
+| **Adopter**                 | An organisation or team that deploys the radar with its own **Ladder**, from a fork, a clone or an **Adopter repository**. | Customer, client, tenant, user            |
+| **Adopter repository**      | The repository an **Adopter** owns with only their **Config folder**, **Snapshots folder** and a `package.json` that depends on the radar. | Consumer repo, wrapper repo, template     |
 | **Upstream**                | The original repository, which owns `src/` and the **Sample configuration**.                                       | Core, main repo, template                 |
 | **Sample configuration**    | The files in `config.example/`: the demo **Ladder** and the defaults.                                              | Example config, default config, template  |
 | **Config folder**           | The **Adopter**'s folder (`config/` or `PROGRESSION_RADAR_CONFIG_DIR`) whose files replace the sample ones.        | Local config, override folder, custom dir |

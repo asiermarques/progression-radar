@@ -1,0 +1,77 @@
+// @vitest-environment node
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { InitError, initAdopterRepository, SCRIPTS } from "./init";
+
+let base: string;
+let packageRoot: string;
+let cwd: string;
+let lines: string[];
+
+const put = (root: string, file: string, content: string) => {
+  mkdirSync(join(root, file, ".."), { recursive: true });
+  writeFileSync(join(root, file), content);
+};
+const init = () => initAdopterRepository({ cwd, packageRoot, log: (line) => lines.push(line) });
+const scripts = () => JSON.parse(readFileSync(join(cwd, "package.json"), "utf8")).scripts;
+
+beforeEach(() => {
+  base = mkdtempSync(join(tmpdir(), "radar-init-"));
+  packageRoot = join(base, "radar");
+  cwd = join(base, "ladder");
+  lines = [];
+  put(packageRoot, "config.example/roles.yml", "roles");
+  put(packageRoot, "config.example/site.yml", "site");
+  put(packageRoot, "config.example/categories/01-build.md", "build");
+  mkdirSync(cwd);
+  writeFileSync(join(cwd, "package.json"), JSON.stringify({ name: "ladder", dependencies: { "progression-radar": "^1.0.0" } }));
+});
+afterEach(() => rmSync(base, { recursive: true, force: true }));
+
+describe("init", () => {
+  it("copies the whole sample configuration to config/", () => {
+    init();
+    expect(readFileSync(join(cwd, "config", "roles.yml"), "utf8")).toBe("roles");
+    expect(readFileSync(join(cwd, "config", "categories", "01-build.md"), "utf8")).toBe("build");
+    expect(lines.join("\n")).toContain("config/");
+  });
+
+  it("never overwrites a file already in config/", () => {
+    put(cwd, "config/roles.yml", "mine");
+    init();
+    expect(readFileSync(join(cwd, "config", "roles.yml"), "utf8")).toBe("mine");
+    expect(readFileSync(join(cwd, "config", "site.yml"), "utf8")).toBe("site");
+    expect(lines.join("\n")).toContain("config/roles.yml already exists, kept");
+  });
+
+  it("adds the scripts that are missing and keeps the existing ones", () => {
+    writeFileSync(join(cwd, "package.json"), JSON.stringify({ name: "ladder", scripts: { build: "mine", test: "x" } }));
+    init();
+    expect(scripts()).toEqual({ ...SCRIPTS, build: "mine", test: "x" });
+  });
+
+  it("declares the scripts of a fork, each calling progression-radar", () => {
+    expect(Object.keys(SCRIPTS)).toEqual(["dev", "build", "preview", "check", "snapshot:record", "snapshot:link", "snapshot:check", "config:convert-categories"]);
+    expect(SCRIPTS["snapshot:record"]).toBe("progression-radar snapshot record");
+  });
+
+  it("can be run twice", () => {
+    init();
+    lines = [];
+    init();
+    expect(lines.join("\n")).not.toContain("Copied");
+  });
+
+  it("fails without a package.json, writing nothing", () => {
+    rmSync(join(cwd, "package.json"));
+    expect(init).toThrow(InitError);
+    expect(existsSync(join(cwd, "config"))).toBe(false);
+  });
+
+  it("fails when config/ is not a folder", () => {
+    put(cwd, "config", "file");
+    expect(init).toThrow(InitError);
+  });
+});

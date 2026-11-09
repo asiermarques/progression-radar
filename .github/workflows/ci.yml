@@ -17,3 +17,23 @@ jobs:
       - run: npm ci
       - run: npm test -- --run
       - run: npm run build
+
+  # The radar installed as a dependency of an Adopter repository (docs/adr/0005): packs it, installs it in a fixture
+  # with each package manager and runs check, build, snapshot:link and the dev server. The job above covers the fork.
+  adopter-repository:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        manager: [npm, pnpm, yarn-pnp, yarn-node-modules]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - run: corepack enable
+        if: matrix.manager == 'pnpm'
+      - run: npm install --global pnpm
+        if: matrix.manager == 'pnpm'
+      - run: npm ci
+      - run: node scripts/adopter-fixture.mjs ${{ matrix.manager }}

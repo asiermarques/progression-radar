@@ -1,13 +1,13 @@
+/// <reference types="vitest/config" />
 import { join } from "node:path";
-import { searchForWorkspaceRoot, type Plugin, type ResolvedConfig } from "vite";
-import { defineConfig } from "vitest/config";
+import type { Plugin, ResolvedConfig } from "vite";
+import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { parse } from "yaml";
 import { readCategoryFile } from "./scripts/category-markdown.ts";
 import {
   CATEGORIES_FOLDER,
   CONFIG_DIR_VARIABLE,
-  EXAMPLE_FOLDER,
   configModuleSource,
   describeSources,
   isConfigPath,
@@ -40,12 +40,13 @@ const CONFIG_MODULE = "virtual:progression-radar-config";
 const THEME_MODULE = "virtual:progression-radar-theme";
 const resolvedId = (id: string) => `\0${id}`;
 
-// Reads the configuration from the folder in PROGRESSION_RADAR_CONFIG_DIR (default: config/), file by file, and from
-// config.example/ for every file that the folder does not have. The app imports the result through two virtual
+// Reads the configuration from the folder in PROGRESSION_RADAR_CONFIG_DIR (default: config/) of the directory the command
+// runs in, file by file, and from config.example/ of the radar (Vite's root) for every file that the folder does not
+// have. In a fork both are the same folder. The app imports the result through two virtual
 // modules, so which folder was used never appears in the source code. See docs/adr/0002.
 function configFolder(): Plugin {
   let resolved: ResolvedConfig;
-  const sources = (): ConfigSources => resolveConfigSources(resolved.root, process.env[CONFIG_DIR_VARIABLE]);
+  const sources = (): ConfigSources => resolveConfigSources(process.cwd(), process.env[CONFIG_DIR_VARIABLE], resolved.root);
 
   return {
     name: "progression-radar-config",
@@ -70,12 +71,13 @@ function configFolder(): Plugin {
       },
     },
     configureServer(server) {
-      const { configPath } = sources();
-      // A folder outside the project is served too.
-      server.config.server.fs.allow.push(configPath, searchForWorkspaceRoot(resolved.root));
+      const { configPath, examplePath } = sources();
+      // The radar itself and the config folder, which may be outside it: nothing else of the directory the command runs
+      // in (the snapshots, for one) is served.
+      server.config.server.fs.allow.splice(0, Infinity, resolved.root, configPath, examplePath);
       // Vite only watches imported files: reload also when a file is added to or removed from the folders, or from
       // their categories/ folder. Editing an existing category file reloads through its import.
-      const folders = [configPath, join(resolved.root, EXAMPLE_FOLDER)];
+      const folders = [configPath, examplePath];
       server.watcher.add([...folders, ...folders.map((folder) => join(folder, CATEGORIES_FOLDER))]);
       const reload = (file: string) => {
         if (!isConfigPath(file, folders)) return;

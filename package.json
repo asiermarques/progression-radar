@@ -9,35 +9,40 @@
     "node": ">=22.12"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "tsc --noEmit && vite build",
-    "preview": "vite preview",
+    "dev": "node scripts/cli.mjs dev",
+    "build": "tsc --noEmit && node scripts/cli.mjs build",
+    "preview": "node scripts/cli.mjs preview",
     "test": "vitest",
     "typecheck": "tsc --noEmit",
     "config:migrate": "node scripts/config-migrate.mjs",
-    "config:convert-categories": "node scripts/config-convert-categories.mjs",
-    "snapshot:record": "node scripts/snapshot.mjs record",
-    "snapshot:link": "node scripts/snapshot.mjs link",
-    "snapshot:check": "node scripts/snapshot.mjs check"
+    "config:convert-categories": "node scripts/cli.mjs config convert-categories",
+    "snapshot:record": "node scripts/cli.mjs snapshot record",
+    "snapshot:link": "node scripts/cli.mjs snapshot link",
+    "snapshot:check": "node scripts/cli.mjs snapshot check",
+    "check": "node scripts/cli.mjs check"
   },
   "dependencies": {
     "@fontsource/shippori-mincho": "^5.3.0",
     "@fontsource/zen-kaku-gothic-new": "^5.3.1",
+    "@vitejs/plugin-react": "^6.2.1",
+    "mdast-util-from-markdown": "^2.1.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "react-markdown": "^10.1.0"
+    "react-markdown": "^10.1.0",
+    "vite": "^8.3.6",
+    "yaml": "^2.9.1"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.2",
     "@testing-library/react": "^16.3.3",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "@vitejs/plugin-react": "^6.2.1",
     "happy-dom": "^21.0.4",
-    "mdast-util-from-markdown": "^2.1.0",
     "typescript": "^7.0.2",
-    "vite": "^8.3.6",
-    "vitest": "^5.1.0",
-    "yaml": "^2.9.1"
-  }
+    "vitest": "^5.1.0"
+  },
+  "bin": {
+    "progression-radar": "scripts/cli.mjs"
+  },
+  "preferUnplugged": true
 }

@@ -1,9 +1,71 @@
 # Upgrading
 
+What to do when a new version of the radar comes out, depending on how you run it: as a dependency of an
+[adopter repository](#an-adopter-repository) or as a [fork](#a-fork).
+
+## An adopter repository
+
+Upgrading is changing the version of the dependency. Your `config/` and `snapshots/` are not touched:
+
+```sh
+npm install progression-radar@latest    # or: pnpm add progression-radar@latest, yarn up progression-radar
+npm run check                           # the configuration and the snapshots against the new version
+npm run dev                             # have a look
+```
+
+The radar follows semver. Its public contract is the commands and the npm script names, the configuration files, the
+[share link](share-link.md) format and the [snapshot](snapshots.md) format: a minor or patch version keeps them
+working, and a major version lists what to change in its release notes and in this guide. `src/` is not part of the
+contract, because an adopter repository never imports it. Dependabot or Renovate can open the update for you, and the
+CI (`npm ci && npm run check && npm run build`, see [Deployment](deployment.md)) tells you whether it builds.
+
+Some notes under [A fork](#a-fork) also apply to you when they are about your configuration rather than about
+merging: renamed or reserved category keys, the class names of a custom theme or a build that now fails on
+configuration problems.
+
+If you copied the snapshots skill for Claude into your repository (see
+[Asking Claude](snapshots.md#asking-claude)), copy it again after upgrading so it matches the commands it runs.
+
+## From a fork to an adopter repository
+
+A fork that only customises its config folder can drop the fork and keep just its data. Create the adopter
+repository next to the fork, let `init` add the scripts, and then replace the sample copy it made with your own
+`config/`:
+
+```sh
+mkdir my-ladder && cd my-ladder
+git init && npm init -y
+npm install progression-radar
+npx progression-radar init                  # adds the npm scripts (and a copy of the sample in config/)
+rm -rf config && cp -R ../my-fork/config config
+cp -R ../my-fork/snapshots snapshots        # only if you keep snapshots
+printf 'node_modules\ndist\n' > .gitignore
+npm run check && npm run dev
+```
+
+Replace `config/` after `init`, not before: `init` adds every sample file your folder lacks, and next to your own
+`categories.yml` its `categories/` folder would make the configuration invalid (only one of the two may exist).
+
+- If your configuration already lives in a separate repository (through `PROGRESSION_RADAR_CONFIG_DIR`), that
+  repository can be the adopter repository: run the same commands in it instead of in a new folder, moving its files
+  into `config/` after `init`.
+- In an adopter repository `config/` and `snapshots/` are not git-ignored: commit what you want to keep, and decide who
+  can read the repository, since snapshots hold personal data.
+- Copy your `netlify.toml` (or your CI) as described in [Deployment](deployment.md#netlify).
+- A fork that changes `src/` stays a fork.
+
+## A fork
+
 What to do after pulling an update, depending on what your fork customised. See also
 [Keeping your fork up to date](deployment.md#keeping-your-fork-up-to-date).
 
-## A fork that edited `config.example/categories.yml` (the sample moved to category files)
+### A fork whose build succeeded with configuration problems
+
+`npm run build` now fails when the configuration is invalid, listing every problem with its file and folder, instead of
+building a site that only shows the problems. If your build starts failing after pulling, run `npm run dev` to see the
+problems on the page, or `npm run check` to list them, fix the files they name and build again.
+
+### A fork that edited `config.example/categories.yml` (the sample moved to category files)
 
 The sample categories are now Markdown category files in `config.example/categories/` and `config.example/categories.yml`
 is gone. If your fork edited that file, pulling the update reports a modify/delete conflict. Keep your file, then move
@@ -18,7 +80,7 @@ npm run config:migrate                   # moves it to config/categories.yml and
 Until you do, `config.example/` holds both forms and the app reports it as a configuration problem. Afterwards you can
 keep the YAML, or convert it with `npm run config:convert-categories` (see [Categories](categories.md)).
 
-## A fork that edited `config/` (the sample moved to `config.example/`)
+### A fork that edited `config/` (the sample moved to `config.example/`)
 
 Upstream's sample configuration moved from `config/` to `config.example/`, and `config/` is now git-ignored and yours
 (see [Configuration](configuration.md)). When you pull the update, git sees the rename and moves your edits into
@@ -65,20 +127,20 @@ git add -f config
 A fork that deploys from its own repository and does not migrate still builds, with its customisations read from
 `config.example/`.
 
-## A fork with a category key `name`, `role`, `compare`, `tag` or `state`
+### A fork with a category key `name`, `role`, `compare`, `tag` or `state`
 
 The share link now keeps the state in the URL fragment (see [The state in the URL](share-link.md)) and those
 five keys are reserved for its fields. After pulling the update, the app lists any category that uses one of them as a
 configuration error: rename its `key` in `config/categories.yml` (and in `config/roles.yml`). Links that used the old
 key stop matching that category, and the notice says so.
 
-## A fork with a category key `id`
+### A fork with a category key `id`
 
 `id` is reserved by the [snapshots](snapshots.md): it is the column that identifies a person. After pulling the update,
 the app lists a category with that key as a configuration problem. Rename its `key` (in the category file or
 `categories.yml`, and in `roles.yml`). Links that used the old key stop matching that category, and the notice says so.
 
-## KPIs are now called expectations
+### KPIs are now called expectations
 
 The items of a category are now called expectations: they describe what is expected at a level, they are not
 measured indicators. Nothing breaks: the `kpis` list in `categories.yml` is still read, and the `.kpi*` class names
@@ -86,7 +148,7 @@ and `--kpi-index` are still on the page. To adopt the new names, rename `kpis:` 
 `categories.yml` and the `.kpi*` selectors in your `theme.css` to `.expectation*` (e.g. `.kpi-summary` to
 `.expectation-summary`).
 
-## A fork with a custom theme
+### A fork with a custom theme
 
 The default look changed after 1.0 (new colours, fonts, a paper texture and a dark palette). After pulling the
 update, check the dark mode of your theme (see [Styles](styles.md)) and set the new variables if the defaults do not
@@ -99,13 +161,16 @@ also carries the texture). The double rules around the page and most dividers ar
 `--color-background` to a paper tone, the band is derived from it and `--color-surface`; set `--color-band` to choose
 it yourself.
 
-## From 0.x
+### From 0.x
 
 Version 1.0 is a rewrite (Vite, React 19 and TypeScript instead of Create React App, Redux and Bootstrap). Existing
 links keep working, but:
 
 - **Configuration location.** Move `src/data/categories.yml` and `src/data/roles.yml` to `config/`. There are no
   `.dist` files any more: `config/` is yours and falls back to the sample in `config.example/`.
-- **No npm package.** Fork the repository and customise `config/` instead, including `config/theme.css` for styles.
+- **No component library.** 0.x was an npm library whose components other projects imported. 1.x imports nothing into
+  your code: install it as a tool dependency of an adopter repository (see [Getting started](getting-started.md)) or
+  fork it, and customise `config/`, including `config/theme.css` for styles. A `^0.2.x` range never resolves to 1.x,
+  so install `progression-radar@latest`.
 - **Percentages.** A level is now a percentage of the highest level in its category, so the top level is 100%.
-- **Tooling.** Use `npm` instead of `yarn` and `npm run dev` instead of `yarn start`. The build output is `dist/`.
+- **Tooling.** Use `npm run dev` instead of `yarn start`. The build output is `dist/`.
