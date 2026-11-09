@@ -1,7 +1,7 @@
 ---
 key: biz
-name: Business Impact
-description: Understands users and the business, discovers the problems worth solving and measures the outcomes of the work, in a world where building is cheap and learning fast is the advantage
+name: Product & Business Impact
+description: Understands users, markets and the business, discovers problems worth solving, and measures product outcomes; when building is cheaper, learning and making good choices become the advantage.
 ---
 
 ## Level 1
@@ -10,71 +10,68 @@ description: Understands users and the business, discovers the problems worth so
 
 **Example behaviours:**
 
-- Explains who uses the feature they are working on and what problem it solves
-- Asks about the goal when it is not clear
+- Explains who uses the part of the product they work on and what problem it is intended to solve.
+- Asks about the desired outcome when the goal or user need is unclear.
+- Distinguishes a delivered feature from an observed benefit to the user or business.
 
 ## Level 2
 
-### Contributes to product discovery
+### Contributes to product discovery and learning
 
 **Example behaviours:**
 
-- Takes part in user interviews, support sessions or usability tests
-- Proposes ideas from what they learn about users and data
-- Checks after release whether the work had the expected effect
+- Participates in user interviews, support reviews, usability research or analysis of product usage.
+- Suggests opportunities or improvements grounded in user evidence and business context.
+- Helps formulate a hypothesis, success criteria and a small experiment before committing to a larger solution.
+- Checks after release whether a change produced the expected effect and shares what was learned.
 
-### Learns by building
+### Tests assumptions before investing heavily
 
 **Example behaviours:**
 
-- Tests several variants of an idea with real users, as prototypes that take hours, instead of debating a single one
-- Uses fake doors or small experiments to learn whether an idea is worth building in full
-- States what result would prove the idea wrong before running the test
+- Uses prototypes, fake doors or other proportionate experiments to compare alternatives and reduce uncertainty.
+- States in advance what evidence would support or contradict an assumption.
 
 ## Level 3
 
-### Defines problems, metrics and priorities
+### Frames problems, outcomes and priorities
 
 **Example behaviours:**
 
-- Frames problems as outcomes with measurable success metrics
-- Prioritises with evidence (research, data, experiments) and says no to work that does not move the outcome
-- Understands the economics of the product, including the cost of AI features per user and per request
+- Defines customer or business problems as measurable outcomes rather than lists of features.
+- Prioritises opportunities using research, product data, experiments, constraints and expected impact; says no when evidence is weak.
+- Understands relevant product economics, including acquisition, retention, revenue, margins and variable AI costs where applicable.
+- Works with design and engineering to identify simpler or more valuable solutions to the same problem.
 
-### Designs the learning loops of the product
-
-**Example behaviours:**
-
-- Shapes the solution with design and engineering, and proposes simpler alternatives when they serve the user better
-- Makes usage in production feed the evaluations and the next improvements: user corrections, ratings and failed cases
-- Measures the quality of AI features as a product metric, such as tasks completed or answers accepted, not only as a technical one
-- Designs A/B tests with the team, reads their results honestly and stops features that did not work
-
-### Turns new AI capabilities into user value
+### Builds continuous product learning loops
 
 **Example behaviours:**
 
-- Recognises which problems AI can solve now that it could not solve before, and which it should not touch
-- Defines what "good enough" quality means for an AI feature together with engineering
+- Defines meaningful success metrics and works with the team to design valid experiments, including A/B tests when appropriate.
+- Uses production behaviour, user feedback and failed cases to shape subsequent product decisions.
+- Interprets inconclusive and negative results accurately, and changes or stops initiatives that are not delivering value.
+- Identifies when AI creates a genuinely useful new possibility and defines acceptable quality for the user experience with technical partners.
 
 ## Level 4
 
-### Owns the strategy of a product area where building is cheap
+### Shapes the strategy of a product area
 
 **Example behaviours:**
 
-- Builds a strategy and a roadmap for an area from the market, the users and the business goals
-- Looks for the advantage in proprietary data, distribution and loops that improve the product with use, not in features that anyone can copy quickly
-- Aligns several teams and stakeholders around the strategy
-- Knows the competitors and how AI changes the market of the product
+- Develops a coherent strategy for a product area from user needs, market dynamics, competitive context and business objectives.
+- Connects strategic choices to clear priorities, opportunities and outcome measures across teams.
+- Identifies durable advantages such as differentiated workflows, distribution, trusted data and product learning loops rather than relying on easily copied features.
+- Aligns stakeholders around trade-offs, communicates what will not be pursued and adjusts direction as evidence changes.
+- Evaluates how changing AI capabilities alter customer expectations, competition and product economics.
 
 ## Level 5
 
-### Shapes the product strategy and AI-native business models
+### Shapes product portfolio direction and business models
 
 **Example behaviours:**
 
-- Defines the product vision and portfolio of the company with leadership
-- Owns business results such as revenue, retention or margin, with the variable cost of inference in mind
-- Designs AI-native business models, such as pricing by outcome or by usage
-- Identifies markets that AI makes viable for the first time
+- Influences long-term product vision and portfolio choices across multiple product areas using evidence of customer and business value.
+- Evaluates strategic bets through their expected effects on growth, retention, profitability, differentiation and organisational capacity.
+- Identifies viable opportunities, markets and business models enabled by shifts in technology, including AI.
+- Establishes principles for allocating investment, learning from strategic experiments and discontinuing low-value initiatives.
+- Aligns senior leadership around material product trade-offs without relying solely on formal authority.

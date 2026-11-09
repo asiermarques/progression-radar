@@ -16,10 +16,10 @@
 # Product Maker: builds products end to end, close to users, with AI as a multiplier.
 - key: maker
   name: Product Maker (L2)
-  levels: { build: 3, ai: 2, data: 1, cloud: 1, trust: 2, agentic: 3, deliv: 2, biz: 2, comm: 2, people: 1 }
+  levels: { build: 3, ai: 2, data: 2, cloud: 1, trust: 2, agentic: 3, deliv: 2, biz: 3, comm: 2, people: 1 }
 - key: smaker
   name: Senior Product Maker (L3)
-  levels: { build: 4, ai: 3, data: 2, cloud: 2, trust: 2, agentic: 4, deliv: 3, biz: 3, comm: 3, people: 2 }
+  levels: { build: 4, ai: 3, data: 2, cloud: 2, trust: 3, agentic: 4, deliv: 3, biz: 4, comm: 3, people: 2 }
 - key: lmaker
   name: Lead Product Maker (L4)
   levels: { build: 5, ai: 3, data: 2, cloud: 2, trust: 3, agentic: 4, deliv: 4, biz: 4, comm: 4, people: 3 }

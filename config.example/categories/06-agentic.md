@@ -1,7 +1,7 @@
 ---
 key: agentic
 name: AI-Native Work
-description: Works with AI assistants and agents as part of the team to do their own work and the team's, not to build AI into the product, with good judgement on what to delegate and how to verify it
+description: Works with AI assistants, agents and iterative automation to improve individual and team work, from supervised delegation to software factories; distinct from building AI into the product
 ---
 
 ## Level 1
@@ -10,46 +10,54 @@ description: Works with AI assistants and agents as part of the team to do their
 
 **Example behaviours:**
 
-- Uses assistants to write, research, summarise and code, and checks what they produce
-- Knows which tools and data are approved, and never shares confidential information outside them
-- Takes ownership of the result: "the AI did it" is never an excuse
+- Uses AI assistants to research, analyse, write, code or solve problems appropriate to their role.
+- Provides clear instructions and relevant context, and critically reviews results before using them.
+- Understands common limitations of AI-generated outputs and remains accountable for the final work.
+- Follows approved practices for tools, permissions and confidential information.
 
 ## Level 2
 
-### Delegates complete tasks to agents and verifies them
+### Delegates bounded tasks to agents and verifies outcomes
 
 **Example behaviours:**
 
-- Writes clear specs and context so that an agent can complete a task, such as a migration, an analysis, a report or a document
-- Reviews the result critically, with tests, data or an expert, before trusting it
-- Knows when a task is faster or safer to do by hand
+- Defines tasks with clear objectives, context, constraints and acceptance criteria so that agents can execute them.
+- Validates results using appropriate evidence, such as tests, data, reviews or expert judgement.
+- Selects suitable levels of autonomy, checkpoints and human approval based on the task's risks.
+- Recognises when an agent adds unnecessary complexity or when direct human execution is preferable.
 
 ## Level 3
 
-### Designs workflows where people and agents work together
+### Designs repeatable agentic workflows and loops
 
 **Example behaviours:**
 
-- Automates repetitive work of the team (reviews, triage, reports, documentation) with agents and clear approval points
-- Shares prompts, instructions and tools with the team, and keeps them up to date
-- Measures whether a workflow actually saves time or improves quality
+- Builds repeatable agent loops that plan, execute, inspect results and iterate against explicit acceptance criteria, with stopping conditions and resource limits.
+- Gives agents the right context, tools and verification mechanisms, with checkpoints and escalation when they cannot make reliable progress.
+- Automates recurring work, such as implementation, reviews, analysis, documentation or operational triage, where it improves outcomes.
+- Maintains reusable, versioned instructions, workflows and tools that other team members can adopt.
+- Measures effectiveness through quality, rework, time saved and cost, rather than the number of agent runs.
 
 ## Level 4
 
-### Changes how their team or area works with AI
+### Engineers AI-native workflows and software factories for teams
 
 **Example behaviours:**
 
-- Redesigns processes, workflows and rituals around what agents now do well
-- Teaches others to work with agents and helps them build the judgement to verify results
-- Spots the risks of over-reliance, such as loss of skills or unreviewed output, and addresses them
+- Designs end-to-end software factory workflows in which agents can move work from specifications through implementation, testing and review, with human decisions where needed.
+- Establishes reliable autonomous execution through isolated environments, machine-checkable quality gates, traceability, budgets and clear stop or escalation conditions.
+- Coordinates multiple agents or iterative loops across stages of work, handling failures, dependencies and feedback without losing accountability.
+- Leads experiments that improve how teams work with AI, sharing effective patterns and helping colleagues develop sound verification judgement.
+- Evaluates impact on delivery speed, quality, maintainability, operational risk and team capability, and addresses over-reliance or skill erosion.
 
 ## Level 5
 
-### Defines the AI-native operating model of the company
+### Shapes the AI-native operating model across the organisation
 
 **Example behaviours:**
 
-- Sets how the company adopts AI tools and agents for its own work: policies, budgets, tools and metrics
-- Decides which work the company hands to agents and which stays in human hands, and revisits it as models improve
-- Is recognised outside the company for their AI-native practices
+- Defines principles for how people, agents and software factories collaborate across multiple teams and business areas.
+- Identifies where autonomous workflows create meaningful value, and where human judgement, ownership or approval must remain central.
+- Aligns leaders on adoption priorities, investment, shared capabilities and measurable outcomes.
+- Establishes organisation-wide standards for agent loops, software factories, verification, accountability and continuous improvement.
+- Evolves responsibilities, workflows and skills as agent capabilities and organisational needs change.

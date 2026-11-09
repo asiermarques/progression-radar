@@ -6,73 +6,80 @@ description: Builds and runs the cloud infrastructure and the internal platform 
 
 ## Level 1
 
-### Uses the platform to ship and operate their own services
+### Uses cloud platforms to deploy and operate software
 
 **Example behaviours:**
 
-- Deploys services with the existing pipelines and reads their logs and metrics
-- Understands the basics of containers, networking and cloud permissions
+- Deploys applications using existing platform capabilities and deployment workflows.
+- Uses logs, metrics and basic diagnostic tools to understand application behaviour.
+- Understands fundamental concepts of compute, containers, networking, storage and cloud permissions.
 
 ## Level 2
 
-### Automates infrastructure as code
+### Works with cloud infrastructure and automation
 
 **Example behaviours:**
 
-- Writes and reviews infrastructure as code (Terraform, Pulumi or similar) instead of making changes by hand
-- Builds and improves CI/CD pipelines so that deployments are frequent and boring
-- Applies least privilege to every role and secret they create
-- Reviews the infrastructure code an agent writes, reading the plan before applying it
+- Uses or reviews infrastructure configurations and infrastructure-as-code workflows following established patterns.
+- Understands deployment pipelines, configuration management, secrets and infrastructure change procedures.
+- Identifies common infrastructure risks, including excessive permissions, deployment failures and resource misconfiguration.
+- Contributes to improvements in deployment reliability, automation or operational efficiency.
+
+### Understands cloud operational trade-offs
+
+**Example behaviours:**
+
+- Explains how infrastructure choices affect availability, performance, scalability and cost.
+- Uses existing monitoring and cost visibility tools to identify operational problems.
 
 ## Level 3
 
-### Designs environments for software and AI workloads
+### Designs reliable and scalable cloud workloads
 
 **Example behaviours:**
 
-- Designs Kubernetes or serverless environments with autoscaling, isolation and sensible defaults
-- Runs model inference in production: GPU scheduling, model serving, cold starts and capacity planning
-- Plans disaster recovery and tests it
+- Designs or reviews cloud architectures using appropriate compute, networking and storage capabilities.
+- Selects deployment approaches such as containers, serverless or specialised compute based on workload requirements.
+- Establishes scaling, resilience, observability and disaster recovery mechanisms appropriate to the workload.
+- Deploys and scales infrastructure for AI inference workloads, including model serving, capacity planning and specialised compute when self-hosted models require it.
 
-### Gives agents a safe place to work
-
-**Example behaviours:**
-
-- Provides ephemeral environments where agents can build, test and deploy previews without touching production
-- Gives agents short-lived credentials with the narrowest permissions, and logs everything they do
-
-### Keeps cloud costs under control
+### Optimises reliability and cost
 
 **Example behaviours:**
 
-- Makes the cost of each team and service visible, including the cost of tokens and GPUs
-- Reduces cost with right-sizing, spot capacity, caching and reserved commitments, without hurting reliability
+- Identifies and resolves infrastructure bottlenecks, reliability issues and inefficient resource usage.
+- Evaluates infrastructure costs and applies optimisation techniques without compromising service requirements.
+- Designs safe provisioning and deployment workflows using appropriate isolation, permissions and recovery mechanisms.
 
 ## Level 4
 
-### Builds the internal platform as a product
+### Architects internal platforms as products
 
 **Example behaviours:**
 
-- Builds golden paths and an internal developer platform that let teams create a service, a pipeline or an agent in minutes
-- Talks to the teams that use the platform and prioritises from what they need
-- Lets agents operate the platform within guardrails: policy as code, approvals for risky changes and automatic rollback
+- Designs reusable platform capabilities and golden paths that enable teams to deploy and operate workloads independently.
+- Treats the internal platform as a product, gathering feedback and prioritising improvements based on developer needs.
+- Establishes standard interfaces, automation and guardrails for provisioning and operating infrastructure.
+- Provides reusable self-service capabilities to provision, deploy, scale and operate AI workloads, including inference environments, observability and cost visibility.
+- Enables people and automated systems to consume platform capabilities safely through well-defined interfaces.
 
-### Runs the platform at scale
+### Operates platforms across teams
 
 **Example behaviours:**
 
-- Provides the compute that AI workloads run on, such as GPU capacity and serving clusters, with their cost per team
-- Plans capacity and cost budgets with the teams, including the growth of AI usage
-- Leads platform migrations without disrupting the teams that depend on the platform
+- Establishes standards for platform reliability, observability, lifecycle management and cost efficiency.
+- Measures platform effectiveness through adoption, developer experience, operational reliability and cost.
+- Designs shared infrastructure capabilities that support different workload requirements without unnecessary duplication.
+- Leads complex platform migrations and architectural improvements while minimising disruption to consumers.
 
 ## Level 5
 
-### Defines the infrastructure strategy of the company
+### Sets the technical direction for cloud platforms
 
 **Example behaviours:**
 
-- Decides the cloud, compute and AI provider strategy, including multi-cloud, on-premise GPUs and vendor lock-in
-- Plans infrastructure years ahead from the growth of the business and of AI usage
-- Decides how far agents can operate production, and how humans stay in control of it
-- Is recognised outside the company for their platform engineering practice
+- Defines architectural principles and the long-term technical direction for cloud infrastructure and internal platforms.
+- Evaluates major infrastructure technologies, providers and architectural approaches against business and technical needs.
+- Anticipates changes in workload requirements, including AI and data processing, and guides the evolution of infrastructure capabilities.
+- Establishes organisation-wide technical standards for scalability, resilience, interoperability and operational efficiency.
+- Influences infrastructure investment decisions by communicating long-term cost, reliability and architectural trade-offs.

@@ -1,69 +1,84 @@
 ---
 key: trust
 name: Reliability, Security & Trust
-description: Keeps systems available, secure and compliant, and makes AI features safe for the people who use them
+description: Keeps systems reliable, secure and privacy-conscious, manages technical risk and makes AI-powered features trustworthy for the people who use them
 ---
 
 ## Level 1
 
-### Follows the security and operational practices of the team
+### Follows safe and reliable engineering practices
 
 **Example behaviours:**
 
-- Never commits secrets and reports suspicious behaviour or vulnerabilities right away
-- Follows runbooks and the incident process when something breaks
-- Never pastes customer or confidential data into AI tools that are not approved for it
+- Follows established practices for handling sensitive data, credentials and access permissions.
+- Recognises common security, privacy and reliability risks and escalates concerns appropriately.
+- Understands how incidents are reported and follows established procedures when something goes wrong.
+- Uses approved AI tools and handles customer and confidential information responsibly.
 
 ## Level 2
 
-### Makes their systems observable and takes part in on-call
+### Contributes to reliable and secure systems
 
 **Example behaviours:**
 
-- Adds logs, metrics, traces and alerts that help find the cause of a problem, not only its symptom
-- Takes part in the on-call rotation and writes blameless post-mortems
-- Keeps dependencies up to date and fixes known vulnerabilities
+- Implements or reviews appropriate logging, monitoring, error handling and security controls for their work.
+- Identifies common failure scenarios, vulnerabilities and data protection risks before releasing changes.
+- Uses established practices for dependency management, access control and secure configuration.
+- Participates in incident response and continuous improvement activities according to their responsibilities.
+
+### Understands operational impact
+
+**Example behaviours:**
+
+- Understands how failures, security incidents and degraded performance affect users and the business.
+- Uses operational signals and existing procedures to investigate problems and support recovery.
 
 ## Level 3
 
-### Designs for failure and for attackers
+### Anticipates failures and security threats
 
 **Example behaviours:**
 
-- Runs threat modelling for new features, including the risks of AI: prompt injection, data exfiltration through tools and over-privileged agents
-- Designs graceful degradation, retries and timeouts, and a fallback when a model provider is down
-- Defines service level objectives with the product team and uses error budgets to prioritise
+- Designs or reviews systems to handle failures, degraded dependencies and malicious or unintended behaviour.
+- Applies threat modelling and risk assessment, including AI-specific threats when relevant.
+- Defines meaningful reliability and security expectations, using service objectives and appropriate monitoring.
+- Balances reliability, security, performance and delivery speed according to the criticality of the system.
 
-### Protects personal data
+### Protects users and their data
 
 **Example behaviours:**
 
-- Applies privacy by design and data minimisation, including in prompts, logs and training data
-- Knows the regulation that applies to the product, such as GDPR
+- Applies privacy by design, data minimisation and appropriate access controls.
+- Identifies relevant regulatory and compliance requirements and incorporates them into technical decisions.
+- Establishes appropriate prevention, detection and recovery mechanisms for significant risks.
 
 ## Level 4
 
-### Sets reliability and security standards across teams
+### Defines reusable standards and safeguards
 
 **Example behaviours:**
 
-- Defines the policies, reviews and automated checks that teams follow, such as secure defaults in the platform
-- Leads the response to major incidents and turns their lessons into lasting changes
-- Defines how AI systems are red-teamed, monitored and approved before release
+- Establishes consistent reliability, security and privacy practices across multiple teams.
+- Introduces automated safeguards and secure defaults that make safe behaviour easier without unnecessary manual approvals.
+- Defines appropriate security testing, resilience validation and AI safety assessment practices.
+- Ensures teams can demonstrate compliance with relevant requirements through appropriate technical evidence.
 
-### Makes risk visible
+### Improves risk and incident management
 
 **Example behaviours:**
 
-- Keeps an up-to-date view of the main risks of the systems, AI systems included, and how they are mitigated
-- Answers the security reviews of customers and partners with evidence, not promises
+- Identifies and prioritises significant technical risks across systems and teams.
+- Coordinates improvements to incident preparedness, response and recovery for major failure scenarios.
+- Uses incidents, security assessments and operational evidence to drive lasting improvements rather than isolated fixes.
 
 ## Level 5
 
-### Leads the risk and compliance strategy
+### Defines long-term trust architecture and technical risk strategy
 
 **Example behaviours:**
 
-- Prepares the company for regulation and audits, such as the EU AI Act, SOC 2 or ISO 27001
-- Balances risk and speed with leadership, and makes trust a reason why customers choose the product
-- Builds a culture where everyone feels responsible for security and reliability
+- Defines long-term technical principles for reliability, security, privacy and trustworthy AI across the organisation.
+- Guides major architectural and technology decisions by evaluating risk, resilience, cost and business impact.
+- Anticipates emerging threats, regulatory requirements and technology changes, guiding the evolution of technical safeguards.
+- Establishes organisation-wide approaches for managing and measuring technical risk.
+- Influences leadership decisions on acceptable risk, investment priorities and organisational resilience.

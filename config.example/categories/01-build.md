@@ -1,94 +1,84 @@
 ---
 key: build
-name: Product Engineering
-description: The craft of building software products end to end, from the design of the interface to the services and data behind it, when much of the code is written by agents and the engineer answers for all of it
+name: Product Building
+description: Designs and builds complete software product experiences, from interactions and prototypes to services and data, with people and AI agents, while taking responsibility for usability, correctness and maintainability.
 ---
 
 ## Level 1
 
-### Ships small, well-scoped changes to an existing product
+### Contributes safe changes to an existing product
 
 **Example behaviours:**
 
-- Fixes bugs and makes small changes to screens, endpoints or jobs following the team's conventions
-- Writes tests for the code they change and keeps the build green
-- Asks for help early when a change touches unfamiliar parts of the product
-- Understands every line they submit, whoever or whatever wrote it
+- Makes small, well-scoped changes to interfaces, services, data or product flows using established patterns and appropriate tools.
+- Understands who uses the part of the product being changed and the behaviour the change should produce.
+- Checks the result with suitable tests, previews or manual verification, including loading and error cases when relevant.
+- Reviews work produced by AI agents, takes responsibility for the result and asks for help when technical or product implications are unclear.
 
 ## Level 2
 
-### Delivers complete features with agents and answers for them
+### Builds complete, usable features
 
 **Example behaviours:**
 
-- Writes the spec and the acceptance criteria before handing a feature to an agent, across the interface, the API and the storage it needs
-- Uses tests as the contract: they describe the expected behaviour and the agent has to make them pass
-- Reviews the whole diff, not only whether it works, and can explain every decision in it
+- Turns a defined product problem into a working feature, covering the relevant interaction, business logic, interfaces and data flows using established patterns.
+- Designs simple user journeys and prototypes, and checks the experience with users or collaborators before committing to implementation.
+- Handles validation, accessibility basics, loading, empty, success and error states, and other relevant edge cases.
+- Defines acceptance criteria and verifies behaviour with suitable functional, integration or end-to-end tests, whether people or agents produced the implementation.
 
-### Designs simple user flows on their own
-
-**Example behaviours:**
-
-- Sketches the flows and screens of a feature and checks them with users or the team before building them
-- Follows the design system and handles loading, empty and error states, whoever wrote the code
-
-### Builds prototypes quickly
+### Makes practical solution trade-offs
 
 **Example behaviours:**
 
-- Builds a clickable or working prototype in hours, with agents, when the team needs to test an idea
-- Throws prototypes away when they have answered the question, instead of shipping them as they are
+- Chooses between adapting existing capabilities, integrating an external service or building something new, with guidance where needed.
+- Understands the key dependencies and limitations of the solution and can explain why it was implemented that way.
 
 ## Level 3
 
-### Designs the feedback loops that let agents iterate on their own
+### Designs and owns end-to-end product solutions
 
 **Example behaviours:**
 
-- Makes sure an agent can check its own work: fast tests, types, linters, preview environments and evaluations it can run
-- Turns every bug an agent introduced into a test or a rule, so that it does not happen again
-- Owns the quality of the code that agents produce in their area: refactors, removes dead code and pays technical debt as part of the work
+- Designs coherent solutions across user interactions, domain logic, APIs and data, involving specialists when deeper expertise is needed.
+- Makes informed trade-offs between user experience, simplicity, performance, reliability, scalability and maintainability.
+- Defines clear interfaces, data flows and failure handling, and ensures appropriate tests, observability and recovery mechanisms are in place.
+- Reviews and challenges implementation choices, including AI-generated code, using evidence of correctness, quality and user experience rather than accepting a working demo alone.
 
-### Makes interaction design decisions
-
-**Example behaviours:**
-
-- Designs the interaction of complex flows, with accessibility in mind from the start
-- Improves the interaction from usage data and feedback, not only from the original design
-
-### Builds AI-powered features into the product
+### Improves product experience and engineering quality
 
 **Example behaviours:**
 
-- Integrates model calls into the product with streaming and loading states that make latency acceptable
-- Designs interfaces that show uncertainty and let users correct or undo what the AI did
+- Designs complex interaction flows with usability and accessibility in mind, and improves them using feedback and observed behaviour.
+- Finds recurring defects, friction and unnecessary complexity and drives improvements to the solution rather than repeatedly patching symptoms.
+- Keeps product code and interfaces understandable, testable and maintainable as the product evolves.
 
 ## Level 4
 
-### Makes the architecture readable and safe for agents
+### Architects consistent product solutions across teams
 
 **Example behaviours:**
 
-- Designs modules with clear boundaries and APIs, so that people and agents can change one part without breaking the others
-- Documents the conventions and the context that agents need, and keeps them up to date as the code changes
-- Keeps CI fast and gives agents sandboxes and limited permissions to work in
-- Decides which changes an agent can make without human review and which always need one
+- Shapes product architecture with clear domain boundaries, APIs, responsibilities and integration patterns so teams can evolve capabilities independently.
+- Establishes reusable interaction patterns, components and design-system contributions that improve consistency and accessibility across products.
+- Makes architectural decisions, constraints and conventions explicit so people and agents can change the product safely.
+- Reviews complex solution designs across teams, balancing local needs with the coherence and sustainability of the overall product.
 
-### Raises the bar of engineering quality
+### Raises the bar for product quality
 
 **Example behaviours:**
 
-- Defines quality standards for the product (performance budgets, accessibility, testing, error handling) and makes them measurable
-- Reviews designs and pull requests of other teams and improves them
-- Contributes components and patterns to the design system that other teams use
+- Defines measurable standards for product usability, accessibility, performance, testing, reliability and maintainability.
+- Uses recurring defects, operational evidence and user friction to improve shared engineering and design practices.
+- Helps others make sound product solution decisions without becoming a permanent approval bottleneck.
 
 ## Level 5
 
-### Sets the technical direction of the product
+### Sets the long-term direction for building the product
 
 **Example behaviours:**
 
-- Sets the technical direction of the whole product over the coming years and aligns teams around it
-- Makes the big technical bets: changes of architecture, platforms and frameworks, build versus buy, and when to pay down debt or rewrite
-- Shapes how small teams own products end to end, from the interface to the data, with clear ownership and few hand-offs
-- Is recognised outside the company for their product engineering practice
+- Defines the long-term technical and experience architecture of a product or broad product area, aligned with its evolving needs.
+- Guides major solution decisions, including architectural evolution, platform adoption, technology choices, build-versus-buy and the reduction of technical debt.
+- Establishes principles that allow teams to own coherent product capabilities end to end with minimal hand-offs.
+- Anticipates how new technologies, including AI-assisted development, change the ways products can be designed, built and maintained.
+- Influences senior stakeholders through clear trade-offs between product experience, technical sustainability, investment and speed of change.
