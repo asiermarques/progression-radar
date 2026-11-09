@@ -1,6 +1,6 @@
 // Converts the categories.yml of the configuration folder into a categories/ folder of Markdown category files.
 // Node only, build-time tooling: it never stages or commits. Run it with `npm run config:convert-categories`.
-// See docs/adr/0003.
+// The only code that reads a categories.yml: the app no longer does (docs/adr/0006).
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fromMarkdown } from "mdast-util-from-markdown";
@@ -94,6 +94,23 @@ function categoryFile(category: Category): { text: string; changes: string[] } {
 }
 
 /**
+ * Reads "kpis", the legacy name of "expectations" that only a categories.yml can have, so that it converts too.
+ * A category with both is a reason not to convert.
+ */
+function withLegacyNames(raw: unknown, file: string, reasons: string[]): unknown {
+  if (!Array.isArray(raw)) return raw;
+  return raw.map((item: unknown, index) => {
+    if (typeof item !== "object" || item === null || !("kpis" in item)) return item;
+    const { kpis, ...category } = item as Record<string, unknown>;
+    if ("expectations" in category) {
+      reasons.push(`${file} entry #${index + 1}: category "${String(category.key)}" has both "expectations" and "kpis"; keep only "expectations"`);
+      return category;
+    }
+    return { ...category, expectations: kpis };
+  });
+}
+
+/**
  * Converts `<configDir>/categories.yml` into `<configDir>/categories/NN-<key>.md` and renames the YAML to
  * `categories.yml.bak`. Writes nothing and throws a ConversionError when the YAML has a configuration problem or
  * the destination is taken.
@@ -112,9 +129,11 @@ export async function convertCategories(options: ConvertOptions): Promise<Conver
 
   let categories: Category[] = [];
   try {
-    const raw: unknown = parse(readFileSync(source, "utf8"));
+    const raw = withLegacyNames(parse(readFileSync(source, "utf8")), label(CATEGORIES_FILE), reasons);
     categories = parseConfig({ categories: raw, roles: null, site: null }, {}, {
       categories: label(CATEGORIES_FILE),
+      // The app names categories by their file; here each one is an entry of the YAML list.
+      categoryFiles: Array.isArray(raw) ? raw.map((_, index) => `${label(CATEGORIES_FILE)} entry #${index + 1}`) : [],
       roles: "roles.yml",
       site: "site.yml",
       folders: [],

@@ -131,7 +131,7 @@ The same script names work in an adopter repository and in a fork. All of them r
 | `npm run check`     | checks the configuration and the snapshots, and fails if either has an error |
 | `npm run build`     | builds the static site into `dist/`; fails, listing every problem, if the configuration is invalid |
 | `npm run preview`   | serves the production build locally                     |
-| `npm run config:convert-categories` | converts `categories.yml` into [category files](categories.md#converting-an-existing-categoriesyml) |
+| `npm run config:convert-categories` | converts an old `categories.yml` into [category files](categories.md#converting-an-existing-categoriesyml) |
 | `npm run snapshot:record` | saves a share link in a dated [snapshot](snapshots.md) |
 | `npm run snapshot:link` | prints the share link of a recorded person |
 | `npm run snapshot:check` | checks the snapshots against the current configuration |
@@ -142,4 +142,4 @@ Only in a fork:
 |---------------------|---------------------------------------------------------|
 | `npm test`          | runs the tests in watch mode (`npm test -- --run` once) |
 | `npm run typecheck` | type-checks the project (`npm run build` runs it first in a fork) |
-| `npm run config:migrate` | moves a fork's edits out of `config.example/` (see [Upgrading](upgrading.md)) |
+| `npm run config:migrate` | moves a fork's edits out of `config.example/`, converting an old `categories.yml` (see [Upgrading](upgrading.md)) |

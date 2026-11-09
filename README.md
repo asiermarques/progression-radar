@@ -27,12 +27,12 @@ Live demo: [https://progression-radar.netlify.app](https://progression-radar.net
 
 **Make it yours**
 
-- Write your own ladder as Markdown files or YAML: [Categories](docs/guides/categories.md) and
+- Write your own ladder as one Markdown file per category: [Categories](docs/guides/categories.md) and
   [Roles](docs/guides/roles.md).
 - Set the title, logo and footer, and choose where your configuration lives:
   [Configuration](docs/guides/configuration.md).
 - Change colours, fonts and styles, including a dark mode: [Styles](docs/guides/styles.md).
-- Convert an existing `categories.yml` into category files with `npm run config:convert-categories`.
+- Still have a `categories.yml` from an earlier version? Convert it with `npm run config:convert-categories`.
 
 **Keep a record over time**
 
@@ -89,7 +89,7 @@ A fresh clone runs with a sample ladder, with no setup. Fork it only if you need
 - [Getting started](docs/guides/getting-started.md): install it as a dependency (recommended) or fork it, and the
   list of npm scripts.
 - [Configuration](docs/guides/configuration.md): the config folder, the sample as fallback, `site.yml` and validation.
-- [Categories](docs/guides/categories.md): category files, `categories.yml` and reserved keys.
+- [Categories](docs/guides/categories.md): category files, converting an old `categories.yml` and reserved keys.
 - [Roles](docs/guides/roles.md): `roles.yml`.
 - [Styles](docs/guides/styles.md): `theme.css`, colours, fonts and class names.
 - [The share link](docs/guides/share-link.md): the URL format and how old or partly outdated links are read.

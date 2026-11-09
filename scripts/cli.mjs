@@ -13,6 +13,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { build, createServer, loadConfigFromFile, preview, runnerImport } from "vite";
+import { loadConverter } from "./load-converter.mjs";
 
 const packageRoot = fileURLToPath(new URL("..", import.meta.url)).replace(/[\\/]$/, "");
 const workingDir = process.cwd();
@@ -130,19 +131,7 @@ async function main([command, ...args]) {
     }
     case "config": {
       if (args[0] !== "convert-categories") fail(`Unknown command "${["config", args[0]].filter(Boolean).join(" ")}".\n${USAGE}`);
-      // The converter reads only the file it is given: the virtual module of the app is stubbed.
-      const stub = {
-        name: "stub-virtual-config",
-        resolveId: (id) => (id === "virtual:progression-radar-config" ? `\0${id}` : null),
-        load: (id) => (id === "\0virtual:progression-radar-config" ? "export const raw = {}; export const images = {}; export const origins = {};" : null),
-      };
-      const { module } = await runnerImport(join(packageRoot, "scripts", "convert-categories.ts"), {
-        configFile: false,
-        root: packageRoot,
-        cacheDir,
-        logLevel: "silent",
-        plugins: [stub],
-      });
+      const module = await loadConverter({ packageRoot, cacheDir });
       try {
         await module.convertCategories({ cwd: workingDir, configDir: process.env.PROGRESSION_RADAR_CONFIG_DIR || "config" });
       } catch (error) {

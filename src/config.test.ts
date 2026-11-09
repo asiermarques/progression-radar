@@ -81,16 +81,10 @@ describe("config", () => {
     expect(config.categories[0].expectations[0]).not.toHaveProperty("tags");
   });
 
-  it("still reads the legacy \"kpis\" list as the expectations of a category", () => {
+  it("does not read the legacy \"kpis\" list: only the converter does", () => {
     const legacy = { key: "comm", name: "Communication", kpis: [{ summary: "Talks", level: 1 }] };
-    const config = parseConfig({ categories: [legacy], roles: null, site: null });
-    expect(config.categories[0].expectations).toEqual([{ summary: "Talks", description: "", level: 1 }]);
-  });
-
-  it("rejects a category that has both \"expectations\" and \"kpis\"", () => {
-    const both = { ...category, kpis: [{ summary: "Old", level: 1 }] };
-    expect(problemsOf({ categories: [both], roles: null, site: null })).toEqual([
-      'categories.yml: category "comm" has both "expectations" and "kpis"; keep only "expectations"',
+    expect(problemsOf({ categories: [legacy], roles: null, site: null })).toEqual([
+      'category #1: category "comm" needs an "expectations" list',
     ]);
   });
 
@@ -101,8 +95,8 @@ describe("config", () => {
       site: { logo: "missing.svg" },
     });
     expect(problems).toEqual([
-      'categories.yml entry #2: duplicated category key "comm"',
-      'categories.yml: category "x" expectation #1 needs a "level" that is a positive integer',
+      'category #2: duplicated category key "comm"',
+      'category #3: category "x" expectation #1 needs a "level" that is a positive integer',
       'roles.yml: role "r" references unknown category "unknown"',
       'site.yml: logo "missing.svg" was not found in the config folder',
     ]);
@@ -110,7 +104,8 @@ describe("config", () => {
 
   it("names the file and folder each problem comes from", () => {
     const origins: Origins = {
-      categories: "config/categories.yml",
+      categories: "config/categories/",
+      categoryFiles: ["01-a.md", "02-b.md", "03-x.md", "04-y.md", "05-z.md"].map((name) => `config/categories/${name}`),
       roles: "config.example/roles.yml",
       site: "my-config/site.yml",
       folders: ["my-config/", "config.example/"],
@@ -124,10 +119,10 @@ describe("config", () => {
       origins,
     );
     expect(problems).toEqual([
-      'config/categories.yml entry #2: duplicated category key "comm"',
-      'config/categories.yml: category "x" expectation #1 needs a "level" that is a positive integer',
-      'config/categories.yml entry #4 needs a "key" and a "name"',
-      'config/categories.yml: category "z" needs an "expectations" list',
+      'config/categories/02-b.md: duplicated category key "comm"',
+      'config/categories/03-x.md: category "x" expectation #1 needs a "level" that is a positive integer',
+      'config/categories/04-y.md needs a "key" and a "name"',
+      'config/categories/05-z.md: category "z" needs an "expectations" list',
       'config.example/roles.yml: role "r" references unknown category "unknown"',
       'config.example/roles.yml: role "r" has an invalid level for "x"',
       'config.example/roles.yml entry #2 needs a "key" and a "name"',
@@ -136,21 +131,21 @@ describe("config", () => {
   });
 
   it("names the file when the lists are missing or malformed", () => {
-    const origins: Origins = { ...exampleOrigins, categories: "config/categories.yml", roles: "config/roles.yml" };
+    const origins: Origins = { ...exampleOrigins, categories: "config/categories/", roles: "config/roles.yml" };
     expect(problemsOf({ categories: [], roles: "nope", site: {} }, origins)).toEqual([
-      "config/categories.yml must contain a non-empty list of categories",
+      "config/categories/ must contain a non-empty list of categories",
       "config/roles.yml must contain a list of roles",
     ]);
   });
 
   it.each(["name", "role", "compare", "tag", "state"])("rejects the reserved category key %s", (key) => {
     const problems = problemsOf({ categories: [{ ...category, key }], roles: null, site: null });
-    expect(problems).toEqual([`categories.yml entry #1: the category key "${key}" is reserved by the share link`]);
+    expect(problems).toEqual([`category #1: the category key "${key}" is reserved by the share link`]);
   });
 
   it("rejects the category key id, which is the column that identifies a person in a snapshot", () => {
     const problems = problemsOf({ categories: [{ ...category, key: "id" }], roles: null, site: null });
-    expect(problems).toEqual(['categories.yml entry #1: the category key "id" is reserved by the snapshots']);
+    expect(problems).toEqual(['category #1: the category key "id" is reserved by the snapshots']);
   });
 
   it("allows keys that only look like reserved ones", () => {
@@ -178,9 +173,19 @@ describe("config", () => {
       ]);
     });
 
-    it("keeps the entry numbers for categories.yml", () => {
+    it("names a category by its position only when no file is given for it", () => {
       const problems = problemsOf({ categories: [category, category], roles: null, site: null });
-      expect(problems).toEqual(['categories.yml entry #2: duplicated category key "comm"']);
+      expect(problems).toEqual(['category #2: duplicated category key "comm"']);
+    });
+
+    it("reports only the source problem, not every role reference, when no category could be read", () => {
+      const problems = problemsOf({
+        categories: [],
+        roles: [{ key: "r", name: "R", levels: { comm: 1, data: 2 } }],
+        site: null,
+        problems: ["config/categories.yml is no longer read; convert it with npm run config:convert-categories"],
+      });
+      expect(problems).toEqual(["config/categories.yml is no longer read; convert it with npm run config:convert-categories"]);
     });
 
     it("lists the problems found while reading the files with its own", () => {

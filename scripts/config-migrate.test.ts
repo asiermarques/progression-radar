@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 // @ts-expect-error: a plain Node script, written in JavaScript so `node` runs it without a build step
 import { MigrationError, migrate } from "./config-migrate.mjs";
+import { convertCategories } from "./convert-categories";
 
 let repo: string;
 let output: string[];
@@ -17,7 +18,7 @@ const write = (path: string, content: string) => {
 };
 const read = (path: string) => readFileSync(join(repo, path), "utf8");
 const run = (options: Record<string, unknown> = {}) =>
-  migrate({ cwd: repo, yes: true, log: (line: string) => output.push(line), ...options });
+  migrate({ cwd: repo, yes: true, convert: convertCategories, log: (line: string) => output.push(line), ...options });
 
 /**
  * A fork after pulling the update: upstream/master has config.example/ with its own content, and the fork's last
@@ -89,6 +90,64 @@ describe("migrate", () => {
     expect(existsSync(join(repo, "config.example/categories.yml"))).toBe(false);
     expect(read("config.example/categories/01-a.md")).toContain("key: a");
     expect(git("diff", "--name-only", "upstream/master", "--", "config.example")).toBe("");
+  });
+
+  describe("converting the categories.yml it moves", () => {
+    const VALID = "- key: a\n  name: A\n  expectations:\n    - summary: Does things\n      level: 1\n";
+    const forkWithValidYaml = () => {
+      write("config.example/categories.yml", VALID);
+      git("commit", "-q", "-am", "fork edits its categories");
+    };
+
+    it("converts it into category files in the config folder, with the same keys", async () => {
+      forkWithValidYaml();
+      const result = await run();
+      expect(result.converted).toBe(true);
+      expect(read("config/categories/01-a.md")).toContain("key: a");
+      expect(read("config/categories.yml.bak")).toBe(VALID);
+      expect(existsSync(join(repo, "config/categories.yml"))).toBe(false);
+      expect(read("config.example/categories.yml")).toBe("upstream categories\n");
+      expect(output.join("\n")).toContain("config/categories/01-a.md");
+    });
+
+    it("lists the conversion in a dry run without doing it", async () => {
+      forkWithValidYaml();
+      await run({ dryRun: true });
+      expect(output.join("\n")).toContain("categories.yml will be converted into config/categories/");
+      expect(existsSync(join(repo, "config/categories"))).toBe(false);
+    });
+
+    it("asks about the conversion with the move", async () => {
+      forkWithValidYaml();
+      let question = "";
+      await run({ yes: false, confirm: async (asked: string) => ((question = asked), false) });
+      expect(question).toContain("convert categories.yml into category files");
+    });
+
+    it("converts in the folder of PROGRESSION_RADAR_CONFIG_DIR", async () => {
+      forkWithValidYaml();
+      await run({ configDir: "my-config" });
+      expect(read("my-config/categories/01-a.md")).toContain("key: a");
+    });
+
+    it("still moves the file when the conversion cannot run, and says what to fix", async () => {
+      const result = await run();
+      expect(result.converted).toBe(false);
+      expect(read("config/categories.yml")).toBe("fork categories\n");
+      const text = output.join("\n");
+      expect(text).toContain("config/categories.yml was moved but not converted");
+      expect(text).toContain("must contain a non-empty list of categories");
+      expect(text).toContain("Fix them and run npm run config:convert-categories.");
+    });
+
+    it("does not convert over an existing categories/ folder, and says why", async () => {
+      forkWithValidYaml();
+      write("config/categories/01-mine.md", "mine");
+      const result = await run();
+      expect(result.converted).toBe(false);
+      expect(read("config/categories/01-mine.md")).toBe("mine");
+      expect(output.join("\n")).toContain("config/categories/ already exists");
+    });
   });
 
   it("prints the next steps", async () => {

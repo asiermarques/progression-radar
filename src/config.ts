@@ -16,9 +16,9 @@ export function loadConfig(): Config {
 
 /** Where each file was read from, e.g. "config/roles.yml", so problems can name it. */
 export interface Origins {
-  /** The categories.yml file or categories/ folder. */
+  /** The categories/ folder. */
   categories: string;
-  /** With category files: the file of each raw category, in the same order, so problems can name it. */
+  /** The category file of each raw category, in the same order, so problems can name it. */
   categoryFiles?: string[];
   roles: string;
   site: string;
@@ -26,7 +26,7 @@ export interface Origins {
   folders: string[];
 }
 
-const defaultOrigins: Origins = { categories: "categories.yml", roles: "roles.yml", site: "site.yml", folders: [] };
+const defaultOrigins: Origins = { categories: "categories/", roles: "roles.yml", site: "site.yml", folders: [] };
 
 interface RawConfig {
   categories: unknown;
@@ -63,18 +63,16 @@ export function parseConfig(
 }
 
 function parseCategories(raw: unknown, origins: Origins, knownProblems: number, problems: string[]): Category[] {
-  const yamlFile = origins.categories;
   if (!Array.isArray(raw) || raw.length === 0) {
     // When the source itself was reported as wrong there is nothing more to say about the missing list.
-    if (knownProblems === 0) problems.push(`${yamlFile} must contain a non-empty list of categories`);
+    if (knownProblems === 0) problems.push(`${origins.categories} must contain a non-empty list of categories`);
     return [];
   }
 
   const seen = new Set<string>();
   return raw.flatMap((item, index): Category[] => {
-    // A category file names itself; the entries of categories.yml are named by their position.
-    const file = origins.categoryFiles?.[index] ?? yamlFile;
-    const where = origins.categoryFiles ? file : `${file} entry #${index + 1}`;
+    // Each category is named by its file; only a caller that gives no file (a test) gets its position.
+    const where = origins.categoryFiles?.[index] ?? `category #${index + 1}`;
     if (!isObject(item) || !isNonEmptyString(item.key) || !isNonEmptyString(item.name)) {
       problems.push(`${where} needs a "key" and a "name"`);
       return [];
@@ -87,13 +85,9 @@ function parseCategories(raw: unknown, origins: Origins, knownProblems: number, 
       problems.push(`${where}: the category key "${item.key}" is reserved by the snapshots`);
     }
 
-    // "kpis" is the legacy name of "expectations", still accepted so existing configurations keep working.
-    if (item.expectations !== undefined && item.kpis !== undefined) {
-      problems.push(`${file}: category "${item.key}" has both "expectations" and "kpis"; keep only "expectations"`);
-    }
-    const list = item.expectations ?? item.kpis;
+    const list = item.expectations;
     const expectations = Array.isArray(list) ? list : [];
-    if (!Array.isArray(list)) problems.push(`${file}: category "${item.key}" needs an "expectations" list`);
+    if (!Array.isArray(list)) problems.push(`${where}: category "${item.key}" needs an "expectations" list`);
 
     return [
       {
@@ -101,7 +95,7 @@ function parseCategories(raw: unknown, origins: Origins, knownProblems: number, 
         name: item.name,
         description: optionalString(item.description),
         expectations: expectations.flatMap((expectation, i) =>
-          parseExpectation(expectation, `${file}: category "${item.key}" expectation #${i + 1}`, problems),
+          parseExpectation(expectation, `${where}: category "${item.key}" expectation #${i + 1}`, problems),
         ),
       },
     ];
@@ -146,8 +140,10 @@ function parseRoles(raw: unknown, categories: Category[], file: string, problems
 
     const levels: Levels = {};
     for (const [key, level] of Object.entries(isObject(item.levels) ? item.levels : {})) {
-      if (!categoryKeys.has(key)) problems.push(`${file}: role "${item.key}" references unknown category "${key}"`);
-      else if (typeof level !== "number" || level < 0) problems.push(`${file}: role "${item.key}" has an invalid level for "${key}"`);
+      if (!categoryKeys.has(key)) {
+        // With no category at all, the categories are already reported: each reference to them would only be noise.
+        if (categories.length > 0) problems.push(`${file}: role "${item.key}" references unknown category "${key}"`);
+      } else if (typeof level !== "number" || level < 0) problems.push(`${file}: role "${item.key}" has an invalid level for "${key}"`);
       else levels[key] = level;
     }
     return [{ key: item.key, name: item.name, levels }];

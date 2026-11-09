@@ -18,6 +18,13 @@ No backend: content comes from `config.example/` and the adopter's `config/` fol
   git-ignored: each file is read from the adopter's folder if it is there, else from the example. `src/` must work with
   any valid config: never hard-code category or role keys.
 - No new runtime dependencies without asking.
+- **Versioning** ([ADR 0005](docs/adr/0005-radar-as-a-dependency-of-an-adopter-repository.md)): the radar is published to
+  npm and `version` in `package.json` is the published one. Until 1.0.0 is on npm (`npm view progression-radar
+  versions`), changes go into 1.0.0 with no bump. After that, every change that reaches adopters bumps `version` in the
+  same change, by semver on the public contract (the commands and npm script names, the Configuration files, the
+  Share link format and the snapshot format; `src/` is not part of it): **major** when it breaks the contract (and
+  `docs/guides/upgrading.md` says what to do), **minor** for new behaviour that keeps it, **patch** for fixes. Say
+  which bump a change needs, and why, when you finish it.
 - Do not reference user stories, requisite ids or issue numbers (`US-001`, `#25`, `FR-003`…) in code, comments, tests,
   `docs/`, the README or commit messages. Describe the behaviour itself; only the ADRs (`docs/adr/`) may be cited.
   Those references belong to `.workflow/` and the issue tracker.

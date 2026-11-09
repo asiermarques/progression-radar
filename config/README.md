@@ -10,14 +10,15 @@ At build time each of these files is read from this folder if it is here, and fr
 
 | file             | purpose                                                      |
 |------------------|--------------------------------------------------------------|
-| `categories/` or `categories.yml` | the categories of your ladder and the expectations per level |
+| `categories/`    | one Markdown file per category, with the expectations per level |
 | `roles.yml`      | the roles of your ladder and the levels each one requires    |
 | `site.yml`       | title, logo and footer                                       |
 | `theme.css`      | CSS overrides: colours, fonts or any other style             |
 
-The categories can be one Markdown file per category in a `categories/` folder (`01-build.md`, `02-ai.md`…, shown
-in the order of their names) or a single `categories.yml`, but not both. Either form replaces all the sample
-categories. The format is in [docs/guides/categories.md](../docs/guides/categories.md).
+The categories are one Markdown file per category in a `categories/` folder (`01-build.md`, `02-ai.md`…, shown in
+the order of their names), which replaces all the sample categories. The format is in
+[docs/guides/categories.md](../docs/guides/categories.md). A `categories.yml` is no longer read: convert it with
+`npm run config:convert-categories`.
 
 - **A file replaces its counterpart completely.** Nothing is merged: a `site.yml` here does not inherit the footer of
   the example, and a `theme.css` here replaces the example one (the base theme is in `src/styles.css`).

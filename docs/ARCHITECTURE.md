@@ -32,7 +32,7 @@ compiled into the bundle at build time and the user's data lives in the URL.
 ```
 package.json            declares the `progression-radar` binary (`scripts/cli.mjs`) and `preferUnplugged` for Yarn Plug'n'Play
 config.example/          upstream's sample configuration and the defaults (adopters do not edit it)
-  categories/              one Markdown category file per category, grouped by level (an adopter may use categories.yml instead)
+  categories/              one Markdown category file per category, grouped by level
   roles.yml                roles and the levels they require
   site.yml                 title, optional logo and footer
   theme.css                comment-only CSS overrides, loaded after the base styles
@@ -42,13 +42,14 @@ public/                  static files copied as-is (favicons, manifest)
 docs/                    PRODUCT, ARCHITECTURE, DESIGN, the glossary, the ADRs and guides/ (user guides; the README only lists and links them)
 scripts/
   config-sources.ts        decides which folder each configuration file is read from (used by vite.config.ts)
-  category-markdown.ts     reads one Markdown category file into the raw shape of a categories.yml entry
+  category-markdown.ts     reads one Markdown category file into the raw shape of one category
   cli.mjs                  the `progression-radar` binary: `dev`, `build`, `preview`, `check`, `snapshot …` and `config convert-categories`
   init.ts                  `init`: copies config.example/ to config/ and adds the npm scripts, never overwriting
   check-command.ts         `check` (Configuration, then snapshots) and the validation that `build` runs first
   adopter-fixture.mjs      CI and local proof: packs the radar, installs it in a fixture Adopter repository with npm, pnpm or Yarn
-  config-migrate.mjs       `npm run config:migrate`: moves a fork's edits out of config.example/
-  convert-categories.ts    converts categories.yml into Markdown category files, validating it with parseConfig()
+  config-migrate.mjs       `npm run config:migrate`: moves a fork's edits out of config.example/ and converts a moved categories.yml
+  convert-categories.ts    converts a categories.yml, no longer read by the app, into Markdown category files, validating it with parseConfig(); the only code that reads one
+  load-converter.mjs       loads convert-categories.ts through Vite, for `config convert-categories` and `config:migrate`
   snapshot-commands.ts     arguments, output and exit codes of the three snapshot commands
   snapshots.ts             records a Person in a CSV snapshot, turns a row into a Share link and checks snapshots
   csv.ts                   hand-written CSV reader and writer (quoting, `,` or `;`, line breaks)
@@ -127,23 +128,26 @@ URL #name=…&comm=2 ──▶ urlState.ts: parseState() ──▶ Person ──
 
 1. **Build time.** `vite.config.ts` contains a small plugin that turns any `.yml` import into the parsed object (YAML
    syntax errors fail the dev server and the build) and another one that resolves the configuration: each of
-   the categories (as `categories.yml` or a `categories/` folder, never both), `roles.yml`, `site.yml` and `theme.css`
+   the categories (the `categories/` folder, as one unit), `roles.yml`, `site.yml` and `theme.css`
    is taken from the config folder (of the directory the command runs in) if it is there and from `config.example/`
    (of the radar) otherwise, and images are looked up in the same order so `site.yml` can reference a logo by file
    name. The result reaches the app through two virtual modules (`virtual:progression-radar-config` and
    `virtual:progression-radar-theme`), so no path is written in `src/` and the build stays static. The config folder
    is `config/` or the path in `PROGRESSION_RADAR_CONFIG_DIR`, which must exist when it is set; the variable is not
    `VITE_`-prefixed and absolute paths never reach the bundle (messages call the folder `PROGRESSION_RADAR_CONFIG_DIR`).
-   The build log lists where each file came from (and whether the categories are a file or a folder) and warns about
-   files the app does not use. In dev, editing a file reloads the page, and so does adding or removing one in either
+   A `categories.yml` is no longer read ([ADR 0006](adr/0006-markdown-category-files-only.md)): in the config folder it
+   is a configuration problem that points to `config:convert-categories`, in `config.example/` one that points to
+   `config:migrate`, and it never makes the categories fall back to the sample. The build log lists where each file
+   came from (and how many category files) and warns about files the app does not use. In dev, editing a file reloads the page, and so does adding or removing one in either
    folder or in their `categories/` folder. Before it builds, `progression-radar build` loads the Configuration with
    `loadConfig()` and, when it is invalid, prints every problem and exits with an error without writing `dist/`; the
    dev server keeps showing the problems on the page.
    Each Markdown category file is imported through `?category`: a transform (`scripts/category-markdown.ts`) parses
    it with `mdast-util-from-markdown`, a build-time dependency that never reaches the bundle, into the same raw
-   shape as one entry of `categories.yml` plus the mistakes it found (`file:line: message`). The virtual module hands
-   both to the app, so `src/` does not know which form the categories came from. See
-   [ADR 0003](adr/0003-markdown-category-files-alongside-yaml.md).
+   shape `parseConfig()` validates (`{ key, name, description, expectations }`) plus the mistakes it found
+   (`file:line: message`). The virtual module hands both to the app, with the file of each category so its problems
+   can name it. See [ADR 0003](adr/0003-markdown-category-files-alongside-yaml.md) and
+   [ADR 0006](adr/0006-markdown-category-files-only.md).
 2. **Start-up.** `main.tsx` calls `loadConfig()`, which validates the raw data and either returns a typed `Config`
    or throws a `ConfigError` with *all* the problems found; those are rendered as a list.
 3. **URL state.** `parseState()` reads the share link: the legacy `state` query if present, otherwise the fragment.
@@ -176,7 +180,9 @@ so old links survive configuration changes instead of breaking.
 The raw configuration is typed as `unknown`. `parseConfig()` is the only place that turns it into domain types, and it
 checks required fields, positive integer levels, duplicated keys, roles referencing unknown categories and missing
 logo files, and lists the mistakes found while reading the category files with its own. Every problem names the file and folder it comes from (`config/roles.yml: role "r" …`,
-`config.example/categories.yml entry #2 …` or `config/categories/03-data.md: …`), because the same file can come from either place. A test loads the
+`config.example/roles.yml entry #2 …` or `config/categories/03-data.md: …`), because the same file can come from either place.
+When no category could be read, the roles' references to categories are not reported one by one: the categories'
+own problem says what is wrong. A test loads the
 resolved configuration and, separately, `config.example/` on its own, so CI catches mistakes in the sample, even when
 it is overridden. For an adopter, `progression-radar build` fails on an invalid Configuration and
 `progression-radar check` reports it (and then checks the snapshots), so a CI that runs `npm run check && npm run build`
@@ -188,7 +194,7 @@ components and override pieces. That has been removed. What is supported instead
 repository imports nothing from `src/`, overrides no code and runs the radar's commands against its own folders.
 `src/` is not a public API. Customisation is limited to what adopters actually need:
 
-- **Content**: the categories (`categories/` or `categories.yml`) and `roles.yml`.
+- **Content**: the categories (`categories/`) and `roles.yml`.
 - **Branding**: `site.yml` (title, logo, footer) and `theme.css`.
 
 These live in the adopter's config folder, which upstream git-ignores and never edits, and fall back file by file to
@@ -223,8 +229,10 @@ numbers of levels and still be comparable on the same chart.
 
 - `model.test.ts`: level and percentage calculations.
 - `config.test.ts`: validation rules, the resolved configuration and `config.example/` on its own.
-- `scripts/config-sources.test.ts` and `scripts/config-migrate.test.ts`: which folder each file comes from, the
-  build log, and the migration command on temporary git repositories.
+- `scripts/config-sources.test.ts` and `scripts/config-migrate.test.ts`: which folder each file comes from, a
+  `categories.yml` reported instead of read, the build log, and the migration command (with the conversion of a moved
+  `categories.yml`) on temporary git repositories.
+- `scripts/convert-categories.test.ts`: the conversion of a `categories.yml` (legacy `kpis`, headings, refusals).
 - `urlState.test.ts`: fragment format and round-trip, legacy URLs, normalisation, ignored/corrected fields and invalid
   input.
 - `scripts/csv.test.ts`: quoting, separators, line numbers and unreadable files.
@@ -232,7 +240,7 @@ numbers of levels and still be comparable on the same chart.
   Share link of a row and every error and warning of the check, on temporary folders.
 - `scripts/init.test.ts`: `init` on temporary folders (copy, no overwrite, scripts, errors).
 - `scripts/check-command.test.ts` and `scripts/cli.test.ts`: `init`, `check`, the failing `build` (every problem listed, no
-  `dist/` written), `--help`, unknown commands and the folder each command reads and writes, running the real binary from
+  `dist/` written, a `categories.yml` in the config folder), `--help`, unknown commands and the folder each command reads and writes, running the real binary from
   an empty folder.
 - `scripts/snapshot-commands.test.ts`: the output and exit codes of the three commands against the resolved
   configuration.

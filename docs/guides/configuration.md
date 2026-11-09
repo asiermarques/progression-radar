@@ -4,7 +4,7 @@ How to tell the app about *your* ladder and branding. Everything that is specifi
 
 | file             | purpose                                                      |
 |------------------|--------------------------------------------------------------|
-| `categories/` or `categories.yml` | the categories of your ladder and the expectations per level (see [Categories](categories.md)) |
+| `categories/`    | one Markdown file per category of your ladder, with the expectations per level (see [Categories](categories.md)) |
 | `roles.yml`      | the roles of your ladder and the levels each one requires    |
 | `site.yml`       | title, logo and footer                                       |
 | `theme.css`      | CSS overrides: colours, fonts or any other style             |
@@ -23,7 +23,7 @@ your folder does not have, so the radar runs with no setup. To customise a file,
 The rules are the same in both:
 
 - **A file replaces its counterpart completely.** Nothing is merged: your `site.yml` does not inherit the sample
-  footer, a `categories/` folder (or `categories.yml`) replaces all the sample categories, and your `theme.css` replaces
+  footer, a `categories/` folder replaces all the sample categories, and your `theme.css` replaces
   the sample one (the base theme is part of the radar, so you lose no styles). A file (or the `categories/` folder)
   that you remove from `config/` falls back to the sample again.
 - **Images** referenced from `site.yml` are looked up in `config/` first, then in `config.example/`.

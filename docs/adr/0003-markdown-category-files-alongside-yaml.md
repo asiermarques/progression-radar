@@ -206,6 +206,13 @@ and documented in the README.
     `docs/UBIQUITOUS_LANGUAGE.md` (remove **Expectation tag** and the note that "tag" means two things; **Category
     file** is no longer proposed), `config/README.md` and the README "Categories" section.
 
+## Update
+
+[ADR 0006](0006-markdown-category-files-only.md) removes `categories.yml` as a source of categories: a
+`categories.yml` in the config folder is now a configuration problem that points to `npm run config:convert-categories`.
+The category file format, the reader rules, the order, the per-unit fallback and the removal of expectation tags
+decided here are unchanged.
+
 ## Links
 
 - [ADR 0001](0001-readable-share-url-format.md): category keys are part of the share link.

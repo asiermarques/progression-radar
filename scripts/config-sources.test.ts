@@ -14,7 +14,8 @@ const put = (folder: string, ...names: string[]) => {
 
 beforeEach(() => {
   root = mkdtempSync(join(tmpdir(), "radar-sources-"));
-  put("config.example", "categories.yml", "roles.yml", "site.yml", "theme.css", "logo.svg");
+  put("config.example", "roles.yml", "site.yml", "theme.css", "logo.svg");
+  put("config.example/categories", "01-comm.md");
 });
 
 afterEach(() => rmSync(root, { recursive: true, force: true }));
@@ -38,7 +39,8 @@ describe("resolveConfigSources with two roots", () => {
   it("builds the sample configuration when the working directory has no config folder", () => {
     const sources = resolveConfigSources(adopter, undefined, root);
     expect(sources.files["roles.yml"].path).toBe(join(root, "config.example", "roles.yml"));
-    expect(sources.categories.label).toBe("config.example/categories.yml");
+    expect(sources.categories.label).toBe("config.example/categories/");
+    expect(sources.categories.files[0].path).toBe(join(root, "config.example", "categories", "01-comm.md"));
   });
 
   it("resolves a relative PROGRESSION_RADAR_CONFIG_DIR from the working directory", () => {
@@ -154,10 +156,10 @@ const markdown = (folder: string, ...names: string[]) => put(`${folder}/categori
 describe("category files", () => {
   const labelsOf = (sources: ReturnType<typeof resolveConfigSources>) => sources.categories.files.map((file) => file.label);
 
-  it("reads categories.yml from the example when nothing is in config/", () => {
-    const { categories } = resolveConfigSources(root, undefined);
-    expect(categories).toMatchObject({ form: "file", label: "config.example/categories.yml", problems: [] });
-    expect(categories.path).toBe(join(root, "config.example", "categories.yml"));
+  it("reads the categories/ folder of the example when nothing is in config/", () => {
+    const sources = resolveConfigSources(root, undefined);
+    expect(sources.categories).toMatchObject({ form: "folder", label: "config.example/categories/", problems: [] });
+    expect(labelsOf(sources)).toEqual(["config.example/categories/01-comm.md"]);
   });
 
   it("reads the categories/ folder of config/ and replaces the example categories whole", () => {
@@ -168,17 +170,14 @@ describe("category files", () => {
     expect(sources.categories.files[0].path).toBe(join(root, "config", "categories", "01-comm.md"));
   });
 
-  it("prefers a categories.yml in config/ over the example's categories/ folder", () => {
-    put("config", "categories.yml");
-    markdown("config.example", "01-comm.md");
-    expect(resolveConfigSources(root, undefined).categories).toMatchObject({ form: "file", label: "config/categories.yml" });
-  });
-
-  it("reads the categories/ folder of the example when config/ has neither form", () => {
-    rmSync(join(root, "config.example", "categories.yml"));
+  it("reads the example's categories/ folder in its order", () => {
     markdown("config.example", "02-b.md", "01-a.md");
     const sources = resolveConfigSources(root, undefined);
-    expect(labelsOf(sources)).toEqual(["config.example/categories/01-a.md", "config.example/categories/02-b.md"]);
+    expect(labelsOf(sources)).toEqual([
+      "config.example/categories/01-a.md",
+      "config.example/categories/01-comm.md",
+      "config.example/categories/02-b.md",
+    ]);
   });
 
   it("sorts by the leading number, then by name character by character, unnumbered last", () => {
@@ -203,18 +202,66 @@ describe("category files", () => {
     expect(sources.unrecognised).toEqual(["categories/draft.txt", "categories/old/"]);
   });
 
-  it("is a problem when a folder has both categories.yml and categories/", () => {
+  it("is a problem, never a fallback to the example, when config/ has a categories.yml", () => {
+    put("config", "categories.yml");
+    const { categories } = resolveConfigSources(root, undefined);
+    expect(categories).toMatchObject({ form: "none", label: "config/categories/", files: [] });
+    expect(categories.problems).toEqual(["config/categories.yml is no longer read; convert it with npm run config:convert-categories"]);
+  });
+
+  it("is a problem when config/ has a categories.yml next to its categories/ folder", () => {
     put("config", "categories.yml");
     markdown("config", "01-comm.md");
     const { categories } = resolveConfigSources(root, undefined);
     expect(categories.files).toEqual([]);
-    expect(categories.problems).toEqual(["config/categories.yml and config/categories/ both exist; keep only one of them"]);
+    expect(categories.problems).toEqual([
+      "config/categories.yml is no longer read; delete it if config/categories/ already has your categories, " +
+        "or remove that folder and convert it with npm run config:convert-categories",
+    ]);
   });
 
-  it("applies the same rule to the example", () => {
-    markdown("config.example", "01-comm.md");
+  it("names the folder of PROGRESSION_RADAR_CONFIG_DIR in the problem", () => {
+    put("my-ladder", "categories.yml");
+    expect(resolveConfigSources(root, "my-ladder").categories.problems[0]).toMatch(/^my-ladder\/categories\.yml is no longer read/);
+  });
+
+  it("does not report a categories.yml in config/ as an unrecognised file, but warns about the converter's backup", () => {
+    put("config", "categories.yml", "categories.yml.bak");
+    expect(resolveConfigSources(root, undefined).unrecognised).toEqual(["categories.yml.bak"]);
+  });
+
+  it("is a problem, pointing to config:migrate, when the example has a categories.yml next to categories/", () => {
+    put("config.example", "categories.yml");
     const { categories } = resolveConfigSources(root, undefined);
-    expect(categories.problems).toEqual(["config.example/categories.yml and config.example/categories/ both exist; keep only one of them"]);
+    expect(categories.problems).toEqual([
+      "config.example/categories.yml is no longer read; move it to your config folder with npm run config:migrate",
+    ]);
+  });
+
+  it("reports the example's categories.yml even when config/ has its own categories/ folder", () => {
+    put("config.example", "categories.yml");
+    markdown("config", "01-comm.md");
+    const { categories } = resolveConfigSources(root, undefined);
+    expect(categories.label).toBe("config/categories/");
+    expect(categories.problems).toEqual([
+      "config.example/categories.yml is no longer read; move it to your config folder with npm run config:migrate",
+    ]);
+  });
+
+  it("reports both files when config/ and the example have a categories.yml", () => {
+    put("config", "categories.yml");
+    put("config.example", "categories.yml");
+    expect(resolveConfigSources(root, undefined).categories.problems).toEqual([
+      "config/categories.yml is no longer read; convert it with npm run config:convert-categories",
+      "config.example/categories.yml is no longer read; move it to your config folder with npm run config:migrate",
+    ]);
+  });
+
+  it("names the missing folder when neither folder has categories", () => {
+    rmSync(join(root, "config.example", "categories"), { recursive: true });
+    const { categories } = resolveConfigSources(root, undefined);
+    expect(categories).toMatchObject({ form: "none", label: "config/categories/", files: [] });
+    expect(categories.problems).toEqual(["There are no categories: add a config/categories/ folder with a .md file for each category"]);
   });
 
   it("is a problem, never a fallback to the example, when categories/ has no category file", () => {
@@ -258,6 +305,14 @@ describe("configModuleSource", () => {
     expect(source).toContain('"config/categories/1-a.md","config/categories/2-b.md"');
   });
 
+  it("never imports a categories.yml, and passes its problem to the app", () => {
+    put("config", "categories.yml");
+    const source = configModuleSource(resolveConfigSources(root, undefined));
+    expect(source).not.toContain(JSON.stringify(join(root, "config", "categories.yml")));
+    expect(source).not.toContain("?category");
+    expect(source).toContain("config/categories.yml is no longer read");
+  });
+
   it("passes the resolution problems to the app", () => {
     markdown("config", "README.md");
     expect(configModuleSource(resolveConfigSources(root, undefined))).toContain("has no category file");
@@ -267,10 +322,10 @@ describe("configModuleSource", () => {
     put("config", "site.yml", "logo.svg");
     const source = configModuleSource(resolveConfigSources(root, undefined));
     expect(source).toContain(`import site from ${JSON.stringify(join(root, "config", "site.yml"))};`);
-    expect(source).toContain(`import categories from ${JSON.stringify(join(root, "config.example", "categories.yml"))};`);
+    expect(source).toContain(`import category0 from ${JSON.stringify(`${join(root, "config.example", "categories", "01-comm.md")}?category`)};`);
     expect(source).toContain(`import image0 from ${JSON.stringify(`${join(root, "config", "logo.svg")}?url`)};`);
     expect(source).toContain('"site":"config/site.yml"');
-    expect(source).toContain('"categories":"config.example/categories.yml"');
+    expect(source).toContain('"categories":"config.example/categories/"');
     expect(source).toContain('"folders":["config/","config.example/"]');
   });
 });
@@ -279,7 +334,7 @@ describe("describeSources", () => {
   it("says where each file was read from, with no warning when everything is recognised", () => {
     put("config", "README.md", "logo.svg", "site.yml");
     expect(describeSources(resolveConfigSources(root, undefined))).toEqual({
-      info: ["categories.yml ← config.example/", "roles.yml ← config.example/", "site.yml ← config/", "theme.css ← config.example/"],
+      info: ["categories/ ← config.example/ (1 file)", "roles.yml ← config.example/", "site.yml ← config/", "theme.css ← config.example/"],
       warnings: [],
     });
   });
@@ -289,7 +344,7 @@ describe("describeSources", () => {
     expect(describeSources(resolveConfigSources(root, undefined)).info[0]).toBe("categories/ ← config/ (1 file)");
     rmSync(join(root, "config"), { recursive: true });
     put("config", "categories.yml");
-    expect(describeSources(resolveConfigSources(root, undefined)).info[0]).toBe("categories.yml ← config/");
+    expect(describeSources(resolveConfigSources(root, undefined)).info[0]).toBe("categories/ ← config/");
   });
 
   it("warns about each unrecognised file", () => {

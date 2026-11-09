@@ -3,9 +3,10 @@
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 
-// The categories are a unit of their own: categories.yml or the categories/ folder (see CategoriesSource).
+// The categories are a unit of their own: the categories/ folder (see CategoriesSource).
 export const CONFIG_FILES = ["roles.yml", "site.yml", "theme.css"] as const;
 export type ConfigFile = (typeof CONFIG_FILES)[number];
+/** No longer read (docs/adr/0006): a configuration problem that points to the converter. */
 export const CATEGORIES_FILE = "categories.yml";
 export const CATEGORIES_FOLDER = "categories";
 
@@ -15,15 +16,15 @@ export const EXAMPLE_FOLDER = "config.example";
 export const DEFAULT_CONFIG_FOLDER = "config";
 export const CONFIG_DIR_VARIABLE = "PROGRESSION_RADAR_CONFIG_DIR";
 
-/** Where the categories come from: one categories.yml, or one Markdown file per category in categories/. */
+/** Where the categories come from: one Markdown file per category in a categories/ folder. */
 export interface CategoriesSource {
-  /** "none" when the folder cannot be read (see `problems`). */
-  form: "file" | "folder" | "none";
-  /** The file or folder as named in messages, e.g. "config/categories.yml" or "config/categories/". */
+  /** "none" when there are no categories to read (see `problems`). */
+  form: "folder" | "none";
+  /** The folder as named in messages, e.g. "config/categories/". */
   label: string;
-  /** Absolute path of categories.yml (form "file"). */
+  /** Absolute path of the categories/ folder (form "folder"). */
   path: string;
-  /** The category files in the order they are shown (form "folder"). */
+  /** The category files in the order they are shown. */
   files: { path: string; label: string }[];
   /** Mistakes in the choice of source, reported with the other configuration problems. */
   problems: string[];
@@ -71,22 +72,11 @@ export function compareCategoryFiles(a: string, b: string): number {
 
 const isCategoryFile = (name: string) => name.endsWith(".md") && name !== "README.md";
 
-/** The categories of one folder, or undefined when it has neither form. */
-function categoriesOf(path: string, label: string, present: Set<string>): CategoriesSource | undefined {
-  const hasFile = present.has(CATEGORIES_FILE);
-  const hasFolder = present.has(`${CATEGORIES_FOLDER}/`);
-  const none = (unit: string, problem: string): CategoriesSource => ({ form: "none", label: unit, path: "", files: [], problems: [problem] });
+const noCategories = (label: string, problem: string): CategoriesSource => ({ form: "none", label, path: "", files: [], problems: [problem] });
 
-  if (hasFile && hasFolder) {
-    return none(
-      `${label}/${CATEGORIES_FILE}`,
-      `${label}/${CATEGORIES_FILE} and ${label}/${CATEGORIES_FOLDER}/ both exist; keep only one of them`,
-    );
-  }
-  if (hasFile) {
-    return { form: "file", label: `${label}/${CATEGORIES_FILE}`, path: join(path, CATEGORIES_FILE), files: [], problems: [] };
-  }
-  if (!hasFolder) return undefined;
+/** The categories/ folder of one folder, or undefined when it has none. */
+function categoriesOf(path: string, label: string, present: Set<string>): CategoriesSource | undefined {
+  if (!present.has(`${CATEGORIES_FOLDER}/`)) return undefined;
 
   const folder = join(path, CATEGORIES_FOLDER);
   const files = listFiles(folder)
@@ -94,8 +84,22 @@ function categoriesOf(path: string, label: string, present: Set<string>): Catego
     .sort(compareCategoryFiles)
     .map((name) => ({ path: join(folder, name), label: `${label}/${CATEGORIES_FOLDER}/${name}` }));
   const unit = `${label}/${CATEGORIES_FOLDER}/`;
-  if (files.length === 0) return none(unit, `${unit} has no category file; add a .md file for each category`);
+  if (files.length === 0) return noCategories(unit, `${unit} has no category file; add a .md file for each category`);
   return { form: "folder", label: unit, path: folder, files, problems: [] };
+}
+
+/** A categories.yml in the config folder: never read, and never a reason to use the example's categories. */
+function categoriesFileProblem(label: string, present: Set<string>): CategoriesSource | undefined {
+  if (!present.has(CATEGORIES_FILE)) return undefined;
+  const file = `${label}/${CATEGORIES_FILE}`;
+  const folder = `${label}/${CATEGORIES_FOLDER}/`;
+  const convert = "npm run config:convert-categories";
+  return noCategories(
+    folder,
+    present.has(`${CATEGORIES_FOLDER}/`)
+      ? `${file} is no longer read; delete it if ${folder} already has your categories, or remove that folder and convert it with ${convert}`
+      : `${file} is no longer read; convert it with ${convert}`,
+  );
 }
 
 function configFolder(root: string, setting: string | undefined) {
@@ -125,6 +129,7 @@ export function resolveConfigSources(workingDir: string, setting: string | undef
   const examplePath = join(packageRoot, EXAMPLE_FOLDER);
 
   const present = new Set(listFiles(config.path));
+  const presentInExample = new Set(listFiles(examplePath));
   const files = Object.fromEntries(
     CONFIG_FILES.map((name) => {
       const own = present.has(name);
@@ -133,11 +138,19 @@ export function resolveConfigSources(workingDir: string, setting: string | undef
     }),
   ) as ConfigSources["files"];
 
-  const categories =
+  const resolved =
+    categoriesFileProblem(config.label, present) ??
     categoriesOf(config.path, config.label, present) ??
-    categoriesOf(examplePath, EXAMPLE_FOLDER, new Set(listFiles(examplePath))) ??
-    // Neither folder has categories: the import of the example's categories.yml reports the missing file.
-    categoriesOf(examplePath, EXAMPLE_FOLDER, new Set([CATEGORIES_FILE]))!;
+    categoriesOf(examplePath, EXAMPLE_FOLDER, presentInExample) ??
+    noCategories(
+      `${config.label}/${CATEGORIES_FOLDER}/`,
+      `There are no categories: add a ${config.label}/${CATEGORIES_FOLDER}/ folder with a .md file for each category`,
+    );
+  // A fork that kept the old sample file: its edits are still in upstream's folder, whatever the categories are.
+  const leftover = presentInExample.has(CATEGORIES_FILE)
+    ? [`${EXAMPLE_FOLDER}/${CATEGORIES_FILE} is no longer read; move it to your config folder with npm run config:migrate`]
+    : [];
+  const categories = { ...resolved, problems: [...resolved.problems, ...leftover] };
 
   const images: Record<string, string> = {};
   for (const [folder, path] of [[examplePath, examplePath], [config.path, config.path]] as const) {
@@ -191,27 +204,17 @@ export function configModuleSource(sources: ConfigSources): string {
   };
   const labels = categories.files.map((file) => file.label);
 
-  const categoryImports =
-    categories.form === "file"
-      ? [`import categories from ${JSON.stringify(categories.path)};`, `const readings = [];`]
-      : [
-          ...categories.files.map((file, index) => `import category${index} from ${JSON.stringify(`${file.path}?category`)};`),
-          `const readings = [${categories.files.map((_, index) => `category${index}`).join(", ")}];`,
-          `const categories = readings.flatMap((reading) => (reading.category ? [reading.category] : []));`,
-        ];
   return [
-    ...categoryImports,
+    ...categories.files.map((file, index) => `import category${index} from ${JSON.stringify(`${file.path}?category`)};`),
+    `const readings = [${categories.files.map((_, index) => `category${index}`).join(", ")}];`,
+    `const categories = readings.flatMap((reading) => (reading.category ? [reading.category] : []));`,
     ...yaml.map((name) => `import ${identifier(name)} from ${JSON.stringify(sources.files[name].path)};`),
     ...imageNames.map((name, index) => `import image${index} from ${JSON.stringify(`${sources.images[name]}?url`)};`),
     `const problems = [...${JSON.stringify(categories.problems)}, ...readings.flatMap((reading) => reading.problems)];`,
     `export const raw = { categories, roles, site, problems };`,
     `export const images = { ${imageNames.map((name, index) => `${JSON.stringify(name)}: image${index}`).join(", ")} };`,
     // Only the categories that could be read are in `raw`: their labels stay aligned with them.
-    `export const origins = { ...${JSON.stringify(origins)}${
-      categories.form === "folder"
-        ? `, categoryFiles: ${JSON.stringify(labels)}.filter((_, index) => readings[index].category)`
-        : ""
-    } };`,
+    `export const origins = { ...${JSON.stringify(origins)}, categoryFiles: ${JSON.stringify(labels)}.filter((_, index) => readings[index].category) };`,
   ].join("\n");
 }
 
@@ -227,16 +230,15 @@ export function describeSources(sources: ConfigSources): { info: string[]; warni
   const folderOf = (label: string) => (label.startsWith(`${EXAMPLE_FOLDER}/`) ? EXAMPLE_FOLDER : own);
 
   const { categories } = sources;
-  const unit = categories.form === "folder" ? `${CATEGORIES_FOLDER}/` : CATEGORIES_FILE;
   const count = categories.form === "folder" ? ` (${categories.files.length} ${categories.files.length === 1 ? "file" : "files"})` : "";
   const info = [
-    `${unit} ← ${folderOf(categories.label)}/${count}`,
+    `${CATEGORIES_FOLDER}/ ← ${folderOf(categories.label)}/${count}`,
     ...CONFIG_FILES.map((name) => `${name} ← ${folderOf(sources.files[name].label)}/`),
   ];
   const warnings = sources.unrecognised.map(
     (name) =>
       `${own}/${name} is not a configuration file and is ignored. ` +
-      `The app reads ${CATEGORIES_FILE} (or ${CATEGORIES_FOLDER}/), ${CONFIG_FILES.join(", ")} and the images they reference.`,
+      `The app reads ${CATEGORIES_FOLDER}/, ${CONFIG_FILES.join(", ")} and the images they reference.`,
   );
   return { info, warnings };
 }

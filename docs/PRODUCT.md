@@ -20,7 +20,7 @@ Live demo: https://progression-radar.netlify.app
 
 | concept     | meaning                                                                                         |
 |-------------|-------------------------------------------------------------------------------------------------|
-| Category    | an area of the path, e.g. Communication or AI Systems. Configured as category files or `categories.yml` |
+| Category    | an area of the path, e.g. Communication or AI Systems. Configured as one Markdown category file per category |
 | Expectation | a skill, behaviour or concept expected at a given level of a category                           |
 | Level       | how far a person is in a category. Level 0 plus every level used by the category's expectations |
 | Role        | a step of the ladder, with the level it requires in each category. Configured in `roles.yml`    |
@@ -56,7 +56,8 @@ Live demo: https://progression-radar.netlify.app
 - Tells adopters, in the build log, which folder each configuration file was read from and which files it does not
   recognise, and names the file and folder of every configuration problem.
 - Moves the customisations of an existing fork to the new layout with `npm run config:migrate`.
-- Converts an existing `categories.yml` into Markdown category files with `npm run config:convert-categories`.
+- Converts an old `categories.yml`, which is no longer read and is reported as a configuration problem, into Markdown
+  category files with `npm run config:convert-categories`, keeping every category key.
 - Records people in dated CSV snapshots on the user's machine (`npm run snapshot:record`), turns a recorded row back
   into a share link (`npm run snapshot:link`) and checks the snapshots against the current configuration
   (`npm run snapshot:check`), including files edited in a spreadsheet. A project skill lets Claude Code drive these
@@ -97,7 +98,7 @@ Live demo: https://progression-radar.netlify.app
 ## Non-goals
 
 - Storing people, history or progress on a server, or any login. Local snapshot files are the user's own.
-- An in-app editor for categories, expectations or roles: they are edited in the configuration files (Markdown category files and YAML).
+- An in-app editor for categories, expectations or roles: they are edited in the configuration files (Markdown category files, and YAML for roles and the site).
 - Being a component library: nothing in `src/` is imported or overridden by other projects (removed in 1.0). The radar
   is used as a tool dependency of an Adopter repository, or as a fork.
 - Comparing several people at once in the app: a link holds one person, and the app does not open snapshots. Reports

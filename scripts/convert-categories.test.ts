@@ -26,7 +26,11 @@ function loadWritten(folder = "config/categories") {
   return parseConfig({ categories: readings.map((reading) => reading.category), roles: null, site: null }).categories;
 }
 
-const yamlConfig = (path = "config/categories.yml") => parseConfig({ categories: parseYaml(read(path)), roles: null, site: null }).categories;
+/** The categories of a categories.yml as the app read them before it stopped reading YAML, legacy "kpis" included. */
+const yamlConfig = (path = "config/categories.yml") => {
+  const raw = (parseYaml(read(path)) as Record<string, unknown>[]).map(({ kpis, ...item }) => (kpis ? { ...item, expectations: kpis } : item));
+  return parseConfig({ categories: raw, roles: null, site: null }).categories;
+};
 
 const trimmed = (categories: ReturnType<typeof yamlConfig>) =>
   categories.map((category) => ({
@@ -221,10 +225,20 @@ describe("convertCategories", () => {
     it("when categories.yml has a configuration problem", async () => {
       write("config/categories.yml", "- key: a\n  name: A\n  expectations:\n    - summary: No level\n- key: a\n  name: Dup\n  expectations: []\n");
       const message = await refusal();
-      expect(message).toContain('config/categories.yml: category "a" expectation #1 needs a "level" that is a positive integer');
+      expect(message).toContain('config/categories.yml entry #1: category "a" expectation #1 needs a "level" that is a positive integer');
       expect(message).toContain('duplicated category key "a"');
       expect(existsSync(join(cwd, "config/categories"))).toBe(false);
       expect(existsSync(join(cwd, "config/categories.yml"))).toBe(true);
+    });
+
+    it("when a category has both \"expectations\" and \"kpis\"", async () => {
+      write("config/categories.yml", "- key: a\n  name: A\n  expectations: []\n  kpis: []\n");
+      expect(await refusal()).toContain('config/categories.yml entry #1: category "a" has both "expectations" and "kpis"; keep only "expectations"');
+    });
+
+    it("naming each mistake by its entry", async () => {
+      write("config/categories.yml", `${SAMPLE.trimEnd()}\n- key: nameless\n  expectations: []\n`);
+      expect(await refusal()).toMatch(/config\/categories\.yml entry #\d+ needs a "key" and a "name"/);
     });
 
     it("when the folder already has categories/", async () => {

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Moves the customisations of a fork out of config.example/ into the configuration folder, after pulling the
-// update that introduced config.example/. Uses Node and the git CLI only; it never stages, commits or fetches.
+// update that introduced config.example/. Uses Node and the git CLI, and the radar's converter for a categories.yml;
+// it never stages, commits or fetches.
 //
 //   npm run config:migrate                      compares with upstream/master and asks before moving
 //   npm run config:migrate -- other/ref         compares with another git ref
@@ -13,6 +14,8 @@ import { createInterface } from "node:readline/promises";
 import { fileURLToPath } from "node:url";
 
 const EXAMPLE = "config.example";
+// No longer read (docs/adr/0006): when it is moved, it is converted into category files.
+const CATEGORIES_FILE = "categories.yml";
 const DEFAULT_REF = "upstream/master";
 const UPSTREAM_URL = "https://github.com/asiermarques/progression-radar.git";
 
@@ -73,6 +76,14 @@ function customisedFiles(cwd, ref) {
   return [...new Set([...changed, ...untracked])].map((path) => relative(EXAMPLE, path)).sort();
 }
 
+/** The converter, loaded through Vite as the `config convert-categories` command does. */
+async function convertWithVite(options) {
+  const { loadConverter } = await import("./load-converter.mjs");
+  const packageRoot = fileURLToPath(new URL("..", import.meta.url));
+  const { convertCategories } = await loadConverter({ packageRoot, cacheDir: join(options.cwd, "node_modules", ".vite") });
+  return convertCategories(options);
+}
+
 async function askToContinue(question) {
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   try {
@@ -86,7 +97,8 @@ async function askToContinue(question) {
 
 /**
  * Moves the customised files of config.example/ to the configuration folder and restores config.example/ from `ref`.
- * Resolves to { files, moved, skipped }. Throws a MigrationError, before changing anything, when a precondition fails.
+ * A moved categories.yml is converted into category files. Resolves to { files, moved, skipped, converted }. Throws a
+ * MigrationError, before changing anything, when a precondition fails.
  */
 export async function migrate({
   cwd = process.cwd(),
@@ -95,6 +107,7 @@ export async function migrate({
   dryRun = false,
   yes = false,
   confirm = askToContinue,
+  convert = convertWithVite,
   log = console.log,
 } = {}) {
   checkPreconditions(cwd, ref);
@@ -102,18 +115,21 @@ export async function migrate({
   const files = customisedFiles(cwd, ref);
   if (files.length === 0) {
     log(`Nothing to migrate: ${EXAMPLE}/ already matches ${ref}.`);
-    return { files, moved: [], skipped: [] };
+    return { files, moved: [], skipped: [], converted: false };
   }
 
+  const hasCategoriesFile = files.includes(CATEGORIES_FILE);
   log(`These files in ${EXAMPLE}/ differ from ${ref}:\n${files.map((file) => `  ${file}`).join("\n")}\n`);
+  if (hasCategoriesFile) log(`${CATEGORIES_FILE} will be converted into ${configDir}/categories/ after it is moved.\n`);
   if (dryRun) {
     log(`Dry run: nothing was changed. Run again without --dry-run to move them to ${configDir}/.`);
-    return { files, moved: [], skipped: [] };
+    return { files, moved: [], skipped: [], converted: false };
   }
-  const question = `Move them to ${configDir}/ and restore ${EXAMPLE}/ from ${ref}? [y/N] `;
+  const conversion = hasCategoriesFile ? `, convert ${CATEGORIES_FILE} into category files` : "";
+  const question = `Move them to ${configDir}/${conversion} and restore ${EXAMPLE}/ from ${ref}? [y/N] `;
   if (!yes && !(await confirm(question))) {
     log("Nothing was changed.");
-    return { files, moved: [], skipped: [] };
+    return { files, moved: [], skipped: [], converted: false };
   }
 
   const moved = [];
@@ -137,6 +153,7 @@ export async function migrate({
   }
 
   if (moved.length > 0) log(`Moved ${moved.length} file(s) to ${configDir}/ and restored ${EXAMPLE}/ from ${ref}.`);
+  const converted = moved.includes(CATEGORIES_FILE) && (await convertMoved({ cwd, configDir, convert, log }));
   log(
     [
       "",
@@ -148,7 +165,23 @@ export async function migrate({
       `  3. Commit the restored ${EXAMPLE}/ with: git add ${EXAMPLE}`,
     ].join("\n"),
   );
-  return { files, moved, skipped };
+  return { files, moved, skipped, converted };
+}
+
+/** Converts the categories.yml just moved; when the converter refuses, says why and what to run once it is fixed. */
+async function convertMoved({ cwd, configDir, convert, log }) {
+  log("");
+  try {
+    await convert({ cwd, configDir, log });
+    return true;
+  } catch (error) {
+    if (error?.name !== "ConversionError") throw error;
+    log(
+      `${configDir}/${CATEGORIES_FILE} was moved but not converted, and the app no longer reads it. ${error.message}\n` +
+        "Fix them and run npm run config:convert-categories.",
+    );
+    return false;
+  }
 }
 
 function parseArguments(argv, env) {

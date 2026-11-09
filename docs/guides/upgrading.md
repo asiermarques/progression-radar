@@ -1,7 +1,8 @@
 # Upgrading
 
 What to do when a new version of the radar comes out, depending on how you run it: as a dependency of an
-[adopter repository](#an-adopter-repository) or as a [fork](#a-fork).
+[adopter repository](#an-adopter-repository) or as a [fork](#a-fork). Both need
+[A categories.yml is no longer read](#a-categoriesyml-is-no-longer-read) if they still have one.
 
 ## An adopter repository
 
@@ -19,9 +20,34 @@ working, and a major version lists what to change in its release notes and in th
 contract, because an adopter repository never imports it. Dependabot or Renovate can open the update for you, and the
 CI (`npm ci && npm run check && npm run build`, see [Deployment](deployment.md)) tells you whether it builds.
 
-Some notes under [A fork](#a-fork) also apply to you when they are about your configuration rather than about
-merging: renamed or reserved category keys, the class names of a custom theme or a build that now fails on
-configuration problems.
+Some notes below also apply to you when they are about your configuration rather than about merging: a
+`categories.yml` that is no longer read, renamed or reserved category keys, the class names of a custom theme or a
+build that now fails on configuration problems.
+
+## A categories.yml is no longer read
+
+The categories are written only as [category files](categories.md), one Markdown file per category in `categories/`.
+If your config folder (in a fork, a separate repository or an adopter repository) still has a `categories.yml`, the
+app, `npm run check` and `npm run build` report it as a configuration problem instead of using the sample categories:
+
+```
+config/categories.yml is no longer read; convert it with npm run config:convert-categories
+```
+
+Convert it once, check the result and delete the backup the converter leaves:
+
+```sh
+npm run config:convert-categories    # writes config/categories/NN-<key>.md and renames the YAML to categories.yml.bak
+npm run check && npm run dev
+rm config/categories.yml.bak
+```
+
+The conversion keeps every category `key`, so existing share links and snapshots keep matching, and it reads the old
+`kpis` list as the expectations. If your folder also has a `categories/` folder, the message says so: delete the YAML
+when the folder already holds your categories, or remove the folder and convert. See
+[Converting an existing categories.yml](categories.md#converting-an-existing-categoriesyml).
+
+## Skills after upgrading
 
 If you copied the snapshots skill for Claude into your repository (see
 [Asking Claude](snapshots.md#asking-claude)), copy it again after upgrading so it matches the commands it runs.
@@ -43,8 +69,9 @@ printf 'node_modules\ndist\n' > .gitignore
 npm run check && npm run dev
 ```
 
-Replace `config/` after `init`, not before: `init` adds every sample file your folder lacks, and next to your own
-`categories.yml` its `categories/` folder would make the configuration invalid (only one of the two may exist).
+Replace `config/` after `init`, not before: `init` adds every sample file your folder lacks, which you do not want
+next to your own files. If your fork still has a `categories.yml`, convert it first
+([A categories.yml is no longer read](#a-categoriesyml-is-no-longer-read)).
 
 - If your configuration already lives in a separate repository (through `PROGRESSION_RADAR_CONFIG_DIR`), that
   repository can be the adopter repository: run the same commands in it instead of in a new folder, moving its files
@@ -68,17 +95,19 @@ problems on the page, or `npm run check` to list them, fix the files they name a
 ### A fork that edited `config.example/categories.yml` (the sample moved to category files)
 
 The sample categories are now Markdown category files in `config.example/categories/` and `config.example/categories.yml`
-is gone. If your fork edited that file, pulling the update reports a modify/delete conflict. Keep your file, then move
-it to your config folder, where it keeps working (`categories.yml` is still supported):
+is gone. If your fork edited that file, pulling the update reports a modify/delete conflict. Keep your file, then let
+`config:migrate` move it to your config folder and convert it into category files:
 
 ```sh
 git pull upstream master                 # reports the conflict on config.example/categories.yml
 git add config.example/categories.yml    # keep your version, then finish the merge with git commit
-npm run config:migrate                   # moves it to config/categories.yml and restores config.example/
+npm run config:migrate                   # moves it to config/, converts it to config/categories/ and restores config.example/
 ```
 
-Until you do, `config.example/` holds both forms and the app reports it as a configuration problem. Afterwards you can
-keep the YAML, or convert it with `npm run config:convert-categories` (see [Categories](categories.md)).
+Until you do, the app reports `config.example/categories.yml is no longer read; move it to your config folder with npm
+run config:migrate`. The conversion keeps every category `key` and leaves the YAML as `config/categories.yml.bak`.
+If it cannot convert (the YAML has a configuration problem, or `config/categories/` already exists), the file is still
+moved to `config/categories.yml` and the command lists what to fix; then run `npm run config:convert-categories`.
 
 ### A fork that edited `config/` (the sample moved to `config.example/`)
 
@@ -131,22 +160,22 @@ A fork that deploys from its own repository and does not migrate still builds, w
 
 The share link now keeps the state in the URL fragment (see [The state in the URL](share-link.md)) and those
 five keys are reserved for its fields. After pulling the update, the app lists any category that uses one of them as a
-configuration error: rename its `key` in `config/categories.yml` (and in `config/roles.yml`). Links that used the old
+configuration error: rename its `key` in its category file (and in `config/roles.yml`). Links that used the old
 key stop matching that category, and the notice says so.
 
 ### A fork with a category key `id`
 
 `id` is reserved by the [snapshots](snapshots.md): it is the column that identifies a person. After pulling the update,
-the app lists a category with that key as a configuration problem. Rename its `key` (in the category file or
-`categories.yml`, and in `roles.yml`). Links that used the old key stop matching that category, and the notice says so.
+the app lists a category with that key as a configuration problem. Rename its `key` (in the category file and in
+`roles.yml`). Links that used the old key stop matching that category, and the notice says so.
 
 ### KPIs are now called expectations
 
 The items of a category are now called expectations: they describe what is expected at a level, they are not
-measured indicators. Nothing breaks: the `kpis` list in `categories.yml` is still read, and the `.kpi*` class names
-and `--kpi-index` are still on the page. To adopt the new names, rename `kpis:` to `expectations:` in your
-`categories.yml` and the `.kpi*` selectors in your `theme.css` to `.expectation*` (e.g. `.kpi-summary` to
-`.expectation-summary`).
+measured indicators. A `kpis` list exists only in an old `categories.yml`, and converting it reads it as the
+expectations ([A categories.yml is no longer read](#a-categoriesyml-is-no-longer-read)). The `.kpi*` class names and
+`--kpi-index` are still on the page; to adopt the new names, rename the `.kpi*` selectors in your `theme.css` to
+`.expectation*` (e.g. `.kpi-summary` to `.expectation-summary`).
 
 ### A fork with a custom theme
 
@@ -166,7 +195,8 @@ it yourself.
 Version 1.0 is a rewrite (Vite, React 19 and TypeScript instead of Create React App, Redux and Bootstrap). Existing
 links keep working, but:
 
-- **Configuration location.** Move `src/data/categories.yml` and `src/data/roles.yml` to `config/`. There are no
+- **Configuration location.** Move `src/data/categories.yml` and `src/data/roles.yml` to `config/`, then convert the
+  categories with `npm run config:convert-categories` (a `categories.yml` is no longer read). There are no
   `.dist` files any more: `config/` is yours and falls back to the sample in `config.example/`.
 - **No component library.** 0.x was an npm library whose components other projects imported. 1.x imports nothing into
   your code: install it as a tool dependency of an adopter repository (see [Getting started](getting-started.md)) or

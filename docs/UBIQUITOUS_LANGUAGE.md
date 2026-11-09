@@ -71,14 +71,14 @@ same concept, use the one in **bold** and avoid the aliases.
 | **Upstream**                | The original repository, which owns `src/` and the **Sample configuration**.                                       | Core, main repo, template                 |
 | **Sample configuration**    | The files in `config.example/`: the demo **Ladder** and the defaults.                                              | Example config, default config, template  |
 | **Config folder**           | The **Adopter**'s folder (`config/` or `PROGRESSION_RADAR_CONFIG_DIR`) whose files replace the sample ones.        | Local config, override folder, custom dir |
-| **Configuration file**      | One of `categories.yml` (or the `categories/` folder of **Category files**, as one unit), `roles.yml`, `site.yml` or `theme.css`, read from the **Config folder** or the sample. | Config entry, setting file                |
+| **Configuration file**      | One of the `categories/` folder of **Category files** (as one unit), `roles.yml`, `site.yml` or `theme.css`, read from the **Config folder** or the sample. | Config entry, setting file                |
 | **Per-file fallback**       | The rule that each **Configuration file** comes from the **Config folder** if present, else from the sample, whole. | Merge, inheritance, overlay              |
 | **Resolved configuration**  | The set of **Configuration files** chosen by the **Per-file fallback** for a build.                                 | Effective config, final config            |
 | **Configuration**           | The validated, typed content of the **Resolved configuration**: **Site**, **Categories** and **Roles**.             | Settings, options                         |
 | **Configuration problem**   | A mistake in a **Configuration file**, named with its file and folder; all of them block rendering and fail tests. | Config error (in prose), warning          |
 | **Site**                    | The deployment's branding settings: title, optional logo and optional footer.                                       | App settings, header config               |
 | **Theme**                   | The colours, fonts and textures of the page; the default one can be overridden by the **Adopter**'s `theme.css`.  | Skin, style, palette                      |
-| **Category file**           | A Markdown file in the `categories/` folder that defines one **Category**: its frontmatter and its **Expectations** grouped under `## Level N`. An alternative to `categories.yml`. | Category document, category page          |
+| **Category file**           | A Markdown file in the `categories/` folder that defines one **Category**: its frontmatter and its **Expectations** grouped under `## Level N`. The only way to write **Categories**: a `categories.yml` is no longer read. | Category document, category page          |
 
 ## Relationships
 
@@ -141,8 +141,8 @@ same concept, use the one in **bold** and avoid the aliases.
   **Configuration problem**.
 - **"KPI" was the wrong word.** A KPI is a measured indicator with a numeric target; what a **Category** lists per
   **Level** is qualitative and is demonstrated, not measured, so it is an **Expectation**. "KPI" survives only as a
-  legacy name: the `kpis:` key in `categories.yml` and the `.kpi*` class names and `--kpi-index` are still accepted so
-  existing configurations and themes keep working. "Expects" is reserved for **Expectations**: a **Role** *requires*
+  legacy name: the converter still reads the `kpis:` key of an old `categories.yml`, and the `.kpi*` class names and
+  `--kpi-index` are still on the page so existing themes keep working. "Expects" is reserved for **Expectations**: a **Role** *requires*
   a **Level**.
 - **"Met" / "meets" / "On target".** The code says `met`, the category nav says "meets <role>" and the summary says
   "On target". They are the same concept: **On target**.

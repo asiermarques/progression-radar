@@ -107,6 +107,38 @@ describe("progression-radar build", () => {
   });
 });
 
+describe("a categories.yml in the Config folder", () => {
+  const yamlLadder = () => {
+    write("config/categories.yml", "- key: comm\n  name: Communication\n  expectations:\n    - summary: Talks\n      level: 1\n");
+    write("config/roles.yml", "- key: r\n  name: R\n  levels: { comm: 1 }\n");
+  };
+
+  it("is a problem for check, which names the converter and does not use the sample's categories", () => {
+    yamlLadder();
+    const { code, err } = run(["check"]);
+    expect(code).toBe(1);
+    expect(err).toContain("config/categories.yml is no longer read; convert it with npm run config:convert-categories");
+    expect(err).not.toContain("references unknown category");
+  });
+
+  it("fails the build without writing dist/", () => {
+    yamlLadder();
+    const { code, err } = run(["build"]);
+    expect(code).toBe(1);
+    expect(err).toContain("config/categories.yml is no longer read");
+    expect(existsSync(join(cwd, "dist"))).toBe(false);
+  });
+
+  it("is valid again once converted, with the same Category keys", () => {
+    yamlLadder();
+    expect(run(["config", "convert-categories"]).code).toBe(0);
+    const { code, out } = run(["check"]);
+    expect(code).toBe(0);
+    expect(out).toContain("The Configuration is valid.");
+    expect(readFileSync(join(cwd, "config", "categories", "01-comm.md"), "utf8")).toContain("key: comm");
+  });
+});
+
 describe("progression-radar init", () => {
   it("copies the Sample configuration to config/ and adds the scripts", () => {
     write("package.json", JSON.stringify({ name: "ladder" }));
