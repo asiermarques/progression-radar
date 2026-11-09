@@ -1,6 +1,7 @@
 # Progression Radar
 
 [![CI](https://github.com/asiermarques/progression-radar/actions/workflows/ci.yml/badge.svg)](https://github.com/asiermarques/progression-radar/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/progression-radar)](https://www.npmjs.com/package/progression-radar)
 [![Netlify Status](https://api.netlify.com/api/v1/badges/940ce5bc-5c80-41e0-8756-96b9e9dfc3e7/deploy-status)](https://app.netlify.com/sites/progression-radar/deploys)
 
 Progression Radar is a simple visualisation tool for career and learning paths. Inspired by Medium's deprecated
