@@ -33,8 +33,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
-      - run: corepack enable
-        if: matrix.manager == 'pnpm'
+      # Only npm: `corepack enable` would also create the pnpm binary, and the two collide (EEXIST).
       - run: npm install --global pnpm
         if: matrix.manager == 'pnpm'
       - run: npm ci
