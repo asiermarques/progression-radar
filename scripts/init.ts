@@ -1,9 +1,11 @@
 // `progression-radar init`: prepares an empty Adopter repository. It copies the whole Sample configuration to
-// config/, adds the npm scripts of a fork to the package.json and keeps `reports/` out of git in the .gitignore. It never
-// overwrites anything that exists.
+// config/, adds the npm scripts of a fork to the package.json, keeps `reports/` out of git in the .gitignore, writes a
+// README.md that links to the guides and copies the skills for Claude Code to .claude/skills/. It never overwrites
+// anything that exists, except the skills, which upstream owns (see skills.ts).
 import { appendFileSync, copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { DEFAULT_CONFIG_FOLDER, EXAMPLE_FOLDER } from "./config-sources.ts";
+import { copySkills } from "./skills.ts";
 
 export class InitError extends Error {
   constructor(message: string) {
@@ -66,6 +68,79 @@ function ignoreReports(cwd: string, log: (line: string) => void): void {
   log(`Added ${REPORTS_IGNORE} to .gitignore: the Reports hold personal data and must not be committed`);
 }
 
+/** The guides the README of an Adopter repository links to, by file name in docs/guides/ of the radar. */
+export const GUIDES: [file: string, title: string, what: string][] = [
+  ["getting-started.md", "Getting started", "the commands and what they read and write"],
+  ["configuration.md", "Configuration", "the files in config/ and how they fall back to the sample"],
+  ["categories.md", "Categories", "one Markdown file per category, with its levels and expectations"],
+  ["roles.md", "Roles", "the levels each role expects"],
+  ["styles.md", "Styles", "colours, fonts and logo"],
+  ["share-link.md", "Share link", "how a person's levels live in the URL"],
+  ["snapshots.md", "Snapshots", "recording people over time, the reports and the skills for Claude Code"],
+  ["deployment.md", "Deployment", "putting the radar online"],
+  ["upgrading.md", "Upgrading", "what to do when a new version comes out"],
+];
+
+/** The repository and the version of the installed radar, from its package.json. */
+function installedRadar(packageRoot: string): { repository: string; version: string } {
+  const { repository, version } = JSON.parse(readFileSync(join(packageRoot, "package.json"), "utf8"));
+  const url = String(typeof repository === "string" ? repository : (repository?.url ?? ""));
+  return { repository: url.replace(/^git\+/, "").replace(/\.git$/, ""), version };
+}
+
+/** Where the guides of the installed version are on GitHub: the tag of that version, so they match what it does. */
+export const guidesUrl = (packageRoot: string): string => {
+  const { repository, version } = installedRadar(packageRoot);
+  return `${repository}/blob/v${version}/docs/guides`;
+};
+
+/** The README.md of a new Adopter repository. */
+export function readme(packageRoot: string): string {
+  const { repository, version } = installedRadar(packageRoot);
+  const guides = guidesUrl(packageRoot);
+  return `# Our ladder
+
+The career ladder of this team, drawn with [Progression Radar](${repository}) as a dependency of this
+repository. It holds only our data: the radar itself is in \`node_modules\` and is upgraded by changing its version.
+
+## Commands
+
+\`\`\`sh
+npm run dev       # the radar with our ladder; the page reloads when config/ changes
+npm run check     # the configuration and the snapshots
+npm run build     # the static site, in dist/
+\`\`\`
+
+\`npx progression-radar --help\` lists every command, the snapshot ones included.
+
+## What is here
+
+- \`config/\`: our ladder (categories, roles, site and styles). A file that is not here comes from the sample of the radar.
+- \`snapshots/\`: dated CSV files with the levels of each person, if we record them. They hold personal data.
+- \`reports/\`: the reports made from the snapshots. Git-ignored, because they hold personal data.
+- \`.claude/skills/\`: the skills that let Claude Code record snapshots and make reports when asked. Upstream owns
+  them: \`npx progression-radar skills\` updates them after an upgrade.
+
+## Guides
+
+The guides of version ${version} of the radar, the one this repository was created with (after upgrading, change the
+version in these links):
+
+${GUIDES.map(([file, title, what]) => `- [${title}](${guides}/${file}): ${what}.`).join("\n")}
+`;
+}
+
+/** Writes README.md when the repository has none. */
+function writeReadme(cwd: string, packageRoot: string, log: (line: string) => void): void {
+  const path = join(cwd, "README.md");
+  if (existsSync(path)) {
+    log("README.md already exists, kept");
+    return;
+  }
+  writeFileSync(path, readme(packageRoot));
+  log("Created README.md with links to the guides");
+}
+
 export function initAdopterRepository({ cwd, packageRoot, log = console.log }: InitOptions): void {
   const packagePath = join(cwd, "package.json");
   if (!existsSync(packagePath)) {
@@ -94,4 +169,6 @@ export function initAdopterRepository({ cwd, packageRoot, log = console.log }: I
   }
 
   ignoreReports(cwd, log);
+  writeReadme(cwd, packageRoot, log);
+  copySkills({ cwd, packageRoot, log });
 }

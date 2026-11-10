@@ -297,16 +297,15 @@ If you use [Claude Code](https://claude.com/claude-code), open it in your reposi
 project skills (in `.claude/skills/`) run the commands for you: `progression-radar-snapshots` records, links and checks
 snapshots, and `progression-radar-report` generates the report and opens it in your browser (also as
 `/progression-radar-report`, optionally followed by what you want, e.g. `/progression-radar-report person_name since
-2027-02-01 against pem`). A fork already has them. In an adopter repository, copy them from the installed radar and
-commit them, so a later change to them reaches you as a diff you can review:
+2027-02-01 against pem`). A fork already has them. In an adopter repository `npx progression-radar init` copies them
+from the installed radar; commit them, so a later change to them reaches you as a diff you can review. After
+[upgrading](upgrading.md#skills-after-upgrading), update them with:
 
 ```sh
-mkdir -p .claude/skills
-cp -R node_modules/progression-radar/.claude/skills/progression-radar-* .claude/skills/
+npx progression-radar skills
 ```
 
-With Yarn Plug'n'Play the installed radar is under `.yarn/unplugged/progression-radar-*/node_modules/progression-radar`.
-Copy it again after [upgrading](upgrading.md#an-adopter-repository). Then ask, for example:
+Then ask, for example:
 
 - "Record Ana's link in today's snapshot" (and paste the link)
 - "Give me the link of Luis in the November snapshot"

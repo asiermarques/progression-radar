@@ -1,11 +1,12 @@
 /// <reference types="vitest/config" />
+import { realpathSync } from "node:fs";
 import { join } from "node:path";
 import type { Plugin, ResolvedConfig } from "vite";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { parse } from "yaml";
 import { readCategoryFile } from "./scripts/category-markdown.ts";
-import { isInsideFolders } from "./scripts/personal-folders.ts";
+import { isInsideFolders, servedFolders } from "./scripts/personal-folders.ts";
 import { resolveSnapshotsFolder, SNAPSHOTS_DIR_VARIABLE } from "./scripts/snapshots.ts";
 import {
   CATEGORIES_FOLDER,
@@ -74,9 +75,11 @@ function configFolder(): Plugin {
     },
     configureServer(server) {
       const { configPath, examplePath } = sources();
-      // The radar itself and the config folder, which may be outside it: nothing else of the directory the command runs
-      // in (the snapshots, for one) is served.
-      server.config.server.fs.allow.splice(0, Infinity, resolved.root, configPath, examplePath);
+      // The radar, its dependencies and the config folder, which may be outside it: nothing else of the directory the
+      // command runs in (the snapshots, for one) is served. What Vite allows by itself is kept (its client, the pnpm
+      // store): in an Adopter repository they are outside the radar, and without them the page stays blank.
+      const allow = server.config.server.fs.allow;
+      allow.splice(0, Infinity, ...servedFolders({ root: resolved.root, cwd: realpathSync(process.cwd()), viteAllow: [...allow], configFolders: [configPath, examplePath], cacheDir: resolved.cacheDir }));
       // In a fork the directory the command runs in is Vite's root, so the Snapshots and the Reports, which hold
       // personal data, would be served by URL or with /@fs/: answer 404 before anything else sees the request.
       const personal = [resolveSnapshotsFolder(process.cwd(), process.env[SNAPSHOTS_DIR_VARIABLE]).path, join(process.cwd(), "reports")];

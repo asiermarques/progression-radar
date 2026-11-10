@@ -26,17 +26,20 @@ npm run dev
 ```
 
 `npx progression-radar init` copies the whole sample configuration to `config/` for you to edit, adds the npm
-scripts to your `package.json` and puts `reports/` in your `.gitignore` (it creates the file, or appends the line and
-leaves the others as they are; the [reports](snapshots.md#reports) hold personal data). It never overwrites a file or a
-script that already exists, so it is safe to run again. Run it after `npm install`: it uses the installed radar, and it stops if there is no `package.json`.
+scripts to your `package.json`, puts `reports/` in your `.gitignore` (it creates the file, or appends the line and
+leaves the others as they are; the [reports](snapshots.md#reports) hold personal data), writes a `README.md` that links
+to these guides on GitHub, for the version you installed, and copies the [skills for Claude Code](snapshots.md#asking-claude)
+to `.claude/skills/`. It never overwrites a file or a script that already exists (the skills excepted: upstream owns
+them and `init` replaces them with those of the installed version), so it is safe to run again. Run it after
+`npm install`: it uses the installed radar, and it stops if there is no `package.json`.
 
 `npm run dev` opens the radar with the sample ladder. Edit the files in `config/` and the page reloads (see
 [Configuration](configuration.md), [Categories](categories.md), [Roles](roles.md) and [Styles](styles.md)).
 
-Then ignore what the commands generate and commit the rest:
+Then ignore what the commands generate (appending to the `.gitignore` that `init` created) and commit the rest:
 
 ```sh
-printf 'node_modules\ndist\n' > .gitignore
+printf 'node_modules\ndist\n' >> .gitignore
 git add . && git commit -m "My ladder"
 ```
 
@@ -48,11 +51,13 @@ The repository ends up like this:
 ```
 my-ladder/
   .gitignore
+  README.md           what is here and links to the guides
   package.json        depends on progression-radar and declares the scripts below
   package-lock.json
   config/             your configuration: categories, roles.yml, site.yml, theme.css
   snapshots/          your snapshots, once you record one (optional, see Snapshots)
   reports/            the reports `npm run snapshot:report` writes (git-ignored)
+  .claude/skills/     the skills for Claude Code (see Snapshots), copied by init
 ```
 
 And the scripts that `init` adds:
@@ -81,7 +86,8 @@ And the scripts that `init` adds:
 - `npm run build` writes `dist/` and `npm run snapshot:report` writes `reports/` in that folder. Nothing is ever
   written inside `node_modules`.
 - The dev server reloads the page when you edit, add or remove a file in `config/` or `config/categories/`, and serves
-  only the radar and your config folder, never `snapshots/`, `reports/` or the rest of the repository.
+  only the radar, its dependencies in `node_modules` and your config folder, never `snapshots/`, `reports/` or the
+  rest of the repository.
 
 ### Package managers
 

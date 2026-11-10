@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // The `progression-radar` command: one entry point for a fork and for an Adopter repository (docs/adr/0005).
 //
-//   progression-radar dev|build|preview|check|init
+//   progression-radar dev|build|preview|check|init|skills
 //   progression-radar snapshot record|link|check|report
 //   progression-radar config convert-categories
 //
@@ -25,7 +25,9 @@ Commands:
   build                                                  Build the static site to dist/
   preview [--host [host]] [--port <port>] [--open [path]]  Serve dist/
   check                                                  Check the Configuration and the Snapshots
-  init                                                   Copy the Sample configuration to config/, add the npm scripts and reports/ to .gitignore
+  init                                                   Copy the Sample configuration to config/, add the npm scripts, reports/ to
+                                                         .gitignore, a README.md with links to the guides and the skills
+  skills                                                 Copy the skills for Claude Code to .claude/skills/, replacing the previous copy
   snapshot record|link|check|report [...]                Record, link to or check Snapshots, or write a Report
   config convert-categories                              Convert categories.yml to a categories/ folder`;
 
@@ -123,6 +125,12 @@ async function main([command, ...args]) {
         if (!(error instanceof InitError)) throw error;
         fail(error.message);
       }
+      return;
+    }
+    case "skills": {
+      if (args.length > 0) fail(`skills takes no options.\n${USAGE}`);
+      const { copySkills } = await importScript("skills.ts", { resolveConfiguration: false });
+      copySkills({ cwd: workingDir, packageRoot });
       return;
     }
     case "snapshot": {

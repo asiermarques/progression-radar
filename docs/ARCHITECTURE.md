@@ -44,8 +44,8 @@ docs/                    PRODUCT, ARCHITECTURE, DESIGN, the glossary, the ADRs a
 scripts/
   config-sources.ts        decides which folder each configuration file is read from (used by vite.config.ts)
   category-markdown.ts     reads one Markdown category file into the raw shape of one category
-  cli.mjs                  the `progression-radar` binary: `dev`, `build`, `preview`, `check`, `snapshot …` and `config convert-categories`
-  init.ts                  `init`: copies config.example/ to config/, adds the npm scripts and `reports/` to the .gitignore, never overwriting
+  cli.mjs                  the `progression-radar` binary: `dev`, `build`, `preview`, `check`, `init`, `skills`, `snapshot …` and `config convert-categories`
+  init.ts                  `init`: copies config.example/ to config/, adds the npm scripts, `reports/` to the .gitignore and a README.md that links to the guides, never overwriting, and runs `skills`
   check-command.ts         `check` (Configuration, then snapshots) and the validation that `build` runs first
   adopter-fixture.mjs      CI and local proof: packs the radar, installs it in a fixture Adopter repository with npm, pnpm or Yarn
   config-migrate.mjs       `npm run config:migrate`: moves a fork's edits out of config.example/ and converts a moved categories.yml
@@ -55,7 +55,8 @@ scripts/
   snapshots.ts             records a Person in a CSV snapshot, turns a row into a Share link, checks snapshots and reads their rows
   report.ts                the data of a Report (pure): what each Person recorded in each Snapshot
   report-html.tsx          renders a Report as one self-contained HTML page with React on the server (no script, CSP `<meta>`)
-  personal-folders.ts      tells the dev server which URLs point into the Snapshots folder and `reports/`, which it never serves
+  personal-folders.ts      what the dev server serves (`fs.allow`) and the URLs into the Snapshots folder and `reports/`, which it never serves
+  skills.ts                `skills` (run by `init`): copies the shipped skills to an Adopter repository; the warning of `check` when they differ
   csv.ts                   hand-written CSV reader and writer (quoting, `,` or `;`, line breaks)
 snapshots/               the user's snapshots (personal data); git-ignored except README.md. Another folder: PROGRESSION_RADAR_SNAPSHOTS_DIR
 reports/                 the Reports `snapshot:report` writes (personal data); git-ignored, never served by the dev server
@@ -95,10 +96,14 @@ working directory (a package installed by pnpm can sit in a read-only store). Ev
 Vite (`runnerImport`), never through Node's type stripping, which does not work inside `node_modules`. `tsc` is not run
 by the `build` subcommand: Upstream's `build` script runs it first.
 
-The dev server serves the radar, the Config folder and `config.example/` only (`server.fs.allow`), so the Snapshots
-folder, `reports/` and the rest of an Adopter repository are never served (ADR 0004, ADR 0007). In a fork the working
-directory is Vite's root, which `fs.allow` does not cover, so a middleware in `vite.config.ts` also answers 404 to any
-URL (including `/@fs/`) into the Snapshots folder or `reports/` (`scripts/personal-folders.ts`).
+The dev server serves the radar, the Config folder, `config.example/`, Vite's cache, the `node_modules` folders the
+radar is installed in and what Vite allows by itself (its client, the pnpm store, the Yarn cache), except a folder that
+holds the working directory (`servedFolders()` in `scripts/personal-folders.ts`, set as `server.fs.allow`). So the
+Snapshots folder, `reports/` and the rest of an Adopter repository are never served (ADR 0004, ADR 0007). In an Adopter
+repository Vite, React and the fonts are outside the radar: without those folders the browser gets a 404 for
+`/@vite/client` and the page stays blank. In a fork the working directory is Vite's root, which `fs.allow` does not
+cover, so a middleware in `vite.config.ts` also answers 404 to any URL (including `/@fs/`) into the Snapshots folder or
+`reports/` (`isInsideFolders()`).
 
 ## Snapshots outside the browser
 
@@ -262,14 +267,17 @@ numbers of levels and still be comparable on the same chart.
 - `scripts/snapshots.test.ts`: recording (new and existing snapshots, refused ids and names, spreadsheet files), the
   Share link of a row, every error and warning of the check and the rows read for a Report (order, filters), on
   temporary folders.
-- `scripts/init.test.ts`: `init` on temporary folders (copy, no overwrite, scripts, the `.gitignore`, errors).
+- `scripts/init.test.ts`: `init` on temporary folders (copy, no overwrite, scripts, the `.gitignore`, the README and
+  its links to guides that exist, the skills, errors). `scripts/skills.test.ts`: copying, replacing and removing the
+  skills, and the warning of `check`.
 - `scripts/check-command.test.ts` and `scripts/cli.test.ts`: `init`, `check`, the failing `build` (every problem listed, no
   `dist/` written, a `categories.yml` in the config folder), `--help`, unknown commands and the folder each command reads and writes, running the real binary from
   an empty folder.
 - `scripts/snapshot-commands.test.ts`: the output and exit codes of the snapshot commands against the resolved
   configuration, including the Report file written.
 - `scripts/report.test.ts` and `scripts/report-html.test.tsx`: the data and the HTML of a Report (escaping, no script,
-  Content-Security-Policy, "not recorded"). `scripts/personal-folders.test.ts`: the URLs the dev server refuses.
+  Content-Security-Policy, "not recorded"). `scripts/personal-folders.test.ts`: the folders the dev server serves in a
+  fork and in an Adopter repository (npm, pnpm, a workspace root) and the URLs it refuses.
 - `App.test.tsx`: rendering and the main interactions (level selection, compare role, debounced URL sync that survives
   a failing history API, summary, selecting a category from the radar, copying the link, editing the link by hand and
   the link notice).
@@ -277,9 +285,11 @@ numbers of levels and still be comparable on the same chart.
 CI (GitHub Actions) runs the tests and the production build on every push and pull request. A second job
 (`adopter-repository`) runs `scripts/adopter-fixture.mjs` with npm, pnpm and Yarn (Plug'n'Play and `node-modules`):
 it packs the radar, installs the tarball in a fixture Adopter repository with a minimal `config/` and a snapshot, runs
-`check`, `build`, `snapshot:link` and `snapshot:report` (whose Report must land in the fixture's `reports/`), starts
-the dev server to see that it reloads on a change in `config/` and does not serve `snapshots/` or `reports/`, and fails
-if anything was written inside the installed radar. Because it installs the packed
+`init` (the scripts, the README, the skills), `check`, `build`, `snapshot:link` and `snapshot:report` (whose Report
+must land in the fixture's `reports/`), starts the dev server and requests the page, every module it imports and every
+font as a browser does (with `Sec-Fetch-Dest`, which Vite answers differently), checks that it reloads on a change in
+`config/` and does not serve `snapshots/`, `reports/` or the fixture's own files, and fails if anything was written
+inside the installed radar. Because it installs the packed
 tarball, it also proves that `files` in `package.json` ships everything the commands need.
 
 ## Releases

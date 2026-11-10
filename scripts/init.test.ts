@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { InitError, initAdopterRepository, SCRIPTS } from "./init";
+import { GUIDES, guidesUrl, InitError, initAdopterRepository, SCRIPTS } from "./init";
 
 let base: string;
 let packageRoot: string;
@@ -25,6 +25,8 @@ beforeEach(() => {
   put(packageRoot, "config.example/roles.yml", "roles");
   put(packageRoot, "config.example/site.yml", "site");
   put(packageRoot, "config.example/categories/01-build.md", "build");
+  put(packageRoot, "package.json", JSON.stringify({ name: "progression-radar", version: "1.3.0", repository: { type: "git", url: "git+https://github.com/asiermarques/progression-radar.git" } }));
+  put(packageRoot, ".claude/skills/progression-radar-report/SKILL.md", "report skill");
   mkdirSync(cwd);
   writeFileSync(join(cwd, "package.json"), JSON.stringify({ name: "ladder", dependencies: { "progression-radar": "^1.0.0" } }));
 });
@@ -132,5 +134,36 @@ describe("init and .gitignore", () => {
     mkdirSync(join(cwd, ".gitignore"));
     expect(init).toThrow(InitError);
     expect(existsSync(join(cwd, "config"))).toBe(false);
+  });
+});
+
+describe("init, the README and the skills", () => {
+  const readme = () => readFileSync(join(cwd, "README.md"), "utf8");
+
+  it("writes a README.md that links to every guide of the installed version on GitHub", () => {
+    init();
+    for (const [file, title] of GUIDES) {
+      expect(readme()).toContain(`[${title}](https://github.com/asiermarques/progression-radar/blob/v1.3.0/docs/guides/${file})`);
+    }
+    expect(lines.join("\n")).toContain("Created README.md");
+  });
+
+  it("links only to guides that exist in the radar", () => {
+    const radar = join(__dirname, "..");
+    for (const [file] of GUIDES) expect(existsSync(join(radar, "docs", "guides", file)), file).toBe(true);
+    expect(guidesUrl(radar)).toMatch(/^https:\/\/github\.com\/asiermarques\/progression-radar\/blob\/v\d+\.\d+\.\d+\/docs\/guides$/);
+  });
+
+  it("never overwrites an existing README.md", () => {
+    writeFileSync(join(cwd, "README.md"), "# Mine\n");
+    init();
+    expect(readme()).toBe("# Mine\n");
+    expect(lines.join("\n")).toContain("README.md already exists, kept");
+  });
+
+  it("copies the skills for Claude Code to .claude/skills/", () => {
+    init();
+    expect(readFileSync(join(cwd, ".claude", "skills", "progression-radar-report", "SKILL.md"), "utf8")).toBe("report skill");
+    expect(lines.join("\n")).toContain("progression-radar-report");
   });
 });

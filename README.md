@@ -62,7 +62,7 @@ snapshots and a `package.json`; you never merge upstream, and upgrading is chang
 mkdir my-ladder && cd my-ladder
 git init && npm init -y
 npm install progression-radar
-npx progression-radar init    # copies the sample ladder to config/ and adds the npm scripts
+npx progression-radar init    # copies the sample ladder to config/, adds the npm scripts, a README and the Claude skills
 npm run dev
 ```
 

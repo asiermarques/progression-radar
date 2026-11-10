@@ -79,4 +79,15 @@ describe("check", () => {
     expect(check()).toBe(0);
     expect(out.join("\n")).toContain("warning");
   });
+
+  it("warns, without failing, when the copied skills do not match the installed radar", () => {
+    const packageRoot = join(root, "..", "radar");
+    mkdirSync(join(packageRoot, ".claude", "skills", "progression-radar-report"), { recursive: true });
+    writeFileSync(join(packageRoot, ".claude", "skills", "progression-radar-report", "SKILL.md"), "new");
+    mkdirSync(join(root, ".claude", "skills", "progression-radar-report"), { recursive: true });
+    writeFileSync(join(root, ".claude", "skills", "progression-radar-report", "SKILL.md"), "old");
+    const code = runCheck({ root, packageRoot, env: {}, io: { out: (line) => out.push(line), err: (line) => err.push(line) } });
+    expect(code).toBe(0);
+    expect(err.join("\n")).toContain("Warning: The skills in .claude/skills/ do not match the installed radar (progression-radar-report)");
+  });
 });

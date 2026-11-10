@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 // Proves that the radar works installed as a dependency: packs it, installs the tarball in a fixture Adopter
-// repository (a package.json, a minimal config/ and a snapshot) with the package manager asked for, and runs the commands.
+// repository (a package.json, a minimal config/ and a snapshot) with the package manager asked for, runs `init` as an
+// adopter would, and runs the commands.
 //
 //   node scripts/adopter-fixture.mjs npm|pnpm|yarn-pnp|yarn-node-modules
 //
-// It fails when a command fails, when dist/ is not in the fixture, when the Report is not in the fixture's reports/, when
-// the dev server does not reload on a change to config/ or serves snapshots/ or reports/, or when anything is written
-// inside the installed radar. Used by CI (docs/ARCHITECTURE.md, "Testing").
+// It fails when a command fails, when `init` does not add the scripts, the README.md and the skills, when dist/ is not
+// in the fixture, when the Report is not in the fixture's reports/, when the dev server fails to serve a module or a
+// font the page loads (requested as a browser does), does not reload on a change to config/ or serves snapshots/,
+// reports/ or another file of the fixture, or when anything is written inside the installed radar. Used by CI
+// (docs/ARCHITECTURE.md, "Testing").
 import { execFileSync, spawn } from "node:child_process";
 import { appendFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -51,6 +54,44 @@ function listing(folder) {
   return found.sort();
 }
 
+/**
+ * Requests the page and every module it imports, and every font or image those modules point to, with the headers a
+ * browser sends (Vite answers a script request differently). Returns what failed, with its status.
+ */
+async function loadLikeABrowser(url) {
+  const request = (path, destination) => fetch(url + path, { headers: { "Sec-Fetch-Dest": destination, Accept: destination === "document" ? "text/html" : "*/*" } });
+  const failures = [];
+  const page = await request("/", "document");
+  if (!page.ok) return [`${page.status} /`];
+  const html = await page.text();
+  const queue = [...html.matchAll(/<script[^>]*\ssrc="([^"]+)"/g)].map((match) => new URL(match[1], `${url}/`).pathname);
+  const assets = new Set();
+  const seen = new Set();
+  while (queue.length > 0) {
+    const path = queue.shift();
+    if (seen.has(path)) continue;
+    seen.add(path);
+    const response = await request(path, "script");
+    if (!response.ok) {
+      failures.push(`${response.status} ${path}`);
+      continue;
+    }
+    const code = await response.text();
+    if (path.includes("/.vite/deps/")) continue; // a pre-bundled dependency: its chunks are imported the same way
+    const imports = [...code.matchAll(/^\s*(?:import|export)\b[^"'`;]*?["']([^"']+)["']/gm), ...code.matchAll(/\bimport\(\s*["']([^"']+)["']\s*\)/g)];
+    for (const [, specifier] of imports) {
+      if (specifier.startsWith("/") || specifier.startsWith(".")) queue.push(new URL(specifier, url + path).pathname + new URL(specifier, url + path).search);
+    }
+    for (const [, asset] of code.matchAll(/url\(\\?["']?(\/[^"')\\]+)/g)) assets.add(asset);
+  }
+  for (const asset of assets) {
+    const response = await request(asset, /\.(woff2?|ttf|otf)(\?|$)/.test(asset) ? "font" : "image");
+    if (!response.ok) failures.push(`${response.status} ${asset}`);
+  }
+  if (![...seen].some((path) => path.includes("/@vite/client")) || seen.size < 10) failures.push(`only ${seen.size} modules were found: ${[...seen].join(", ")}`);
+  return failures;
+}
+
 try {
   step("pack the radar");
   const tarball = join(work, JSON.parse(run("npm", ["pack", "--json", "--ignore-scripts", "--pack-destination", work], { cwd: radar }))[0].filename);
@@ -60,7 +101,8 @@ try {
       ([name, command = name]) => [name, `progression-radar ${command}`],
     ),
   );
-  writeFileSync(join(fixture, "package.json"), JSON.stringify({ name: "ladder", private: true, version: "0.0.0", scripts }, null, 2));
+  // No scripts: `init` adds them.
+  writeFileSync(join(fixture, "package.json"), JSON.stringify({ name: "ladder", private: true, version: "0.0.0" }, null, 2));
   // A minimal Config folder: the other files come from the Sample configuration. "fixture-role" shows up in the build.
   writeFileSync(join(fixture, "config", "roles.yml"), "- key: fixture-role\n  name: Fixture role\n  levels: { build: 2 }\n");
   writeFileSync(join(fixture, "snapshots", "2026-11-07.csv"), "id,name,role,build\nana-garcia,Ana García,fixture-role,2\n");
@@ -80,6 +122,29 @@ try {
     .filter(existsSync)
     .map((path) => realpathSync(path));
   const before = installed.flatMap(listing);
+
+  step("init");
+  const exec = (...args) => run(bin, yarn ? args : manager === "npm" ? ["exec", "--", ...args] : ["exec", ...args]);
+  exec("progression-radar", "init");
+  const manifest = JSON.parse(readFileSync(join(fixture, "package.json"), "utf8"));
+  if (JSON.stringify(manifest.scripts) !== JSON.stringify(scripts)) fail(`init did not add the scripts:\n${JSON.stringify(manifest.scripts, null, 2)}`);
+  if (!readFileSync(join(fixture, "config", "roles.yml"), "utf8").includes("fixture-role")) fail("init overwrote config/roles.yml");
+  if (!readFileSync(join(fixture, ".gitignore"), "utf8").split("\n").includes("reports/")) fail("init did not add reports/ to .gitignore");
+  const { version } = JSON.parse(readFileSync(join(radar, "package.json"), "utf8"));
+  const readme = readFileSync(join(fixture, "README.md"), "utf8");
+  if (!readme.includes(`https://github.com/asiermarques/progression-radar/blob/v${version}/docs/guides/getting-started.md`)) {
+    fail("the README.md that init writes does not link to the guides of the installed version");
+  }
+  const shippedSkills = readdirSync(join(radar, ".claude", "skills")).filter((name) => name.startsWith("progression-radar-"));
+  for (const name of shippedSkills) {
+    const copied = join(fixture, ".claude", "skills", name, "SKILL.md");
+    if (!existsSync(copied) || readFileSync(copied, "utf8") !== readFileSync(join(radar, ".claude", "skills", name, "SKILL.md"), "utf8")) {
+      fail(`init did not copy the skill ${name} to .claude/skills/`);
+    }
+  }
+  if (!exec("progression-radar", "skills").includes("up to date")) fail("progression-radar skills does not see the copied skills as up to date");
+  // The dev server test adds this Category file back.
+  rmSync(join(fixture, "config", "categories", "10-people.md"));
 
   const script = (name, ...args) => run(bin, yarn ? [name, ...args] : ["run", name, ...(manager === "npm" && args.length ? ["--", ...args] : args)]);
 
@@ -109,7 +174,7 @@ try {
     fail("the Report does not have the Person of the snapshot, or has a script, or has no Content-Security-Policy");
   }
 
-  step("dev server reloads on config/ changes and does not serve snapshots/ or reports/");
+  step("dev server serves the page as a browser loads it, reloads on config/ changes and serves nothing else of the fixture");
   const port = 4300 + MANAGERS.indexOf(manager);
   const dev = spawn(bin, yarn ? ["dev", "--port", String(port)] : ["run", "dev", ...(manager === "npm" ? ["--"] : []), "--port", String(port)], { cwd: fixture, stdio: ["ignore", "inherit", "inherit"], detached: true });
   const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -120,14 +185,19 @@ try {
       if (attempt > 60) fail("the dev server did not start");
       await wait(500);
     }
+    const failures = await loadLikeABrowser(url);
+    if (failures.length > 0) fail(`the dev server did not serve what the page loads, so it stays blank:\n${failures.join("\n")}`);
+    for (const file of ["package.json", "README.md"]) {
+      const response = await fetch(`${url}/@fs${join(realpathSync(fixture), file)}`, { headers: { "Sec-Fetch-Dest": "script" } });
+      if (response.ok) fail(`the dev server served ${file} of the fixture`);
+    }
     const socket = new WebSocket(`ws://localhost:${port}/`, "vite-hmr");
     let reloads = 0;
     socket.onmessage = (event) => {
       if (JSON.parse(event.data).type === "full-reload") reloads++;
     };
     await new Promise((resolve) => (socket.onopen = resolve));
-    mkdirSync(join(fixture, "config", "categories"));
-    cpSync(join(radar, "config.example", "categories", "01-build.md"), join(fixture, "config", "categories", "01-build.md"));
+    cpSync(join(radar, "config.example", "categories", "10-people.md"), join(fixture, "config", "categories", "10-people.md"));
     await wait(2000);
     if (reloads === 0) fail("the page did not reload when a Category file was added to config/categories/");
     writeFileSync(join(fixture, "config", "roles.yml"), "- key: fixture-role\n  name: Fixture role changed\n  levels: { build: 2 }\n");

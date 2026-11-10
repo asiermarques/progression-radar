@@ -29,6 +29,15 @@ adopter repository created with an earlier version has neither the script nor th
 - add `"snapshot:report": "progression-radar snapshot report"` to the `scripts` of your `package.json`, and
 - add `reports/` to your `.gitignore`, because a report gathers more personal data than a share link.
 
+### Skills, README and the dev server (1.3.0)
+
+- `npx progression-radar skills` is new, and `init` runs it: it copies the skills for Claude Code to `.claude/skills/`.
+  If you copied them by hand, run it once and commit the result (see [Skills after upgrading](#skills-after-upgrading)).
+- `init` writes a `README.md` with links to the guides when your repository has none. Run `npx progression-radar init`
+  to get it; it never overwrites your own README.
+- `npm run dev` in an adopter repository showed a blank page (the browser got a 404 for Vite's client and a 403 for the
+  fonts). It works now; you change nothing.
+
 Some notes below also apply to you when they are about your configuration rather than about merging: a
 `categories.yml` that is no longer read, renamed or reserved category keys, the class names of a custom theme or a
 build that now fails on configuration problems.
@@ -58,10 +67,16 @@ when the folder already holds your categories, or remove the folder and convert.
 
 ## Skills after upgrading
 
-If you copied the skills for Claude into your repository (see [Asking Claude](snapshots.md#asking-claude)), copy them
-again after upgrading so they match the commands they run. Since 1.2.0 the report has its own skill,
-`progression-radar-report`, and `progression-radar-snapshots` no longer makes reports: copy both
-(`progression-radar-*`).
+The skills for Claude Code in `.claude/skills/` (see [Asking Claude](snapshots.md#asking-claude)) drive the commands of
+the version they came with. Update them after upgrading and commit the result, so you can review what changed:
+
+```sh
+npx progression-radar skills    # replaces the progression-radar-* skills with those of the installed version
+```
+
+`npm run check` warns while they do not match the installed radar. It leaves your other skills alone and removes a
+`progression-radar-*` skill the radar no longer ships. Since 1.2.0 the report has its own skill,
+`progression-radar-report`, and `progression-radar-snapshots` no longer makes reports.
 
 ## From a fork to an adopter repository
 
@@ -73,10 +88,10 @@ repository next to the fork, let `init` add the scripts, and then replace the sa
 mkdir my-ladder && cd my-ladder
 git init && npm init -y
 npm install progression-radar
-npx progression-radar init                  # adds the npm scripts (and a copy of the sample in config/)
+npx progression-radar init                  # adds the npm scripts, the README, the skills (and a copy of the sample in config/)
 rm -rf config && cp -R ../my-fork/config config
 cp -R ../my-fork/snapshots snapshots        # only if you keep snapshots
-printf 'node_modules\ndist\n' > .gitignore
+printf 'node_modules\ndist\n' >> .gitignore
 npm run check && npm run dev
 ```
 
